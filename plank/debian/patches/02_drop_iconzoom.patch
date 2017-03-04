@@ -1,0 +1,257 @@
+Disable icon-zoom due possible patent infringement
+https://www.google.com/patents/US7434177
+
+=== modified file 'data/ui/preferences.ui'
+--- old/data/ui/preferences.ui	2016-02-16 12:03:44 +0000
++++ new/data/ui/preferences.ui	2016-02-17 17:02:23 +0000
+@@ -42,13 +42,6 @@ along with plank.  If not, see <http://w
+     <property name="upper">2500</property>
+     <property name="step_increment">50</property>
+   </object>
+-  <object class="GtkAdjustment" id="adj_zoom_percent">
+-    <property name="lower">100</property>
+-    <property name="upper">200</property>
+-    <property name="value">150</property>
+-    <property name="step_increment">5</property>
+-    <property name="page_increment">10</property>
+-  </object>
+   <template class="PlankPreferencesWindow" parent="GtkWindow">
+     <property name="can_focus">False</property>
+     <property name="resizable">False</property>
+@@ -271,45 +264,6 @@ along with plank.  If not, see <http://w
+                 <property name="width">2</property>
+               </packing>
+             </child>
+-            <child>
+-              <object class="GtkScale" id="s_zoom_percent">
+-                <property name="visible">True</property>
+-                <property name="can_focus">True</property>
+-                <property name="adjustment">adj_zoom_percent</property>
+-                <property name="digits">0</property>
+-                <property name="value_pos">right</property>
+-              </object>
+-              <packing>
+-                <property name="left_attach">3</property>
+-                <property name="top_attach">6</property>
+-              </packing>
+-            </child>
+-            <child>
+-              <object class="GtkSwitch" id="sw_zoom_enabled">
+-                <property name="visible">True</property>
+-                <property name="can_focus">True</property>
+-                <property name="halign">start</property>
+-                <property name="valign">center</property>
+-              </object>
+-              <packing>
+-                <property name="left_attach">2</property>
+-                <property name="top_attach">6</property>
+-              </packing>
+-            </child>
+-            <child>
+-              <object class="GtkLabel" id="l_iconzoom">
+-                <property name="visible">True</property>
+-                <property name="can_focus">False</property>
+-                <property name="halign">end</property>
+-                <property name="label" translatable="yes">Icon Zoom:</property>
+-                <property name="justify">right</property>
+-              </object>
+-              <packing>
+-                <property name="left_attach">0</property>
+-                <property name="top_attach">6</property>
+-                <property name="width">2</property>
+-              </packing>
+-            </child>
+             <child>
+               <object class="GtkSwitch" id="sw_primary_display">
+                 <property name="visible">True</property>
+
+=== modified file 'lib/Factories/AbstractMain.vala'
+--- old/lib/Factories/AbstractMain.vala	2016-02-15 20:43:51 +0000
++++ new/lib/Factories/AbstractMain.vala	2016-02-17 17:02:23 +0000
+@@ -245,6 +245,8 @@ namespace Plank
+ 			if (Gtk.Widget.get_default_direction () == Gtk.TextDirection.RTL)
+ 				message ("+ RTL support enabled");
+ 			
++			message ("+ Icon-Zoom support disabled ( Thanks to https://www.google.com/patents/US7434177 )");
++			
+ 			internal_quarks_initialize ();
+ 			environment_initialize ();
+ 			
+
+=== modified file 'lib/PositionManager.vala'
+--- old/lib/PositionManager.vala	2016-02-15 20:11:24 +0000
++++ new/lib/PositionManager.vala	2016-02-17 17:12:29 +0000
+@@ -201,10 +201,6 @@ namespace Plank
+ 			case "Monitor":
+ 				prefs_monitor_changed ();
+ 				break;
+-			case "ZoomPercent":
+-			case "ZoomEnabled":
+-				prefs_zoom_changed ();
+-				break;
+ 			default:
+ 				// Nothing important for us changed
+ 				break;
+@@ -465,8 +461,8 @@ namespace Plank
+ 			}
+ 			
+ 			IconSize = int.min (MaxIconSize, prefs.IconSize);
+-			ZoomPercent = (screen_is_composited ? prefs.ZoomPercent / 100.0 : 1.0);
+-			ZoomIconSize = (screen_is_composited && prefs.ZoomEnabled ? (int) Math.round (IconSize * ZoomPercent) : IconSize);
++			ZoomPercent = 1.0;
++			ZoomIconSize = IconSize;
+ 			
+ 			var scaled_icon_size = IconSize / 10.0;
+ 			
+@@ -501,14 +497,6 @@ namespace Plank
+ 				extra_hide_offset = 0;
+ 		}
+ 		
+-		void prefs_zoom_changed ()
+-		{
+-			unowned DockPreferences prefs = controller.prefs;
+-			
+-			ZoomPercent = (screen_is_composited ? prefs.ZoomPercent / 100.0 : 1.0);
+-			ZoomIconSize = (screen_is_composited && prefs.ZoomEnabled ? (int) Math.round (IconSize * ZoomPercent) : IconSize);
+-		}
+-		
+ 		/**
+ 		 * Find an appropriate MaxIconSize
+ 		 */
+@@ -887,9 +875,9 @@ namespace Plank
+ 			// We need a number that is 1 when ZoomIn is 0, and ZoomPercent when ZoomIn is 1.
+ 			// Then we treat this as if it were the ZoomPercent for the rest of the calculation.
+ 			bool expand_for_drop = (controller.drag_manager.ExternalDragActive && !prefs.LockItems);
+-			bool zoom_enabled = prefs.ZoomEnabled;
++			bool zoom_enabled = false;
+ 			double zoom_in_progress = (zoom_enabled || expand_for_drop ? renderer.zoom_in_progress : 0.0);
+-			double zoom_in_percent = (zoom_enabled ? 1.0 + (ZoomPercent - 1.0) * zoom_in_progress : 1.0);
++			double zoom_in_percent = ZoomPercent;
+ 			double zoom_icon_size = ZoomIconSize;
+ 			
+ 			foreach (unowned DockItem item in items) {
+
+=== modified file 'lib/Widgets/PreferencesWindow.vala'
+--- old/lib/Widgets/PreferencesWindow.vala	2016-02-17 08:02:49 +0000
++++ new/lib/Widgets/PreferencesWindow.vala	2016-02-17 17:02:23 +0000
+@@ -48,8 +48,6 @@ namespace Plank
+ 		Gtk.SpinButton sp_unhide_delay;
+ 		[GtkChild]
+ 		Gtk.Scale s_offset;
+-		[GtkChild]
+-		Gtk.Scale s_zoom_percent;
+ 		
+ 		[GtkChild]
+ 		Gtk.Adjustment adj_hide_delay;
+@@ -59,8 +57,6 @@ namespace Plank
+ 		Gtk.Adjustment adj_iconsize;
+ 		[GtkChild]
+ 		Gtk.Adjustment adj_offset;
+-		[GtkChild]
+-		Gtk.Adjustment adj_zoom_percent;
+ 		
+ 		[GtkChild]
+ 		Gtk.Switch sw_hide;
+@@ -78,8 +74,6 @@ namespace Plank
+ 		Gtk.Switch sw_lock_items;
+ 		[GtkChild]
+ 		Gtk.Switch sw_pressure_reveal;
+-		[GtkChild]
+-		Gtk.Switch sw_zoom_enabled;
+ 		
+ 		[GtkChild]
+ 		Gtk.IconView view_docklets;
+@@ -184,12 +178,6 @@ namespace Plank
+ 			case "UnhideDelay":
+ 				adj_unhide_delay.value = prefs.UnhideDelay;
+ 				break;
+-			case "ZoomEnabled":
+-				sw_zoom_enabled.set_active (prefs.ZoomEnabled);
+-				break;
+-			case "ZoomPercent":
+-				adj_zoom_percent.value = prefs.ZoomPercent;
+-				break;
+ 			// Ignored settings
+ 			case "DockItems":
+ 				break;
+@@ -285,17 +273,6 @@ namespace Plank
+ 			prefs.PressureReveal = ((Gtk.Switch) widget).get_active ();
+ 		}
+ 		
+-		void zoom_enabled_toggled (GLib.Object widget, ParamSpec param)
+-		{
+-			if (((Gtk.Switch) widget).get_active ()) {
+-				prefs.ZoomEnabled = true;
+-				s_zoom_percent.sensitive = true;
+-			} else {
+-				prefs.ZoomEnabled = false;
+-				s_zoom_percent.sensitive = false;
+-			}
+-		}
+-		
+ 		void iconsize_changed (Gtk.Adjustment adj)
+ 		{
+ 			prefs.IconSize = (int) adj.value;
+@@ -316,11 +293,6 @@ namespace Plank
+ 			prefs.UnhideDelay = (int) adj.value;
+ 		}
+ 		
+-		void zoom_percent_changed (Gtk.Adjustment adj)
+-		{
+-			prefs.ZoomPercent = (int) adj.value;
+-		}
+-		
+ 		void monitor_changed (Gtk.ComboBox widget)
+ 		{
+ 			prefs.Monitor = ((Gtk.ComboBoxText) widget).get_active_text ();
+@@ -338,7 +310,6 @@ namespace Plank
+ 			cb_display_plug.changed.connect (monitor_changed);
+ 			adj_iconsize.value_changed.connect (iconsize_changed);
+ 			adj_offset.value_changed.connect (offset_changed);
+-			adj_zoom_percent.value_changed.connect (zoom_percent_changed);
+ 			sw_hide.notify["active"].connect (hide_toggled);
+ 			sw_primary_display.notify["active"].connect (primary_display_toggled);
+ 			sw_workspace_only.notify["active"].connect (workspace_only_toggled);
+@@ -347,7 +318,6 @@ namespace Plank
+ 			sw_show_unpinned.notify["active"].connect (show_unpinned_toggled);
+ 			sw_lock_items.notify["active"].connect (lock_items_toggled);
+ 			sw_pressure_reveal.notify["active"].connect (pressure_reveal_toggled);
+-			sw_zoom_enabled.notify["active"].connect (zoom_enabled_toggled);
+ 			cb_alignment.changed.connect (alignment_changed);
+ 			cb_items_alignment.changed.connect (items_alignment_changed);
+ 		}
+@@ -364,7 +334,6 @@ namespace Plank
+ 			cb_display_plug.changed.disconnect (monitor_changed);
+ 			adj_iconsize.value_changed.disconnect (iconsize_changed);
+ 			adj_offset.value_changed.disconnect (offset_changed);
+-			adj_zoom_percent.value_changed.disconnect (zoom_percent_changed);
+ 			sw_hide.notify["active"].disconnect (hide_toggled);
+ 			sw_primary_display.notify["active"].disconnect (primary_display_toggled);
+ 			sw_workspace_only.notify["active"].disconnect (workspace_only_toggled);
+@@ -373,7 +342,6 @@ namespace Plank
+ 			sw_show_unpinned.notify["active"].disconnect (show_unpinned_toggled);
+ 			sw_lock_items.notify["active"].disconnect (lock_items_toggled);
+ 			sw_pressure_reveal.notify["active"].disconnect (pressure_reveal_toggled);
+-			sw_zoom_enabled.notify["active"].disconnect (zoom_enabled_toggled);
+ 			cb_alignment.changed.disconnect (alignment_changed);
+ 			cb_items_alignment.changed.disconnect (items_alignment_changed);
+ 		}
+@@ -412,9 +380,7 @@ namespace Plank
+ 			
+ 			adj_iconsize.value = prefs.IconSize;
+ 			adj_offset.value = prefs.Offset;
+-			adj_zoom_percent.value = prefs.ZoomPercent;
+ 			s_offset.sensitive = (prefs.Alignment == Gtk.Align.CENTER);
+-			s_zoom_percent.sensitive = prefs.ZoomEnabled;
+ 			sw_hide.set_active (prefs.HideMode != HideType.NONE);
+ 			sw_primary_display.set_active (prefs.Monitor == "");
+ 			sw_workspace_only.set_active (prefs.CurrentWorkspaceOnly);
+@@ -423,7 +389,6 @@ namespace Plank
+ 			sw_show_unpinned.set_active (!prefs.PinnedOnly);
+ 			sw_lock_items.set_active (prefs.LockItems);
+ 			sw_pressure_reveal.set_active (prefs.PressureReveal);
+-			sw_zoom_enabled.set_active (prefs.ZoomEnabled);
+ 			cb_alignment.active_id = ((int) prefs.Alignment).to_string ();
+ 			cb_items_alignment.active_id = ((int) prefs.ItemsAlignment).to_string ();
+ 			cb_items_alignment.sensitive = (prefs.Alignment == Gtk.Align.FILL);
+
