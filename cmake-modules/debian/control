@@ -1,0 +1,16 @@
+Source: cmake-elementary
+Section: libs
+Priority: extra
+Maintainer: Corentin Noël <corentin@elementary.io>
+Build-Depends: cmake,
+               debhelper (>= 9),
+Standards-Version: 3.9.5
+Homepage: https://code.launchpad.net/~elementary-os/+junk/cmake-modules
+Vcs-Bzr: lp:~elementary-os/+junk/cmake-modules
+
+Package: cmake-elementary
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: Extra CMake utility modules for elementary.
+ Includes modules for Vala and translations.

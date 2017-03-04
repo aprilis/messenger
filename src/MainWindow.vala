@@ -1,0 +1,129 @@
+using Gtk;
+using Gdk;
+
+namespace Ui {
+
+    public class MainWindow : Gtk.Window {
+    
+         //Stylesheet taken from Birdie's source
+         private const string ELEMENTARY_STYLESHEET = """
+             @define-color colorPrimary #55ACEE;
+             .titlebar .linked .button {
+                 border-radius: 0;
+                 padding: 12px 10px;
+                 border-top-width: 0;
+                 box-shadow: none;
+             }
+             .favorite-pink {
+                 color: #E32550;
+             }
+             .favorite-grey {
+                 color: #B0B0B0;
+             }
+              .white-box {
+                 background: white;
+              }
+          """;
+          
+        private const int TRANSITION = 100;
+          
+        private Stack stack;
+        
+        private List<Screen> screens;
+        
+        public Screen current { get; private set; default = null; }
+    
+        public HeaderBar header { get; private set; }
+        
+        public Welcome welcome { get; private set; }
+        
+        public SignIn sign_in { get; private set; }
+        
+        public SignUp sign_up { get; private set; }
+        
+        public ThreadsScreen threads { get; private set; }    
+        
+        public PasswordScreen password { get; private set; }
+        
+        private void set_current_screen (Screen screen) {
+            if (current != null) {
+                var prev = current;
+                Timeout.add (TRANSITION, () => {
+                    prev.hide ();
+                    return false;
+                });
+            }
+            current = screen;
+            if (current == null) {
+                return;
+            }
+            current.show ();
+            set_focus (null);
+            header.title = current.title;
+            stack.visible_child = screen.widget;
+        }
+        
+        private void add_screen (Screen screen) {
+            screens.append (screen);
+            stack.add_named (screen.widget, screen.name);
+            screen.notify ["title"].connect ((s, p) => {
+                if (current != null) {
+                    header.title = current.title;
+                }
+            });
+            screen.change_screen.connect (set_screen);
+        }
+        
+        public void set_screen (string name) {
+            print ("set screen %s\n", name);
+            bool found = false;
+            foreach (var s in screens) {
+                if (s.name == name) {
+                    set_current_screen (s);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                warning ("Unknown screen name: %s\n", name);
+            }
+        }
+        
+        public MainWindow (Fb.App app) {                    
+            header = new HeaderBar ();
+            header.subtitle = "Facebook Messenger";
+            set_titlebar (header);
+
+            stack = new Stack ();
+            stack.transition_type = StackTransitionType.SLIDE_LEFT_RIGHT;
+            stack.transition_duration = TRANSITION;
+            add (stack);
+            
+            welcome = new Welcome ();
+            sign_in = new SignIn ();
+            sign_in.log_in.connect (app.log_in);
+            sign_up = new SignUp ();
+            threads = new ThreadsScreen (app, this);
+            password = new PasswordScreen ();
+            password.done.connect ((pass) => app.log_in (null, pass));
+            password.log_out.connect (() => app.log_out ());
+            add_screen (welcome);
+            add_screen (sign_in);
+            add_screen (sign_up);
+            add_screen (threads);
+            add_screen (password);
+            
+            focus_in_event.connect ((event) => {
+                 set_focus (null);
+                 return false;
+            });
+            show.connect ((event) => {
+                set_current_screen (current);
+            });
+            
+            Granite.Widgets.Utils.set_theming_for_screen (get_screen (), ELEMENTARY_STYLESHEET,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);       
+        }   
+    }
+
+}

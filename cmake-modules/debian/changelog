@@ -1,0 +1,5 @@
+cmake-elementary (0.1.0) UNRELEASED; urgency=low
+
+  * Initial release.
+
+ -- Corentin Noël <corentin@elementary.io>  Mon, 21 Dec 2015 14:02:50 +0100

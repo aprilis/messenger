@@ -1,0 +1,52 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cmake-elementary
+Source: https://code.launchpad.net/~elementary-os/+junk/cmake-modules
+
+Files: src/FindGirCompiler.cmake
+       src/FindVala.cmake
+       src/ValaVersion.cmake
+Copyright: 2009-2010 Jakob Westhoff
+License: GPL-3
+ This file may be licensed under the terms of the
+ GNU General Public License Version 3 (the ``GPL''),
+ or (at your option) any later version.
+ .
+ Software distributed under the License is distributed
+ on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ express or implied. See the GPL for the specific language
+ governing rights and limitations.
+ .
+ On Debian/Ubuntu systems, the full text of the GPL v3 can be found in
+ `/usr/share/common-licenses/GPL-3'
+
+Files: src/Venom.cmake
+Copyright: 2013 Venom authors and contributors
+License: GPL-3
+ This file may be licensed under the terms of the
+ GNU General Public License Version 3 (the ``GPL''),
+ or (at your option) any later version.
+ .
+ Software distributed under the License is distributed
+ on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ express or implied. See the GPL for the specific language
+ governing rights and limitations.
+ .
+ On Debian/Ubuntu systems, the full text of the GPL v3 can be found in
+ `/usr/share/common-licenses/GPL-3'
+
+Files: src/ValaPrecompile.cmake
+Copyright: 2009-2010 Jakob Westhoff,
+           2012-2016 elementary LLC.
+License: GPL-3
+ This file may be licensed under the terms of the
+ GNU General Public License Version 3 (the ``GPL''),
+ or (at your option) any later version.
+ .
+ Software distributed under the License is distributed
+ on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ express or implied. See the GPL for the specific language
+ governing rights and limitations.
+ .
+ On Debian/Ubuntu systems, the full text of the GPL v3 can be found in
+ `/usr/share/common-licenses/GPL-3'
+
