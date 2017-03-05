@@ -44,6 +44,8 @@ namespace Ui {
         public ThreadsScreen threads { get; private set; }    
         
         public PasswordScreen password { get; private set; }
+
+        public LoadingScreen loading { get; private set; }
         
         private void set_current_screen (Screen screen) {
             if (current != null) {
@@ -74,7 +76,7 @@ namespace Ui {
             screen.change_screen.connect (set_screen);
         }
         
-        public void set_screen (string name) {
+        public new void set_screen (string name) {
             print ("set screen %s\n", name);
             bool found = false;
             foreach (var s in screens) {
@@ -107,11 +109,13 @@ namespace Ui {
             password = new PasswordScreen ();
             password.done.connect ((pass) => app.log_in (null, pass));
             password.log_out.connect (() => app.log_out ());
+            loading = new LoadingScreen (app);
             add_screen (welcome);
             add_screen (sign_in);
             add_screen (sign_up);
-            add_screen (threads);
             add_screen (password);
+            add_screen (loading);
+            add_screen (threads);
             
             focus_in_event.connect ((event) => {
                  set_focus (null);

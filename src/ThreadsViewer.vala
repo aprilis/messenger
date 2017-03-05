@@ -137,7 +137,7 @@ namespace Ui {
             items = new List<ViewerItem> ();
         }
         
-        public void set_data (Fb.Data data) {
+        public new void set_data (Fb.Data data) {
             data.new_thread.connect (add_item);
         }
         

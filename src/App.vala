@@ -230,6 +230,7 @@ namespace Fb {
         
         void auth_done () {
             data = new Data (session, socket_client, api);
+            window.set_screen ("loading");
             data.new_message.connect (message_notification);
             data.unread_count.connect (update_unread_count);
             data.new_thread.connect ((thread) => {
@@ -244,7 +245,6 @@ namespace Fb {
                 }
             });
             
-            window.set_screen ("threads");
             conversation.reload_all ();
             api.contacts_func ();
             api.threads_func (THREADS_COUNT);
@@ -317,6 +317,7 @@ namespace Fb {
                 window.set_screen ("welcome");
                 remove_heads ();
                 conversation.log_out ();
+                data.delete_files ();
                 user_name = null;
                 data = null;
                 api.disconnect ();
@@ -331,7 +332,7 @@ namespace Fb {
             }
         }
         
-        public void log_in (string username, string password) {
+        public void log_in (string? username, string password) {
             if (username != null && !(username in confirmed_users)) {
                 var dialog = new MessageDialog (window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
                     "Please note that this is NOT an official Facebook Messenger app. Use it at your own risk. Do you still want to continue?");
@@ -442,11 +443,15 @@ namespace Fb {
             Timeout.add (500, () => {
                 var client = Plank.DBusClient.get_instance ();
                 var uri = data.desktop_file_uri (id);
-                var position = client.get_menu_position (uri, conversation.size);
-                if (conversation.current_id == id && position != null) {
-                    conversation.show(position[0], position[1]);
-                    data.read_all (id);
-                    withdraw_notification (id.to_string ());
+                try {
+                    var position = client.get_menu_position (uri, conversation.size);
+                    if (conversation.current_id == id && position != null) {
+                        conversation.show(position[0], position[1]);
+                        data.read_all (id);
+                        withdraw_notification (id.to_string ());
+                    }
+                } catch (Error e) {
+                    warning ("Error %d: %s\n", e.code, e.message);
                 }
                 return false;
             });

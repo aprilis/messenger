@@ -23,10 +23,6 @@ namespace Ui {
                 a._30yy._2oc8 {
                     display: none
                 }
-                img._19_s._1ift.img {
-                    width: 300px;
-                    height: 300px;
-                }
                 """;
                 
             private static int count = 0;
@@ -54,7 +50,8 @@ namespace Ui {
                     print ("navigation: %s\n", uri);
                     try {
                         var address = NetworkAddress.parse_uri (uri, 1);
-                        if (nav.frame_name != null && address.hostname != "www.messenger.com" && address.hostname != "www.facebook.com") {
+                        if (nav.frame_name != null && address.hostname != "www.messenger.com"
+                             && address.hostname != "www.facebook.com") {
                             AppInfo.launch_default_for_uri (nav.request.uri, null);
                             nav.ignore ();
                             return true;
@@ -85,7 +82,7 @@ namespace Ui {
                 
                 webview.load_changed.connect ((load_event) => {
                     print ("load changed: %s\n", webview.uri);
-                    if (load_event == LoadEvent.FINISHED) {
+                    if (load_event == LoadEvent.COMMITTED) {
                         if (webview.get_uri ().has_prefix (LOGIN_URL)) {    
                             auth_failed ();
                             return;
@@ -206,7 +203,8 @@ namespace Ui {
                 }
             }
             var time = get_monotonic_time ();
-            if (best == null || (best.last_id != id && time - best.last_used < CACHE_INTERVAL && cache.length () < CACHE_LIMIT)) {
+            if (best == null || (best.last_id != id && time - best.last_used < CACHE_INTERVAL
+                 && cache.length () < CACHE_LIMIT)) {
                 best = new View ();
                 stack.add_named (best.webview, best.id);
                 best.ready.connect ((view) => {
@@ -243,7 +241,7 @@ namespace Ui {
             var view = get_view (id);
             if (view.load (id)) {
                 stack.visible_child = loading;
-                Timeout.add(4000, () => { view.ready(view); return false; });
+                //Timeout.add(4000, () => { view.ready(view); return false; });
             } else {
                 stack.visible_child = view.webview;
                 view.webview.show_now ();
@@ -298,7 +296,7 @@ namespace Ui {
             login_view = new LoginView (username, password);
             login_view.finished.connect (() => {
                 clear_login_view ();
-                app.auth_target_done (app.AuthTarget.WEBVIEW);
+                app.auth_target_done (Fb.App.AuthTarget.WEBVIEW);
             });
             login_view.failed.connect (() => {
                 clear_login_view ();

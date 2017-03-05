@@ -59,6 +59,7 @@ namespace Fb {
         public signal void new_thread (Thread thread);
         public signal void new_message (Thread thread, string message);
         public signal void unread_count (Id id, int count);
+        public signal void loading_finished ();
         
         private string photo_path (Id id) {
             return PICTURES_PATH + "/" + id.to_string () + ".jpg";
@@ -152,8 +153,15 @@ namespace Fb {
             new_thread (thread);
         }
         
-        public void clear_disk () {
-            
+        public void delete_files () {
+            try {
+                var file = File.new_for_path (THREADS_PATH);
+                file.delete ();
+                file = File.new_for_path (CONTACTS_PATH);
+                file.delete ();
+            } catch (Error e) {
+                warning ("%s\n", e.message);
+            }
         }
         
         public Contact get_contact (Id id, bool send_query) {
@@ -254,6 +262,7 @@ namespace Fb {
                 update_thread (thread);
             }
             save_threads ();
+            loading_finished ();
         }
         
         public void threads_done (void *ptr) {

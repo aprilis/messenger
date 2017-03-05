@@ -5,8 +5,23 @@ namespace Ui {
     
     public class Loading : Box {
     
-        public Loading (int spinner_size, int label_size) {
-            
+        private string _text;
+
+        private Label label;
+
+        private int _label_size;
+
+        private void update_markup () {
+            label.set_markup ("""<span font_desc = "%d" foreground = "grey">%s</span>""".printf(_label_size, text));
+        }
+
+        public string text {
+            get { return _text; }
+            set { _text = value; update_markup (); }
+        }
+
+        public Loading (int spinner_size, int label_size, string txt = "loading...") {
+
             Object(orientation: Orientation.VERTICAL, spacing: 10);
             
             var spinner = new Spinner ();
@@ -14,8 +29,9 @@ namespace Ui {
             spinner.expand = false;
             spinner.start ();
             
-            var label = new Label ("");
-            label.set_markup ("""<span font_desc = "%d" foreground = "grey">loading...</span>""".printf(label_size));
+            label = new Label ("");
+            _label_size = label_size;
+            text = txt;
             
             var box = new Box (Orientation.VERTICAL, 10);
             box.pack_start (spinner, false, false);
