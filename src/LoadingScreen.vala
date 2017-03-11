@@ -16,7 +16,7 @@ namespace Ui {
 
             var box = new Box (Orientation.VERTICAL, 0);
             box.pack_start (network_error_bar, false);
-            box.pack_start (new Loading (40, 15));
+            box.pack_start (new Loading (40));
             widget = box;
 
             if (app.data != null) {

@@ -70,6 +70,9 @@ namespace Fb {
                 int count = 0;
                 
                 foreach (var contact in participants.values) {
+                    if (contact.name == null) {
+                        continue;
+                    }
                     count++;
                     if (count > 2 && participants.size > count + 1) {
                         _name = "%s and %d other users\n".printf(_name, participants.size - count + 1);
@@ -83,7 +86,9 @@ namespace Fb {
             }
             string[] names = { };
             foreach (var contact in participants.values) {
-                names += contact.name + ";";
+                if (contact.name != null) {
+                    names += contact.name + ";";
+                }
             }
             _participants_list = string.joinv (";", names);
             name_updated();
@@ -116,19 +121,24 @@ namespace Fb {
                 return result;
             }
             
-            if (participants.size == thread.users.length ()) {
-                bool equal = true;
-                foreach (var uid in thread.users) {
-                    if (!participants.has_key (uid)) {
-                        equal = false;
-                        break;
-                    }
+            int count = 0;
+            bool equal = true;
+            var data = App.instance ().data;
+            foreach (var uid in thread.users) {
+                if (uid in data.null_contacts) {
+                    continue;
                 }
-                if (equal) return result;
+                count++;
+                if (!participants.has_key (uid)) {
+                    equal = false;
+                    break;
+                }
+            }
+            if (equal && count == participants.size) {
+                return result;
             }
             
             var new_participants = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
-            var data = App.instance ().data;
             foreach (var uid in thread.users) {
                 var contact = data.get_contact (uid, true);
                 new_participants.set (uid, contact);

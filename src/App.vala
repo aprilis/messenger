@@ -73,6 +73,8 @@ namespace Fb {
         public Data data { get; private set; }
         
         public string user_name { get; private set; }
+
+        public Granite.Application application { get; set; }
         
         public signal void quit ();
         public signal void send_notification (string? id, Notification not);
@@ -318,6 +320,7 @@ namespace Fb {
                 remove_heads ();
                 conversation.log_out ();
                 data.delete_files ();
+                data.close ();
                 user_name = null;
                 data = null;
                 api.disconnect ();
@@ -325,8 +328,8 @@ namespace Fb {
                 api.token = null;
                 api.uid = 0;
                 save_session ();
-                File.new_for_path (get_session_path ()).delete (null);
                 window.header.clear_photo ();
+                print ("logged out\n");
             } catch (Error e) {
                 warning ("%s\n", e.message);
             }
@@ -363,8 +366,10 @@ namespace Fb {
         public App () {
             session = new Soup.Session ();
             session.use_thread_context = true;
+            session.timeout = 10;
             socket_client = new SocketClient ();
-            
+            socket_client.timeout = 10;
+
             api = new Api (socket_client, session);
             
             api.auth.connect (() => { auth_target_done (AuthTarget.API); });
@@ -388,18 +393,22 @@ namespace Fb {
             var reconnect_item = new Gtk.MenuItem.with_label ("Reconnect");
             var remove_item = new Gtk.MenuItem.with_label ("Close all conversations");
             var logout_item = new Gtk.MenuItem.with_label ("Log Out");
+            var about_item = new Gtk.MenuItem.with_label ("About");
             var quit_item = new Gtk.MenuItem.with_label ("Quit");
             
             preferences_item.sensitive = false;
-            reconnect_item.activate.connect (() => { data = null; auth_done (); });
+            reconnect_item.activate.connect (() => { data.close (); data = null; auth_done (); });
             remove_item.activate.connect (() => { remove_heads (); });
             logout_item.activate.connect (() => { log_out (); });
+            about_item.activate.connect (() => { application.show_about (window); });
             quit_item.activate.connect (() => { quit (); });
             
-            menu.add (preferences_item);
+            //menu.add (preferences_item);
             menu.add (remove_item);
             menu.add (reconnect_item);
             menu.add (logout_item);
+            menu.add (new SeparatorMenuItem ());
+            menu.add (about_item);
             menu.add (new SeparatorMenuItem ());
             menu.add (quit_item);
             window.header.set_menu (menu);

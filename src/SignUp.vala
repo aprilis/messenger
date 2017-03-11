@@ -20,7 +20,7 @@ namespace Ui {
             name = "sign_up";
         
             view = null;
-            loading = new Loading (40, 15);
+            loading = new Loading (40);
             stack = new Stack ();
             stack.add_named (loading, "loading");
             widget = stack;

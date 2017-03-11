@@ -40,6 +40,7 @@ namespace Fb {
                 var data = App.instance ().data;
                 contact = data.get_contact (id, true);
             }
+            contact.download_photo (update_time);
             return result;
         }
         

@@ -50,8 +50,7 @@ namespace Ui {
                     print ("navigation: %s\n", uri);
                     try {
                         var address = NetworkAddress.parse_uri (uri, 1);
-                        if (nav.frame_name != null && address.hostname != "www.messenger.com"
-                             && address.hostname != "www.facebook.com") {
+                        if (nav.frame_name != null && address.hostname != "www.messenger.com") {
                             AppInfo.launch_default_for_uri (nav.request.uri, null);
                             nav.ignore ();
                             return true;
@@ -63,25 +62,20 @@ namespace Ui {
                 return false;
             }
             
-            public View () {
-                if (count == 0) {
-                    var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
+            static construct {
+                var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
-                    content_manager = new UserContentManager ();
-                    content_manager.add_style_sheet (style_sheet);
-                    
-                    var context = WebContext.get_default ();
-                    var manager = context.get_cookie_manager ();
-                    manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
-                }
-            
+                content_manager = new UserContentManager ();
+                content_manager.add_style_sheet (style_sheet);
+            }
+
+            public View () {            
                 number = count++;
                 webview = new WebView.with_user_content_manager (content_manager);
                 var settings = webview.get_settings ();
                 settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
-                    print ("load changed: %s\n", webview.uri);
                     if (load_event == LoadEvent.COMMITTED) {
                         if (webview.get_uri ().has_prefix (LOGIN_URL)) {    
                             auth_failed ();
@@ -145,11 +139,7 @@ namespace Ui {
             
             public signal void load_failed ();
                 
-            public LoginView (string user, string pass) {
-                var context = WebContext.get_default ();
-                var manager = context.get_cookie_manager ();
-                manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
-                
+            public LoginView (string user, string pass) {                
                 username = user;
                 password = pass;
                 WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
@@ -241,7 +231,6 @@ namespace Ui {
             var view = get_view (id);
             if (view.load (id)) {
                 stack.visible_child = loading;
-                //Timeout.add(4000, () => { view.ready(view); return false; });
             } else {
                 stack.visible_child = view.webview;
                 view.webview.show_now ();
@@ -273,13 +262,19 @@ namespace Ui {
         }
         
         public Conversation (Fb.App _app) {
+            var context = WebContext.get_default ();
+            var manager = context.get_cookie_manager ();
+            manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
+
             app = _app;
         
             set_size_request (700, 500);
             
             var scrolled = new ScrolledWindow (null, null);
-            
-            loading = new Loading (40, 15);
+            scrolled.hscrollbar_policy = PolicyType.NEVER;
+            scrolled.vscrollbar_policy = PolicyType.NEVER;
+
+            loading = new Loading (40);
             
             stack = new Stack ();
             stack.margin_bottom = ARROW_HEIGHT;

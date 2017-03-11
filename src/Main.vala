@@ -14,6 +14,15 @@ public class Main : Granite.Application {
         is_fake = fake;
         app_icon = "internet-chat";
         app_launcher = APP_ID + ".desktop";
+        about_authors = { "Jarosław Kwiecień <kwiecienjaro@gmail.com>" };
+        about_license_type = License.GPL_3_0;
+        app_copyright = "2017";
+        app_years = "2017";
+        build_version = "0.2";
+        //bug_url = "https://github.com/aprilis/messenger/issues";
+        help_url = "https://github.com/aprilis/messenger/wiki";
+        main_url = "https://github.com/aprilis/messenger";
+        program_name = "Messenger";
         exec_name = APP_NAME;
         startup.connect (_startup);
         
@@ -90,6 +99,7 @@ public class Main : Granite.Application {
             }
             withdraw_notification (str);
         });
+        app.application = this;
     }
 
     public override int command_line (ApplicationCommandLine command_line) {

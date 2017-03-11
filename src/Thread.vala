@@ -80,7 +80,7 @@ namespace Fb {
             builder.end_object ();
         }
         
-        public Pixbuf get_icon (int size, bool line = false) {      
+        public Pixbuf get_icon (int size, bool line = false) {  
             Pixbuf pixbuf;
             if (photo == null) {
                 pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);

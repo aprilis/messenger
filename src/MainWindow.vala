@@ -105,7 +105,7 @@ namespace Ui {
             sign_in = new SignIn ();
             sign_in.log_in.connect (app.log_in);
             sign_up = new SignUp ();
-            threads = new ThreadsScreen (app, this);
+            threads = new ThreadsScreen (app);
             password = new PasswordScreen ();
             password.done.connect ((pass) => app.log_in (null, pass));
             password.log_out.connect (() => app.log_out ());
@@ -123,6 +123,15 @@ namespace Ui {
             });
             show.connect ((event) => {
                 set_current_screen (current);
+            });
+            key_press_event.connect ((event) => {
+                if (event.keyval == Key.Escape) {
+                    threads.search_entry.text = "";
+                    set_focus (null);
+                } else if (!threads.search_entry.has_focus) {
+                    set_focus (threads.search_entry);
+                }
+                return false;
             });
             
             Granite.Widgets.Utils.set_theming_for_screen (get_screen (), ELEMENTARY_STYLESHEET,

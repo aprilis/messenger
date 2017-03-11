@@ -5,13 +5,13 @@ namespace Ui {
     
     public class ThreadsScreen : Screen {
         
-        private SearchEntry search_entry;
+        public SearchEntry search_entry { get; private set; }
         
         private ThreadsViewer threads_viewer;
         
         private InfoBar network_error_bar;
         
-        public ThreadsScreen (Fb.App app, Gtk.Window window) {
+        public ThreadsScreen (Fb.App app) {
             title = app.user_name;
             name = "threads";
             
@@ -54,16 +54,6 @@ namespace Ui {
             box.pack_start (search_entry, false, true);
             box.pack_start (scrolled, true, true);
             widget = box;
-            
-            widget.key_press_event.connect ((event) => {
-                if (event.keyval == Key.Escape) {
-                    search_entry.text = "";
-                    window.set_focus (null);
-                } else if (!search_entry.has_focus) {
-                    window.set_focus (search_entry);
-                }
-                return false;
-            });
         }
         
         public override void hide () {

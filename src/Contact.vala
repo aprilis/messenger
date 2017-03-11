@@ -10,6 +10,8 @@ namespace Fb {
         public signal void name_changed ();
     
         private string photo_csum;
+
+        private string download_photo_request = null;
         
         public Pixbuf photo { get; private set; }
             
@@ -23,14 +25,18 @@ namespace Fb {
         
         public bool is_present { get; set; default = false; }
         
-        private async void download_photo (string uri) {
-            try {
-                var data = App.instance ().data;
-                photo = yield data.download_photo (uri);
-                photo_changed ();
-                yield data.save_photo (photo, id);
-            } catch (Error e) {
-                warning ("Error: %s\n", e.message);
+        public async void download_photo (int64 priority) {
+            if (download_photo_request != null) {
+                var req = download_photo_request;
+                download_photo_request = null;
+                try {
+                    var data = App.instance ().data;
+                    photo = yield data.download_photo (req, priority);
+                    photo_changed ();
+                    yield data.save_photo (photo, id);
+                } catch (Error e) {
+                    warning ("Error: %s\n", e.message);
+                }
             }
         }
         
@@ -88,7 +94,7 @@ namespace Fb {
             }
             if (user.csum != null && photo_csum != user.csum) {
                 photo_csum = user.csum;
-                download_photo (user.icon);
+                download_photo_request = user.icon;
             }
             is_loaded = true;
         }

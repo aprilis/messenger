@@ -120,9 +120,9 @@ namespace Ui {
                 _search_query = value;
                 inactive = true;
                 filtered.refilter ();
-                view.scroll_to_point (0, 0);
                 Timeout.add (50, () => {
                     inactive = false;
+                    view.scroll_to_point (0, 0);
                     return false;
                 });
             }

@@ -9,10 +9,8 @@ namespace Ui {
 
         private Label label;
 
-        private int _label_size;
-
         private void update_markup () {
-            label.set_markup ("""<span font_desc = "%d" foreground = "grey">%s</span>""".printf(_label_size, text));
+            label.set_markup ("""<span foreground = "grey">%s</span>""".printf(text));
         }
 
         public string text {
@@ -20,7 +18,7 @@ namespace Ui {
             set { _text = value; update_markup (); }
         }
 
-        public Loading (int spinner_size, int label_size, string txt = "loading...") {
+        public Loading (int spinner_size, Granite.TextStyle style = Granite.TextStyle.H2, string txt = "loading...") {
 
             Object(orientation: Orientation.VERTICAL, spacing: 10);
             
@@ -30,7 +28,7 @@ namespace Ui {
             spinner.start ();
             
             label = new Label ("");
-            _label_size = label_size;
+            Granite.Widgets.Utils.apply_text_style_to_label (style, label);
             text = txt;
             
             var box = new Box (Orientation.VERTICAL, 10);

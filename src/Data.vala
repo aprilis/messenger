@@ -14,6 +14,12 @@ namespace Fb {
 
     public class Data : Object {
         
+        private struct DownloadTask {
+            int64 priority;
+            string uri;
+            Promise<Pixbuf> promise;
+        }
+
         private string DATA_PATH;
         private string CONTACTS_PATH;
         private string THREADS_PATH;
@@ -21,10 +27,13 @@ namespace Fb {
         private string DESKTOP_PATH;
         
         private const int64 UPDATE_THREAD_INTERVAL = 1000000; //one second
+        private const int DOWNLOAD_LIMIT = 20;
         
         private HashMap<Id?, Contact> contacts;
     
         private HashMap<Id?, Thread> threads;
+
+        public HashSet<Id?> null_contacts { get; private set; }
         
         private Soup.Session session;
         
@@ -36,7 +45,22 @@ namespace Fb {
         
         private SList<ApiUser> waiting_users;
         private SList<ApiThread> waiting_threads;
-        
+                
+        private GLib.Thread<void*> photo_downloader;
+        private AsyncQueue<DownloadTask?> download_queue;
+
+        private bool closed = false;
+
+        private int compare_tasks (DownloadTask? a, DownloadTask? b) {
+            if (a.priority == b.priority) {
+                return 0;
+            } else if (a.priority > b.priority) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+
         private bool _contacts_allowed = false;
         private bool contacts_allowed {
             get { return _contacts_allowed; }
@@ -68,7 +92,7 @@ namespace Fb {
         private async void load_from_disk () {
             contacts.clear ();
             threads.clear ();
-            try {                
+            try {
                 var file = File.new_for_path (CONTACTS_PATH);
                 var stream = yield file.read_async();
                 var parser = new Json.Parser ();
@@ -193,10 +217,10 @@ namespace Fb {
             return thread;
         }
         
-        public async Pixbuf download_photo (string uri) throws Error {
-            var request = session.request (uri);
-            var stream = yield request.send_async (null);
-            return yield new Pixbuf.from_stream_async (stream, null);
+        public async Pixbuf download_photo (string uri, int64 priority) throws Error {
+            DownloadTask task = { priority, uri, new Promise<Pixbuf> () };
+            download_queue.push_sorted (task, compare_tasks);
+            return yield task.promise.future.wait_async ();
         }
         
         public async void save_photo (Pixbuf photo, Id id) throws Error {
@@ -210,16 +234,25 @@ namespace Fb {
             var stream = yield file.read_async ();
             return yield new Pixbuf.from_stream_async (stream, null);
         }
+
+        public bool parse_contact (ApiUser user, bool friends_only) {
+            if (user.name == null) {
+                null_contacts.add (user.uid);
+                return false;
+            }
+            if (friends_only && !user.is_friend && !(user.uid in contacts)) {
+                return false;
+            }
+            get_contact (user.uid, false).load_from_api (user);
+            if (user.is_friend && !threads.has_key (user.uid)) {
+                add_thread (new SingleThread.with_contact (contacts[user.uid]));
+            }
+            return true;
+        }
         
         public void parse_contacts (SList<ApiUser> users, bool friends_only = false) {
             foreach (var user in users) {
-                if(user.name == null || (friends_only && !user.is_friend)) {
-                    continue;
-                }
-                get_contact (user.uid, false).load_from_api (user);
-                if (user.is_friend && !threads.has_key (user.uid)) {
-                    add_thread (new SingleThread.with_contact (contacts[user.uid]));
-                }
+                parse_contact (user, friends_only);
             }
             save_contacts ();
             threads_allowed = true;
@@ -242,14 +275,16 @@ namespace Fb {
         
         public void contact_done (void *ptr) {
             unowned ApiUser user = (ApiUser) ptr;
-            get_contact (user.uid, false).load_from_api (user);
-            if (user.is_friend && !threads.has_key (user.uid)) {
-                add_thread (new SingleThread.with_contact (contacts[user.uid]));
+            if (parse_contact (user, false)) {
+                contacts[user.uid].download_photo (0);
+                save_contacts ();
             }
-            save_contacts ();
         }
         
         private void update_thread (Fb.ApiThread thread) {
+            if (thread.tid in null_contacts) {
+                return;
+            }
             var th = get_thread (thread.tid, thread.is_group, false);
             if (th.load_from_api (thread) && th.unread > 0) {
                 new_message (th, th.last_message);
@@ -262,6 +297,9 @@ namespace Fb {
                 update_thread (thread);
             }
             save_threads ();
+            foreach (var contact in contacts.values) {
+                contact.download_photo (0);
+            }
             loading_finished ();
         }
         
@@ -352,6 +390,36 @@ namespace Fb {
             }
             api.read (id, id in threads ? threads [id].is_group : true);
         }
+
+        public void* photo_downloader_run () {
+            var download_finished = new Cond ();
+            var mutex = new Mutex ();
+            int downloading = 0;
+            while (true) {
+                var task = download_queue.pop ();
+                if (closed) {
+                    break;
+                }
+                mutex.lock ();
+                downloading++;
+                while (downloading >= DOWNLOAD_LIMIT) {
+                    download_finished.wait_until (mutex, get_monotonic_time () + 5 * TimeSpan.SECOND);
+                }
+                mutex.unlock ();
+                var request = session.request (task.uri);
+                request.send_async.begin (null, (obj, res) => {
+                    var stream = request.send_async.end (res);
+                    Pixbuf.new_from_stream_async.begin (stream, null, (obj, res) => {
+                        task.promise.set_value (Pixbuf.new_from_stream_async.end (res));
+                        mutex.lock ();
+                        downloading--;
+                        mutex.unlock ();
+                        download_finished.signal ();
+                    });
+                });
+            }
+            return null;
+        }
         
         public Data (Soup.Session ses, SocketClient cli, Api ap) {
             DATA_PATH = Main.data_path + "/data";
@@ -369,7 +437,8 @@ namespace Fb {
             
             contacts = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
             threads = new HashMap<Id?, Thread> (my_id_hash, my_id_equal);
-            
+            null_contacts = new HashSet<Id?> (my_id_hash, my_id_equal);
+
             make_dir (DATA_PATH);
             make_dir (PICTURES_PATH);
             make_dir (DESKTOP_PATH);
@@ -381,6 +450,22 @@ namespace Fb {
             api.threads.connect (threads_done);
             api.thread.connect (thread_done);
             api.messages.connect (messages);
+
+            photo_downloader = new GLib.Thread<void*> (null, photo_downloader_run);
+            download_queue = new AsyncQueue<DownloadTask?> ();
+        }
+
+        public void close () {
+            if (!closed) {
+                closed = true;
+                download_queue.push_sorted ({ 0, null, null }, compare_tasks);
+                photo_downloader.join ();
+                conv_data.close ();
+            }
+        }
+
+        ~Data () {
+            close ();
         }
     }
 
