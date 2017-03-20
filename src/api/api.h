@@ -269,7 +269,7 @@
  * value is set too high, HTTP request will fail. This is due to the
  * request data being too large.
  */
-#define FB_API_CONTACTS_COUNT  500
+#define FB_API_CONTACTS_COUNT 500
 
 /**
  * FB_API_THREADS_COUNT:

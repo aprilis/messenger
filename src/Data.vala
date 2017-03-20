@@ -250,22 +250,28 @@ namespace Fb {
             return true;
         }
         
-        public void parse_contacts (SList<ApiUser> users, bool friends_only = false) {
+        public void parse_contacts (SList<ApiUser?> users, bool friends_only = false) {
             foreach (var user in users) {
-                parse_contact (user, friends_only);
+                if (user == null) {
+                    threads_allowed = true;
+                    save_contacts ();
+                } else {
+                    parse_contact (user, friends_only);
+                }
             }
-            save_contacts ();
-            threads_allowed = true;
         }
         
         public void contacts_done (void *ptr, bool complete) {
-            unowned SList<ApiUser> users = (SList<ApiUser>) ptr;
+            unowned SList<ApiUser?> users = (SList<ApiUser?>) ptr;
+            if (complete) {
+                users.append (null);
+            }
             if (contacts_allowed) {
                 parse_contacts (users);
             } else {
                 if(waiting_users == null) {
                     waiting_users = new SList<ApiUser> ();
-                }            
+                }
                 foreach (unowned ApiUser user in users) {
                     waiting_users.append (user.dup (true));
                 }

@@ -47,10 +47,10 @@ namespace Ui {
                 var nav = decision as NavigationPolicyDecision;
                 if (nav != null && nav.request.get_http_method () == "GET") {
                     var uri = nav.request.uri;
-                    print ("navigation: %s\n", uri);
                     try {
                         var address = NetworkAddress.parse_uri (uri, 1);
-                        if (nav.frame_name != null && address.hostname != "www.messenger.com") {
+                        if ((nav.frame_name != null || address.hostname.has_suffix ("fbcdn.net"))
+                                 && address.hostname != "www.messenger.com") {
                             AppInfo.launch_default_for_uri (nav.request.uri, null);
                             nav.ignore ();
                             return true;
