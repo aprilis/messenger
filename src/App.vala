@@ -18,6 +18,7 @@ namespace Fb {
         private const string CONFIRMED_FILE = "confirmed_users";
         private const int THREADS_COUNT = 500;
         private const int RECONNECT_INTERVAL = 10*1000;
+        private const int CHECK_AWAKE_INTERVAL = 4*1000;
         
         private string get_session_path () {
             return Main.cache_path + "/" + SESSION_FILE;
@@ -50,6 +51,8 @@ namespace Fb {
         private bool _network_problem;
         
         private HashSet<string> confirmed_users = null;
+
+        private int64 last_awake_check = 0;
         
         public bool network_problem {
             get { return _network_problem; }
@@ -146,6 +149,15 @@ namespace Fb {
             } catch (Error e) {
                 warning ("Error %d: %s\n", e.code, e.message);
             }
+        }
+
+        public bool check_awake () {
+            var time = get_real_time ();
+            if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
+                reconnect ();
+            }
+            last_awake_check = time;
+            return true;
         }
         
         public bool reconnect () {
@@ -435,6 +447,8 @@ namespace Fb {
             }
             
             dock_preferences = new Plank.DockPreferences ("dock1");
+
+            Timeout.add (CHECK_AWAKE_INTERVAL, check_awake);
         }
         
         public void start_conversation (Fb.Id id) {

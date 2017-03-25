@@ -21,12 +21,22 @@ namespace Ui {
         }
         
         const int ICON_SIZE = 60;
+        const int LINES_LIMIT = 5;
     
         private class ViewerItem : Object {
             private TreePath path;
             private Fb.Thread thread;
             private Gtk.ListStore list;
             
+            private string limit_lines (string text) {
+                var lines = text.split("\n");
+                if (lines.length > LINES_LIMIT) {
+                    lines.resize (LINES_LIMIT);
+                    lines[LINES_LIMIT-1] = "...";
+                }
+                return string.joinv ("\n", lines);
+            }
+
             private bool get_iter (out TreeIter iter) {
                 if (!list.get_iter (out iter, path)) {
                     warning ("Failed to get iter");
@@ -72,7 +82,7 @@ namespace Ui {
                     weight,
                     Markup.escape_text(nullable_string(thread.name)),
                     thread.unread > 0 ? "\"black\"" : "\"gray\"", weight, 
-                    Markup.escape_text(nullable_string(thread.last_message)));
+                    Markup.escape_text(limit_lines(nullable_string(thread.last_message))));
             }
             
             public ViewerItem (Fb.Thread _thread, Gtk.ListStore _list) {

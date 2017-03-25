@@ -112,15 +112,6 @@ public class Main : Granite.Application {
     
     private int _command_line (ApplicationCommandLine command_line) {
         
-        if (is_fake) {
-            hold ();
-            var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
-                "Messenger is not running. To start the conversation please run the Messenger app first");
-            msg.response.connect ((id) => { release (); });
-            msg.show ();
-            return 0;
-        }
-        
         bool close_all = false, act = false;
         int64 id_open = 0, id_close = 0, id_reload = 0;
         var entries = new OptionEntry [5];
@@ -137,6 +128,9 @@ public class Main : Granite.Application {
         context.add_group (Gtk.get_option_group (true));
 
         string[] args = command_line.get_arguments ();
+        foreach (var arg in args) {
+            print ("ARGS: %s\n", arg);
+        }
 
         try {
             unowned string[] tmp = args;
@@ -146,14 +140,16 @@ public class Main : Granite.Application {
             return 0;
         }
         
-        if (act) {
-            activate ();
-        }
-        if (id_open != 0) {
-            Fb.App.instance ().start_conversation (id_open);
-        }
-        if (id_reload != 0 && command_line.is_remote) {
-            Fb.App.instance ().reload_conversation (id_reload);
+        if (!is_fake) {
+            if (act) {
+                activate ();
+            }
+            if (id_open != 0) {
+                Fb.App.instance ().start_conversation (id_open);
+            }
+            if (id_reload != 0 && command_line.is_remote) {
+                Fb.App.instance ().reload_conversation (id_reload);
+            }
         }
         if (close_all) {
             activate_action ("close-all", null);
@@ -161,8 +157,12 @@ public class Main : Granite.Application {
         if (id_close != 0) {
             activate_action ("close-all-but-one", new Variant.int64 (id_close));
         }
-        if ((id_open != 0 || id_reload != 0 || close_all || id_close != 0) && !command_line.is_remote) {
-            release ();
+        if (is_fake) {
+            hold ();
+            var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
+                "Messenger is not running. To start the conversation please run the Messenger app first");
+            msg.response.connect ((id) => { release (); });
+            msg.show ();
         }
         return 0;
     }
