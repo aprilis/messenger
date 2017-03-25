@@ -155,6 +155,7 @@ namespace Fb {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 reconnect ();
+                api.threads_func (THREADS_COUNT);
             }
             last_awake_check = time;
             return true;
