@@ -1035,6 +1035,13 @@ fb_api_cb_seqid(GObject *source, GAsyncResult *res,
         return;
     }
 
+    JsonGenerator *gen = json_generator_new();
+    json_generator_set_pretty(gen, TRUE);
+    json_generator_set_indent(gen, 4);
+    json_generator_set_root(gen, root);
+    //json_generator_to_file(gen, "seqid.json", NULL);
+    g_object_unref(gen);
+
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE,
                        "$.viewer.message_threads.sync_sequence_id");
@@ -1093,7 +1100,7 @@ fb_api_cb_mqtt_connect(FbMqtt *mqtt, gpointer data)
 
     if (priv->sid == 0) {
         bldr = fb_json_bldr_new(JSON_NODE_OBJECT);
-        fb_json_bldr_add_str(bldr, "1", "0");
+        fb_json_bldr_add_str(bldr, "1", "1");
         fb_api_http_query(api, FB_API_QUERY_THREADS, bldr,
                           fb_api_cb_seqid);
     } else {
@@ -1111,6 +1118,13 @@ fb_api_cb_publish_mark(FbApi *api, GByteArray *pload)
     if (!fb_api_json_chk(api, pload->data, pload->len, &root)) {
         return;
     }
+
+    JsonGenerator *gen = json_generator_new();
+    json_generator_set_pretty(gen, TRUE);
+    json_generator_set_indent(gen, 4);
+    json_generator_set_root(gen, root);
+    //json_generator_to_file(gen, "publish.json", NULL);
+    g_object_unref(gen);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_BOOL, FALSE, "$.succeeded");

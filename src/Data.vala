@@ -394,7 +394,7 @@ namespace Fb {
                 threads [id].unread = 0;
                 unread_count (id, 0);
             }
-            api.read (id, id in threads ? threads [id].is_group : true);
+            //api.read (id, id in threads ? threads [id].is_group : true);
         }
 
         public void* photo_downloader_run () {
