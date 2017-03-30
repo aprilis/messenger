@@ -47,7 +47,7 @@ namespace Ui {
             
             network_error_bar = Utils.create_infobar ("No connection", MessageType.ERROR, false);
             network_error_bar.add_button ("Retry", 1);
-            network_error_bar.response.connect ((id) => { if (id == 1) app.reconnect_async.begin (); });
+            network_error_bar.response.connect ((id) => { if (id == 1) app.reconnect (); });
            
             var box = new Box(Orientation.VERTICAL, 0);
             box.pack_start (network_error_bar, false);

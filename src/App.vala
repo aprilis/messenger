@@ -61,12 +61,12 @@ namespace Fb {
                     _network_problem = value;
                     window.current.network_error ();
                     if (value) {
-                        reconnect_async.begin ();
+                        reconnect ();
                         Timeout.add (RECONNECT_INTERVAL, reconnect);
                     } else {
                         window.current.network_ok ();
-                        api.threads_func (THREADS_COUNT);
-                        api.contacts_func ();
+                        query_threads (THREADS_COUNT);
+                        query_contacts ();
                         conversation.reload_all ();
                     }
                 }
@@ -151,11 +151,35 @@ namespace Fb {
             }
         }
 
+        public void query_threads (int count) {
+            Idle.add (() => { api.threads_func (count); return false; });
+        }
+
+        public void query_thread (Fb.Id id) {
+            warning ("Query thread is broken\n");
+        }
+
+        public void query_contacts () {
+            Idle.add (() => { api.contacts_func (); return false; });
+        }
+
+        public void query_contact (Fb.Id id) {
+            Idle.add (() => { api.contact_func (id); return false; });
+        }
+
+        public void connect_api () {
+            Idle.add (() => { api.connect_func (false); return false; });
+        }
+        
+        public void authenticate (string username, string password) {
+            Idle.add (() => { api.auth_func (username, password); return false; });
+        }
+
         public bool check_awake () {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 reconnect ();
-                api.threads_func (THREADS_COUNT);
+                query_threads (THREADS_COUNT);
             }
             last_awake_check = time;
             return true;
@@ -165,17 +189,7 @@ namespace Fb {
             if (data == null || network_problem == false) { 
                 return false;
             }
-            api.connect_func (false);
-            return true;
-        }
-        
-        public async bool reconnect_async () {
-            if (data == null || network_problem == false) {
-                return false;
-            }
-            Idle.add (reconnect_async.callback);
-            yield;
-            api.connect_func (false);
+            connect_api ();
             return true;
         }
         
@@ -244,7 +258,7 @@ namespace Fb {
         }
         
         void auth_done () {
-            data = new Data (session, socket_client, api);
+            data = new Data (session, socket_client, this, api);
             window.set_screen ("loading");
             data.new_message.connect (message_notification);
             data.unread_count.connect (update_unread_count);
@@ -261,9 +275,9 @@ namespace Fb {
             });
             
             conversation.reload_all ();
-            api.contacts_func ();
-            api.threads_func (THREADS_COUNT);
-            api.connect_func (false);
+            query_contacts ();
+            query_threads (THREADS_COUNT);
+            connect_api ();
         }
         
         void connect_done () {
@@ -374,7 +388,7 @@ namespace Fb {
             }
             auth_target = AuthTarget.API | AuthTarget.WEBVIEW;
             conversation.log_in (username, password);
-            api.auth_func (username, password);
+            authenticate (username, password);
         }
         
         public App () {

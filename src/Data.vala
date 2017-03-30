@@ -39,7 +39,7 @@ namespace Fb {
         
         private SocketClient client;
         
-        private Api api;
+        private App app;
         
         private Ui.ConvData conv_data;
         
@@ -195,7 +195,7 @@ namespace Fb {
             }
             var contact = contacts [id];
             if (send_query && !contact.is_loaded) {
-                api.contact_func (id);
+                app.query_contact (id);
             }
             return contact;
         }
@@ -208,10 +208,10 @@ namespace Fb {
             var thread = threads [id];
             if (send_query) {
                 if (!thread.is_group && !(thread as SingleThread).contact.is_loaded) {
-                    api.contact_func (id);
+                    app.query_contact (id);
                 }
                 if (!thread.is_loaded) {
-                    api.thread_func (id);
+                    app.query_thread (id);
                 }
             }
             return thread;
@@ -340,11 +340,11 @@ namespace Fb {
                 var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
                     threads [msg.tid].update_request_time = time;
-                    api.thread_func (msg.tid);
+                    app.query_threads (10);
                 } else if (last_time < time) {
                     threads [msg.tid].update_request_time = time + UPDATE_THREAD_INTERVAL;
                     Timeout.add ((uint)(UPDATE_THREAD_INTERVAL / 1000), () => {
-                        api.thread_func (msg.tid);
+                        app.query_threads(10);
                         return false;
                     });
                 }
@@ -383,7 +383,7 @@ namespace Fb {
         
         public void check_unread_count (Fb.Id id) {
             if (!(id in threads)) {
-                api.thread_func (id);
+                app.query_threads (10);
             } else {
                 unread_count (id, threads [id].unread);
             }
@@ -427,7 +427,7 @@ namespace Fb {
             return null;
         }
         
-        public Data (Soup.Session ses, SocketClient cli, Api ap) {
+        public Data (Soup.Session ses, SocketClient cli, App ap, Api api) {
             DATA_PATH = Main.data_path + "/data";
             CONTACTS_PATH = DATA_PATH + "/contacts";
             THREADS_PATH = DATA_PATH + "/threads";
@@ -436,7 +436,7 @@ namespace Fb {
         
             session = ses;
             client = cli;
-            api = ap;
+            app = ap;
             
             conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME);
             new_thread.connect (conv_data.add_thread);

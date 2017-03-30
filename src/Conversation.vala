@@ -204,7 +204,7 @@ namespace Ui {
                     }
                 });
                 best.load_failed.connect (() => { app.network_error (); });
-                best.auth_failed.connect (() => { app.auth_needed (); });
+                best.auth_failed.connect (() => { clear_cookies (); app.auth_needed (); });
                 cache.append (best);
             }
             return best;
@@ -302,10 +302,14 @@ namespace Ui {
                 app.network_error ();
             });
         }
+
+        public void clear_cookies () {
+            WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
+        }
         
         public void log_out () {
             clear_cache ();
-            WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
+            clear_cookies ();
         }
     }
 

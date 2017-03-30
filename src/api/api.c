@@ -2782,6 +2782,13 @@ fb_api_cb_thread(GObject *source, GAsyncResult *res,
         return;
     }
 
+    JsonGenerator *gen = json_generator_new();
+    json_generator_set_pretty(gen, TRUE);
+    json_generator_set_indent(gen, 4);
+    json_generator_set_root(gen, root);
+    json_generator_to_file(gen, "thread.json", NULL);
+    g_object_unref(gen);
+
     node = fb_json_node_get_nth(root, 0);
 
     if (node == NULL) {

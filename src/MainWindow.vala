@@ -125,11 +125,13 @@ namespace Ui {
                 set_current_screen (current);
             });
             key_press_event.connect ((event) => {
-                if (event.keyval == Key.Escape) {
-                    threads.search_entry.text = "";
-                    set_focus (null);
-                } else if (!threads.search_entry.has_focus) {
-                    set_focus (threads.search_entry);
+                if (current == threads) {
+                    if (event.keyval == Key.Escape) {
+                        threads.search_entry.text = "";
+                        set_focus (null);
+                    } else if (!threads.search_entry.has_focus) {
+                        set_focus (threads.search_entry);
+                    }
                 }
                 return false;
             });
