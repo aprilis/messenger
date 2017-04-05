@@ -204,7 +204,7 @@ namespace Ui {
                     }
                 });
                 best.load_failed.connect (() => { app.network_error (); });
-                best.auth_failed.connect (() => { clear_cookies (); app.auth_needed (); });
+                best.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
                 cache.append (best);
             }
             return best;
@@ -295,7 +295,7 @@ namespace Ui {
             });
             login_view.failed.connect (() => {
                 clear_login_view ();
-                app.auth_error ();
+                app.show_login_dialog (true);
             });
             login_view.load_failed.connect (() => {
                 clear_login_view ();

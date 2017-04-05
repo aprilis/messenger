@@ -46,6 +46,7 @@ vala_precompile(VALA_C messenger
     src/PasswordScreen.vala
     src/LoadingScreen.vala
     src/Utils.vala
+    src/LoginDialog.vala
 
 # tell what libraries to use when compiling
 PACKAGES

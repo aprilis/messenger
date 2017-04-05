@@ -53,6 +53,11 @@ namespace Fb {
         private HashSet<string> confirmed_users = null;
 
         private int64 last_awake_check = 0;
+
+        private bool webview_auth_fail = false;
+        private bool show_login_dialog_infobar = false;
+
+        private Ui.LoginDialog login_dialog = null;
         
         public bool network_problem {
             get { return _network_problem; }
@@ -251,7 +256,21 @@ namespace Fb {
         }
         
         public void auth_target_done (AuthTarget target) {
+            if ((target & AuthTarget.WEBVIEW) != 0) {
+                webview_auth_fail = false;
+            } 
             auth_target &= ~target;
+            if ((auth_target & AuthTarget.API) == 0 && webview_auth_fail && login_dialog == null) {
+                login_dialog = new Ui.LoginDialog (show_login_dialog_infobar);
+                login_dialog.finished.connect (() => {
+                    auth_target_done (AuthTarget.WEBVIEW);
+                    login_dialog.destroy ();
+                    login_dialog = null;
+                });
+                login_dialog.canceled.connect (() => { auth_error (); login_dialog = null; });
+                login_dialog.show_all ();
+                login_dialog.present ();
+            }
             if (auth_target == 0) {
                 auth_done ();
             }
@@ -339,6 +358,12 @@ namespace Fb {
             }
         }
         
+        public void show_login_dialog (bool show_infobar) {
+            show_login_dialog_infobar = show_infobar;
+            webview_auth_fail = true;
+            auth_target_done (0);
+        }
+
         public void log_out () {
             if (data == null) {
                 return;
