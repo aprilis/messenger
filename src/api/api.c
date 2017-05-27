@@ -761,6 +761,8 @@ fb_api_http_req(FbApi *api, const gchar *url, const gchar *name,
         g_free(data);
     }
 
+    soup_message_headers_append(msg->request_headers, "User-Agent", FB_API_AGENT);
+
     data = fb_http_params_close(params, NULL);
     soup_message_body_append(msg->request_body, SOUP_MEMORY_COPY, data, strlen(data));
     soup_request_send_async((SoupRequest*)req, NULL, callback, api);
@@ -799,6 +801,7 @@ fb_api_http_query(FbApi *api, gint64 query, JsonBuilder *builder,
     case FB_API_QUERY_THREAD:
         name = "ThreadQuery";
         break;
+    case FB_API_QUERY_SEQ_ID:
     case FB_API_QUERY_THREADS:
         name = "ThreadListQuery";
         break;
@@ -887,7 +890,7 @@ fb_api_cb_mqtt_open(FbMqtt *mqtt, gpointer data)
 
     /* Write the information string */
     fb_thrift_write_field(thft, FB_THRIFT_TYPE_STRING, 2, 1);
-    fb_thrift_write_str(thft, "");
+    fb_thrift_write_str(thft, FB_API_MQTT_AGENT);
 
     /* Write the UNKNOWN ("cp"?) */
     fb_thrift_write_field(thft, FB_THRIFT_TYPE_I64, 3, 2);
@@ -1100,8 +1103,8 @@ fb_api_cb_mqtt_connect(FbMqtt *mqtt, gpointer data)
 
     if (priv->sid == 0) {
         bldr = fb_json_bldr_new(JSON_NODE_OBJECT);
-        fb_json_bldr_add_str(bldr, "1", "1");
-        fb_api_http_query(api, FB_API_QUERY_THREADS, bldr,
+        fb_json_bldr_add_str(bldr, "1", "0");
+        fb_api_http_query(api, FB_API_QUERY_SEQ_ID, bldr,
                           fb_api_cb_seqid);
     } else {
         fb_api_connect_queue(api);

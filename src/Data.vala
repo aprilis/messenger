@@ -41,6 +41,8 @@ namespace Fb {
         
         private App app;
         
+        private Api api;
+
         private Ui.ConvData conv_data;
         
         private SList<ApiUser> waiting_users;
@@ -394,7 +396,7 @@ namespace Fb {
                 threads [id].unread = 0;
                 unread_count (id, 0);
             }
-            //api.read (id, id in threads ? threads [id].is_group : true);
+            api.read (id, id in threads ? threads [id].is_group : true);
         }
 
         public void* photo_downloader_run () {
@@ -427,7 +429,7 @@ namespace Fb {
             return null;
         }
         
-        public Data (Soup.Session ses, SocketClient cli, App ap, Api api) {
+        public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
             DATA_PATH = Main.data_path + "/data";
             CONTACTS_PATH = DATA_PATH + "/contacts";
             THREADS_PATH = DATA_PATH + "/threads";
@@ -437,6 +439,7 @@ namespace Fb {
             session = ses;
             client = cli;
             app = ap;
+            api = a;
             
             conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME);
             new_thread.connect (conv_data.add_thread);
