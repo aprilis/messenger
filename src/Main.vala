@@ -128,9 +128,9 @@ public class Main : Granite.Application {
         context.add_group (Gtk.get_option_group (true));
 
         string[] args = command_line.get_arguments ();
-        foreach (var arg in args) {
+        /*foreach (var arg in args) {
             print ("ARGS: %s\n", arg);
-        }
+        }*/
 
         try {
             unowned string[] tmp = args;

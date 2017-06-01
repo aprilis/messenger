@@ -14,7 +14,8 @@ namespace Fb {
 		public void contact_func (Fb.Id uid);
 		[CCode (cname = "fb_api_contacts")]
 		public void contacts_func ();
-		public void disconnect ();
+		[CCode (cname = "fb_api_disconnect")]
+		public void disconnect_func ();
 		public void error_emit (GLib.Error error);
 		public static GLib.Quark error_quark ();
 		public bool is_invisible ();
@@ -350,6 +351,8 @@ namespace Fb {
 		[CCode (cname = "FB_UTIL_ERROR_GENERAL")]
 		UTIL_ERROR_GENERAL
 	}
+	[CCode (cheader_filename = "Fb.h", cname = "FB_API_AGENT")]
+	public const string API_AGENT;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_AHOST")]
 	public const string API_AHOST;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_BHOST")]
@@ -366,6 +369,8 @@ namespace Fb {
 	public const int API_QUERY_CONTACTS;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_CONTACTS_AFTER")]
 	public const int API_QUERY_CONTACTS_AFTER;
+	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_SEQ_ID")]
+	public const int API_QUERY_SEQ_ID;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_STICKER")]
 	public const int API_QUERY_STICKER;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_THREAD")]
@@ -396,6 +401,8 @@ namespace Fb {
 	public const int MQTT_TIMEOUT_CONN;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_MQTT_TIMEOUT_PING")]
 	public const int MQTT_TIMEOUT_PING;
+	[CCode (cheader_filename = "Fb.h", cname = "FB_ORCA_AGENT")]
+	public const string ORCA_AGENT;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_UTIL_DEBUG_INFO")]
 	public const int UTIL_DEBUG_INFO;
 	[CCode (cheader_filename = "Fb.h")]

@@ -140,7 +140,7 @@ namespace Fb {
             
             var new_participants = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
             foreach (var uid in thread.users) {
-                var contact = data.get_contact (uid, true);
+                var contact = data.get_contact (uid);
                 new_participants.set (uid, contact);
                 if (!participants.has_key (uid)) {
                     connect_signals (contact);
@@ -167,7 +167,7 @@ namespace Fb {
             var data = App.instance ().data;
             foreach (var elem in array.get_elements()) {
                 var uid = elem.get_int ();
-                var contact = data.get_contact (uid, false);
+                var contact = data.get_contact (uid);
                 participants.set (uid, contact);
                 connect_signals (contact);
             }

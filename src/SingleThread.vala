@@ -38,7 +38,7 @@ namespace Fb {
             var result = base.load_from_api (thread);
             if (contact == null) {
                 var data = App.instance ().data;
-                contact = data.get_contact (id, true);
+                contact = data.get_contact (id);
             }
             contact.download_photo (update_time);
             return result;
@@ -48,13 +48,13 @@ namespace Fb {
             base.load_from_json (node);
             if (contact == null) {
                 var data = App.instance ().data;
-                contact = data.get_contact (id, true);
+                contact = data.get_contact (id);
             }
         }
         
-        public SingleThread (Id fid, bool send_query) {
+        public SingleThread (Id fid) {
             var data = App.instance ().data;
-            contact = data.get_contact (fid, send_query);
+            contact = data.get_contact (fid);
         }
         
         public SingleThread.with_contact (Contact cnt) {

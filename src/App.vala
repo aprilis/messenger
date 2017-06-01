@@ -161,7 +161,7 @@ namespace Fb {
         }
 
         public void query_thread (Fb.Id id) {
-            warning ("Query thread is broken\n");
+            Idle.add (() => { api.thread_func (id); return false; });
         }
 
         public void query_contacts () {
@@ -174,6 +174,10 @@ namespace Fb {
 
         public void connect_api () {
             Idle.add (() => { api.connect_func (false); return false; });
+        }
+
+        public void disconnect_api () {
+            Idle.add (() => { api.disconnect_func (); return false; });
         }
         
         public void authenticate (string username, string password) {
@@ -194,6 +198,7 @@ namespace Fb {
             if (data == null || network_problem == false) { 
                 return false;
             }
+            disconnect_api ();
             connect_api ();
             return true;
         }
@@ -376,7 +381,7 @@ namespace Fb {
                 data.close ();
                 user_name = null;
                 data = null;
-                api.disconnect ();
+                disconnect_api ();
                 api.stoken = null;
                 api.token = null;
                 api.uid = 0;
@@ -450,7 +455,7 @@ namespace Fb {
             var quit_item = new Gtk.MenuItem.with_label ("Quit");
             
             preferences_item.sensitive = false;
-            reconnect_item.activate.connect (() => { data.close (); data = null; auth_done (); });
+            reconnect_item.activate.connect (() => { data.close (); data = null; disconnect_api (); auth_done (); });
             remove_item.activate.connect (() => { remove_heads (); });
             logout_item.activate.connect (() => { log_out (); });
             about_item.activate.connect (() => { application.show_about (window); });

@@ -46,6 +46,7 @@
           <li class="struct"><a href="Fb.ApiPresence.html">ApiPresence</a></li>
           <li class="struct"><a href="Fb.ApiTyping.html">ApiTyping</a></li>
           <li class="struct"><a href="Fb.Id.html">Id</a></li>
+          <li class="constant"><a href="Fb.API_AGENT.html">API_AGENT</a></li>
           <li class="constant"><a href="Fb.API_AHOST.html">API_AHOST</a></li>
           <li class="constant"><a href="Fb.API_BHOST.html">API_BHOST</a></li>
           <li class="constant"><a href="Fb.API_CONTACTS_COUNT.html">API_CONTACTS_COUNT</a></li>
@@ -54,6 +55,7 @@
           <li class="constant"><a href="Fb.API_QUERY_CONTACT.html">API_QUERY_CONTACT</a></li>
           <li class="constant"><a href="Fb.API_QUERY_CONTACTS.html">API_QUERY_CONTACTS</a></li>
           <li class="constant"><a href="Fb.API_QUERY_CONTACTS_AFTER.html">API_QUERY_CONTACTS_AFTER</a></li>
+          <li class="constant"><a href="Fb.API_QUERY_SEQ_ID.html">API_QUERY_SEQ_ID</a></li>
           <li class="constant"><a href="Fb.API_QUERY_STICKER.html">API_QUERY_STICKER</a></li>
           <li class="constant"><a href="Fb.API_QUERY_THREAD.html">API_QUERY_THREAD</a></li>
           <li class="constant"><a href="Fb.API_QUERY_THREADS.html">API_QUERY_THREADS</a></li>
@@ -69,6 +71,7 @@
           <li class="constant"><a href="Fb.MQTT_PORT.html">MQTT_PORT</a></li>
           <li class="constant"><a href="Fb.MQTT_TIMEOUT_CONN.html">MQTT_TIMEOUT_CONN</a></li>
           <li class="constant"><a href="Fb.MQTT_TIMEOUT_PING.html">MQTT_TIMEOUT_PING</a></li>
+          <li class="constant"><a href="Fb.ORCA_AGENT.html">ORCA_AGENT</a></li>
           <li class="constant"><a href="Fb.UTIL_DEBUG_INFO.html">UTIL_DEBUG_INFO</a></li>
           <li class="method"><a href="Fb.http_error_chk.html">http_error_chk</a></li>
           <li class="method"><a href="Fb.http_error_quark.html">http_error_quark</a></li>
@@ -165,6 +168,10 @@
         </ul>
         <h3 class="main_title">Constants:</h3>
         <ul class="navi_inline">
+          <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_keyword">unowned</span> <span class="main_basic_type"><span class="class">string</span></span> <b><a href="Fb.API_AGENT.html" class="constant">API_AGENT</a></b>
+            </span>
+            <div class="leaf_brief_description"><span class="brief_description">The HTTP User-Agent header.</span>
+            </div></li>
           <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_keyword">unowned</span> <span class="main_basic_type"><span class="class">string</span></span> <b><a href="Fb.API_AHOST.html" class="constant">API_AHOST</a></b>
             </span>
             <div class="leaf_brief_description"><span class="brief_description">The HTTP host for the Facebook API.</span>
@@ -196,6 +203,10 @@
           <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_basic_type"><span class="struct">int</span></span> <b><a href="Fb.API_QUERY_CONTACTS_AFTER.html" class="constant">API_QUERY_CONTACTS_AFTER</a></b>
             </span>
             <div class="leaf_brief_description"><span class="brief_description">The query hash for the `FetchContactsFullWithAfterQuery`.</span>
+            </div></li>
+          <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_basic_type"><span class="struct">int</span></span> <b><a href="Fb.API_QUERY_SEQ_ID.html" class="constant">API_QUERY_SEQ_ID</a></b>
+            </span>
+            <div class="leaf_brief_description"><span class="brief_description">A variant of ThreadListQuery with sequence ID</span>
             </div></li>
           <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_basic_type"><span class="struct">int</span></span> <b><a href="Fb.API_QUERY_STICKER.html" class="constant">API_QUERY_STICKER</a></b>
             </span>
@@ -258,6 +269,11 @@
           <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_basic_type"><span class="struct">int</span></span> <b><a href="Fb.MQTT_TIMEOUT_PING.html" class="constant">MQTT_TIMEOUT_PING</a></b>
             </span>
             <div class="leaf_brief_description"><span class="brief_description">The timeout, in milliseconds, to send a PING to the server.</span>
+            </div></li>
+          <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_keyword">unowned</span> <span class="main_basic_type"><span class="class">string</span></span> <b><a href="Fb.ORCA_AGENT.html" class="constant">ORCA_AGENT</a></b>
+            </span>
+            <div class="leaf_brief_description"><span class="brief_description">The part of the user agent that looks like the official client, since 
+                the server started checking this.</span>
             </div></li>
           <li class="constant"><span class="leaf_code_definition"><span class="main_keyword">public</span> <span class="main_keyword">const</span> <span class="main_basic_type"><span class="struct">int</span></span> <b><a href="Fb.UTIL_DEBUG_INFO.html" class="constant">UTIL_DEBUG_INFO</a></b>
             </span>

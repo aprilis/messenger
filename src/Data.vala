@@ -20,6 +20,44 @@ namespace Fb {
             Promise<Pixbuf> promise;
         }
 
+        private class DelayedOps : Object {
+
+            public delegate void Operation ();
+
+            private class OpWrapper {
+                private Operation op;
+
+                public OpWrapper (owned Operation o) {
+                    op = (owned)o;
+                }
+
+                public void run () {
+                    op ();
+                }
+            }
+
+            private GLib.List<OpWrapper> ops = new GLib.List<OpWrapper> ();
+            private bool released = false;
+
+            public void add (owned Operation op) {
+                if (released) {
+                    op ();
+                } else {
+                    ops.append (new OpWrapper ((owned)op));
+                }
+            }
+
+            public void release () {
+                if (!released) {
+                    released = true;
+                    foreach (var op in ops) {
+                        op.run ();
+                    }
+                    ops = null;
+                }
+            }
+        }
+
         private string DATA_PATH;
         private string CONTACTS_PATH;
         private string THREADS_PATH;
@@ -44,9 +82,6 @@ namespace Fb {
         private Api api;
 
         private Ui.ConvData conv_data;
-        
-        private SList<ApiUser> waiting_users;
-        private SList<ApiThread> waiting_threads;
                 
         private GLib.Thread<void*> photo_downloader;
         private AsyncQueue<DownloadTask?> download_queue;
@@ -63,23 +98,8 @@ namespace Fb {
             }
         }
 
-        private bool _contacts_allowed = false;
-        private bool contacts_allowed {
-            get { return _contacts_allowed; }
-            set {
-                _contacts_allowed = value;
-                check_waiting ();
-            }
-        }
-        
-        private bool _threads_allowed = false;
-        private bool threads_allowed {
-            get { return _threads_allowed; }
-            set {
-                _threads_allowed = value;
-                check_waiting ();
-            }
-        }
+        private DelayedOps collective_updates;
+        private DelayedOps selective_updates;
         
         public signal void new_contact (Contact contact);
         public signal void new_thread (Thread thread);
@@ -92,8 +112,6 @@ namespace Fb {
         }
         
         private async void load_from_disk () {
-            contacts.clear ();
-            threads.clear ();
             try {
                 var file = File.new_for_path (CONTACTS_PATH);
                 var stream = yield file.read_async();
@@ -123,13 +141,13 @@ namespace Fb {
                     var object = node.get_object ();
                     var id = object.get_int_member ("id");
                     var group = object.get_boolean_member ("is_group");
-                    var thread = get_thread (id, group, false);
+                    var thread = get_thread (id, group);
                     thread.load_from_json (node);
                 }
             } catch (Error e) {
                 warning ("%s\n", e.message);
             }
-            contacts_allowed = true;
+            collective_updates.release ();
         }
         
         private async void save_contacts () {
@@ -190,32 +208,28 @@ namespace Fb {
             }
         }
         
-        public Contact get_contact (Id id, bool send_query) {
+        public Contact get_contact (Id id, bool query = true) {
             if (!contacts.has_key (id)) {
                 contacts [id] = new Contact (id);
                 new_contact (contacts [id]);
             }
             var contact = contacts [id];
-            if (send_query && !contact.is_loaded) {
-                app.query_contact (id);
+            if (query) {
+                selective_updates.add (() => {
+                    if (!contact.is_loaded) {
+                        app.query_contact (contact.id);
+                    }
+                });
             }
             return contact;
         }
-        
-        public Thread get_thread (Id id, bool group, bool send_query) {
+
+        public Thread get_thread (Id id, bool group) {
             if (!threads.has_key (id)) {
-                var thread = group ? new GroupThread (id) as Thread : new SingleThread (id, send_query) as Thread;
+                var thread = group ? new GroupThread (id) as Thread : new SingleThread (id) as Thread;
                 add_thread (thread);
             }
             var thread = threads [id];
-            if (send_query) {
-                if (!thread.is_group && !(thread as SingleThread).contact.is_loaded) {
-                    app.query_contact (id);
-                }
-                if (!thread.is_loaded) {
-                    app.query_thread (id);
-                }
-            }
             return thread;
         }
         
@@ -255,7 +269,7 @@ namespace Fb {
         public void parse_contacts (SList<ApiUser?> users, bool friends_only = false) {
             foreach (var user in users) {
                 if (user == null) {
-                    threads_allowed = true;
+                    selective_updates.release ();
                     save_contacts ();
                 } else {
                     parse_contact (user, friends_only);
@@ -265,20 +279,13 @@ namespace Fb {
         
         public void contacts_done (void *ptr, bool complete) {
             unowned SList<ApiUser?> users = (SList<ApiUser?>) ptr;
+            var copy = users.copy_deep ((user) => { return user.dup (true); });
             if (complete) {
-                users.append (null);
+                copy.append (null);
             }
-            if (contacts_allowed) {
-                parse_contacts (users);
-            } else {
-                if(waiting_users == null) {
-                    waiting_users = new SList<ApiUser> ();
-                }
-                foreach (unowned ApiUser user in users) {
-                    waiting_users.append (user.dup (true));
-                }
-                check_waiting ();
-            }
+            collective_updates.add (() => {
+                parse_contacts (copy);
+            });
         }
         
         public void contact_done (void *ptr) {
@@ -293,7 +300,7 @@ namespace Fb {
             if (thread.tid in null_contacts) {
                 return;
             }
-            var th = get_thread (thread.tid, thread.is_group, false);
+            var th = get_thread (thread.tid, thread.is_group);
             if (th.load_from_api (thread) && th.unread > 0) {
                 new_message (th, th.last_message);
             }
@@ -305,25 +312,20 @@ namespace Fb {
                 update_thread (thread);
             }
             save_threads ();
-            foreach (var contact in contacts.values) {
-                contact.download_photo (0);
-            }
+            selective_updates.add (() => {
+                foreach (var contact in contacts.values) {
+                    contact.download_photo (0);
+                }
+            });
             loading_finished ();
         }
         
         public void threads_done (void *ptr) {
-            unowned SList<Fb.ApiThread> threads = (SList<Fb.ApiThread>) ptr;
-            if (threads_allowed) {
-                parse_threads (threads);
-            } else {
-                if (waiting_threads == null) {
-                    waiting_threads = new SList<ApiThread> ();
-                }
-                foreach (var thread in threads) {
-                    waiting_threads.append (thread.dup (true));
-                }
-                check_waiting ();
-            }
+            unowned SList<ApiThread> threads = (SList<ApiThread>) ptr;
+            var copy = threads.copy_deep ((thread) => { return thread.dup(true); });
+            collective_updates.add (() => {
+                parse_threads (copy);
+            });
         }
         
         public void thread_done (void *ptr) {
@@ -342,25 +344,14 @@ namespace Fb {
                 var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
                     threads [msg.tid].update_request_time = time;
-                    app.query_threads (10);
+                    app.query_thread (msg.tid);
                 } else if (last_time < time) {
                     threads [msg.tid].update_request_time = time + UPDATE_THREAD_INTERVAL;
                     Timeout.add ((uint)(UPDATE_THREAD_INTERVAL / 1000), () => {
-                        app.query_threads(10);
+                        app.query_thread (msg.tid);
                         return false;
                     });
                 }
-            }
-        }
-        
-        private void check_waiting () {
-            if (waiting_users != null && contacts_allowed) {
-                parse_contacts (waiting_users);
-                waiting_users = null;
-            }
-            if (waiting_threads != null && threads_allowed) {
-                parse_threads (waiting_threads);
-                waiting_threads = null;
             }
         }
         
@@ -447,6 +438,9 @@ namespace Fb {
             contacts = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
             threads = new HashMap<Id?, Thread> (my_id_hash, my_id_equal);
             null_contacts = new HashSet<Id?> (my_id_hash, my_id_equal);
+
+            collective_updates = new DelayedOps ();
+            selective_updates = new DelayedOps ();
 
             make_dir (DATA_PATH);
             make_dir (PICTURES_PATH);

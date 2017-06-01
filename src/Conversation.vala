@@ -1,4 +1,4 @@
-    using GLib;
+using GLib;
 using Gtk;
 using WebKit;
 using Granite.Widgets;
@@ -76,8 +76,9 @@ namespace Ui {
                 settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
-                    if (load_event == LoadEvent.COMMITTED) {
-                        if (webview.get_uri ().has_prefix (LOGIN_URL)) {    
+                    if (load_event == LoadEvent.FINISHED) {
+                        if (webview.get_uri ().has_prefix (LOGIN_URL)) {
+                            last_id = 0;
                             auth_failed ();
                             return;
                         }
@@ -100,12 +101,12 @@ namespace Ui {
             
             public bool load (Fb.Id id) {
                 last_used = get_monotonic_time ();
-                last_id = id;
-                var uri = MESSENGER_URL + "/t/" + id.to_string ();
-                if (!reload && webview.get_uri () == uri) {
+                if (!reload && last_id == id) {
                     return false;
                 }
+                last_id = id;
                 reload = false;
+                var uri = MESSENGER_URL + "/t/" + id.to_string ();
                 webview.load_uri (uri);
                 return true;
             }
