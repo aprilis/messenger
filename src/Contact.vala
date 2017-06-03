@@ -25,19 +25,23 @@ namespace Fb {
         
         public bool is_present { get; set; default = false; }
         
-        public async void download_photo (int64 priority) {
+        public void download_photo (int64 priority) {
             if (download_photo_request != null) {
                 var req = download_photo_request;
                 download_photo_request = null;
                 try {
                     var data = App.instance ().data;
-                    photo = yield data.download_photo (req, priority);
-                    photo_changed ();
-                    yield data.save_photo (photo, id);
+                    data.download_photo (req, priority, id);
                 } catch (Error e) {
                     warning ("Error: %s\n", e.message);
                 }
             }
+        }
+
+        public void photo_downloaded (Pixbuf downloaded) {
+            var data = App.instance ().data;
+            photo = downloaded;
+            photo_changed ();
         }
         
         private async void load_photo_from_disk () {

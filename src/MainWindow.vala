@@ -4,26 +4,6 @@ using Gdk;
 namespace Ui {
 
     public class MainWindow : Gtk.Window {
-    
-         //Stylesheet taken from Birdie's source
-         private const string ELEMENTARY_STYLESHEET = """
-             @define-color colorPrimary #55ACEE;
-             .titlebar .linked .button {
-                 border-radius: 0;
-                 padding: 12px 10px;
-                 border-top-width: 0;
-                 box-shadow: none;
-             }
-             .favorite-pink {
-                 color: #E32550;
-             }
-             .favorite-grey {
-                 color: #B0B0B0;
-             }
-              .white-box {
-                 background: white;
-              }
-          """;
           
         private const int TRANSITION = 100;
           
@@ -136,8 +116,9 @@ namespace Ui {
                 return false;
             });
             
-            Granite.Widgets.Utils.set_theming_for_screen (get_screen (), ELEMENTARY_STYLESHEET,
-                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);       
+            var primary_color = Gdk.RGBA ();
+            primary_color.parse ("#55ACEE");
+            Granite.Widgets.Utils.set_color_primary (this, primary_color);
         }   
     }
 

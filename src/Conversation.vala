@@ -38,15 +38,27 @@ namespace Ui {
             """;
         
             private int64 last_id;
+            private bool user_changed = false;
 
             public WebView webview { get; private set; }
-            public bool reload { get; set; default = false; }
             
             public signal void ready ();
             public signal void auth_failed ();
             public signal void load_failed ();
+
+            private void load_conversation (Fb.Id id) {
+                last_id = id;
+                var uri = MESSENGER_URL + "/t/" + id.to_string ();
+                webview.load_uri (uri);
+                user_changed = true;
+            }
+
+            private void run_script () {
+                user_changed = true;
+                webview.run_javascript (CHANGE_USER_SCRIPT.printf (last_id), null);
+            }
             
-            public bool decide_policy (PolicyDecision decision, PolicyDecisionType type) {
+            private bool decide_policy (PolicyDecision decision, PolicyDecisionType type) {
                 var nav = decision as NavigationPolicyDecision;
                 if (nav != null && nav.request.get_http_method () == "GET") {
                     var uri = nav.request.uri;
@@ -83,12 +95,14 @@ namespace Ui {
                             return;
                         }
                         if (last_id != 0) {
-                            Timeout.add (500, () => {
-                                ready ();
-                                return false;
-                            });
-                        } else {
-                            reload = true;
+                            if (!user_changed) {
+                                run_script ();
+                            } else {
+                                Timeout.add (500, () => {
+                                    ready ();
+                                    return false;
+                                });
+                            }
                         }
                     }
                 });
@@ -108,27 +122,21 @@ namespace Ui {
             }
             
             public bool load (Fb.Id id) {
-                if (reload) {
-                    load_conversation (id);
-                    return true;
-                }
                 if (last_id == id) {
                     return false;
                 }
                 last_id = id;
-                webview.run_javascript (CHANGE_USER_SCRIPT.printf (id), null);
+                if (!webview.is_loading) {
+                    run_script ();
+                } else {
+                    user_changed = false;
+                }
                 return true;
-            }
-
-            public void load_conversation (Fb.Id id) {
-                reload = false;
-                last_id = id;
-                var uri = MESSENGER_URL + "/t/" + id.to_string ();
-                webview.load_uri (uri);
             }
 
             public void load_home_page () {
                 webview.load_uri (MESSENGER_URL);
+                last_id = 0;
             }
         }
         
@@ -222,7 +230,7 @@ namespace Ui {
         }
         
         public void reload () {
-            view.reload = true;
+            view.load_home_page ();
         }
         
         public new void show (int x, int y) {
@@ -258,7 +266,7 @@ namespace Ui {
                 stack.visible_child = view.webview;
                 view.webview.show_now ();
             });
-            view.load_failed.connect (() => { app.network_error (); });
+            view.load_failed.connect (() => { print ("network error!\n"); app.network_error (); });
             view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
 
             
@@ -268,10 +276,10 @@ namespace Ui {
         
         public void log_in (string username, string password) {
             clear_login_view ();
-            view.reload = true;
             login_view = new LoginView (username, password);
             login_view.finished.connect (() => {
                 clear_login_view ();
+                view.load_home_page ();
                 app.auth_target_done (Fb.App.AuthTarget.WEBVIEW);
             });
             login_view.failed.connect (() => {

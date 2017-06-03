@@ -189,6 +189,7 @@ namespace Fb {
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 reconnect ();
                 query_threads (THREADS_COUNT);
+                conversation.reload ();
             }
             last_awake_check = time;
             return true;
@@ -298,7 +299,6 @@ namespace Fb {
                 }
             });
             
-            conversation.reload ();
             query_contacts ();
             query_threads (THREADS_COUNT);
             connect_api ();

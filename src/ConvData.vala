@@ -16,36 +16,28 @@ namespace Ui {
         private string exec;
 
         private static const int ICON_SAVERS = 10;
-        private GLib.List<Thread<void*>> icon_savers;
-        private AsyncQueue<SaveTask?> save_queue;
+        private ThreadPool<SaveTask?> icon_saver;
         private bool closed = false;
         
-        private void* icon_saver_run () {
-            while (true) {
-                var task = save_queue.pop ();
-                if (closed) {
-                    break;
-                }
-                var thread = task.thread;
-                var file = File.new_for_path (icon_path (thread.id));
-                var icon = thread.get_icon (ICON_SIZE);
-                if (icon != null) {
-                    var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
-                    icon.save_to_stream (stream, "png", null);
-                }
+        private void icon_saver_func (owned SaveTask? task) {
+            var thread = task.thread;
+            var file = File.new_for_path (icon_path (thread.id));
+            var icon = thread.get_icon (ICON_SIZE);
+            if (icon != null) {
+                var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
+                icon.save_to_stream (stream, "png", null);
             }
-            return null;
         }
 
         private void save_icon (Fb.Thread thread, bool overwrite = false) throws Error {
-            if (thread.name == null) {
+            if (closed || thread.name == null) {
                 return;
             }
             var file = File.new_for_path (icon_path (thread.id));
             if (overwrite == false && file.query_exists ()) {
                 return;
             }
-            save_queue.push ({ thread });
+            icon_saver.add ({ thread });
         }
         
         private async void save_desktop_file (Fb.Thread thread, bool overwrite = false) throws Error {
@@ -107,19 +99,13 @@ namespace Ui {
         public ConvData (string dir_path, string exe_path) {
             directory = dir_path;
             exec = exe_path;
-            save_queue = new AsyncQueue<SaveTask?> ();
-            for (int i = 0; i < ICON_SAVERS; i++) {
-                icon_savers.append(new Thread<void*> (null, icon_saver_run));
-            }
+            icon_saver = new ThreadPool<SaveTask?>.with_owned_data (icon_saver_func, ICON_SAVERS, false);
         }
 
         public void close () {
-            closed = true;
-            for (int i = 0; i < ICON_SAVERS; i++) {
-                save_queue.push ({ null });
-            }
-            foreach (var saver in icon_savers) {
-                saver.join ();
+            if (!closed) {
+                closed = true;
+                ThreadPool.free ((owned) icon_saver, true, false);
             }
         }
     }

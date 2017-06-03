@@ -17,7 +17,7 @@ namespace Fb {
         private struct DownloadTask {
             int64 priority;
             string uri;
-            Promise<Pixbuf> promise;
+            int64 contact_id;
         }
 
         private class DelayedOps : Object {
@@ -65,7 +65,7 @@ namespace Fb {
         private string DESKTOP_PATH;
         
         private const int64 UPDATE_THREAD_INTERVAL = 1000000; //one second
-        private const int DOWNLOAD_LIMIT = 20;
+        private const int DOWNLOAD_LIMIT = 3;
         
         private HashMap<Id?, Contact> contacts;
     
@@ -83,20 +83,9 @@ namespace Fb {
 
         private Ui.ConvData conv_data;
                 
-        private GLib.Thread<void*> photo_downloader;
-        private AsyncQueue<DownloadTask?> download_queue;
+        private ThreadPool<DownloadTask?> photo_downloader;
 
         private bool closed = false;
-
-        private int compare_tasks (DownloadTask? a, DownloadTask? b) {
-            if (a.priority == b.priority) {
-                return 0;
-            } else if (a.priority > b.priority) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
 
         private DelayedOps collective_updates;
         private DelayedOps selective_updates;
@@ -233,16 +222,18 @@ namespace Fb {
             return thread;
         }
         
-        public async Pixbuf download_photo (string uri, int64 priority) throws Error {
-            DownloadTask task = { priority, uri, new Promise<Pixbuf> () };
-            download_queue.push_sorted (task, compare_tasks);
-            return yield task.promise.future.wait_async ();
+        public void download_photo (string uri, int64 priority, Fb.Id id) {
+            if (closed) {
+                return;
+            }
+            DownloadTask task = { priority, uri, id };
+            photo_downloader.add (task);
         }
         
-        public async void save_photo (Pixbuf photo, Id id) throws Error {
+        public void save_photo (Pixbuf photo, Id id) throws Error {
             var file = File.new_for_path (photo_path (id));
-            var stream = yield file.replace_async (null, true, FileCreateFlags.PRIVATE);
-            photo.save_to_stream_async.begin (stream, "jpeg", null, (obj, res) => { });
+            var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
+            photo.save_to_stream (stream, "jpeg");
         }
         
         public async Pixbuf load_photo (Id id) throws Error {
@@ -259,7 +250,11 @@ namespace Fb {
             if (friends_only && !user.is_friend && !(user.uid in contacts)) {
                 return false;
             }
-            get_contact (user.uid, false).load_from_api (user);
+            var contact = get_contact (user.uid, false);
+            contact.load_from_api (user);
+            if (user.uid == api.uid) {
+                contact.download_photo (int64.MAX);
+            }
             if (user.is_friend && !threads.has_key (user.uid)) {
                 add_thread (new SingleThread.with_contact (contacts[user.uid]));
             }
@@ -291,7 +286,7 @@ namespace Fb {
         public void contact_done (void *ptr) {
             unowned ApiUser user = (ApiUser) ptr;
             if (parse_contact (user, false)) {
-                contacts[user.uid].download_photo (0);
+                contacts[user.uid].download_photo (1);
                 save_contacts ();
             }
         }
@@ -314,7 +309,7 @@ namespace Fb {
             save_threads ();
             selective_updates.add (() => {
                 foreach (var contact in contacts.values) {
-                    contact.download_photo (0);
+                    contact.download_photo (1);
                 }
             });
             loading_finished ();
@@ -390,34 +385,19 @@ namespace Fb {
             api.read (id, id in threads ? threads [id].is_group : true);
         }
 
-        public void* photo_downloader_run () {
-            var download_finished = new Cond ();
-            var mutex = new Mutex ();
-            int downloading = 0;
-            while (true) {
-                var task = download_queue.pop ();
-                if (closed) {
-                    break;
-                }
-                mutex.lock ();
-                downloading++;
-                while (downloading >= DOWNLOAD_LIMIT) {
-                    download_finished.wait_until (mutex, get_monotonic_time () + 5 * TimeSpan.SECOND);
-                }
-                mutex.unlock ();
+        private void photo_downloader_func (owned DownloadTask? task) {
+            try {
                 var request = session.request (task.uri);
-                request.send_async.begin (null, (obj, res) => {
-                    var stream = request.send_async.end (res);
-                    Pixbuf.new_from_stream_async.begin (stream, null, (obj, res) => {
-                        task.promise.set_value (Pixbuf.new_from_stream_async.end (res));
-                        mutex.lock ();
-                        downloading--;
-                        mutex.unlock ();
-                        download_finished.signal ();
-                    });
+                var stream = request.send ();
+                var pixbuf = new Pixbuf.from_stream (stream);
+                Idle.add (() => {
+                    get_contact (task.contact_id).photo_downloaded (pixbuf);
+                    return false;
                 });
+                save_photo (pixbuf, task.contact_id);
+            } catch (Error e) {
+                warning ("Photo downloader error: %s\n", e.message);
             }
-            return null;
         }
         
         public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
@@ -454,15 +434,23 @@ namespace Fb {
             api.thread.connect (thread_done);
             api.messages.connect (messages);
 
-            photo_downloader = new GLib.Thread<void*> (null, photo_downloader_run);
-            download_queue = new AsyncQueue<DownloadTask?> ();
+            photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
+                DOWNLOAD_LIMIT, false);
+            photo_downloader.set_sort_function ((task1, task2) => {
+                if (task1.priority < task2.priority) {
+                    return 1;
+                } else if (task1.priority == task2.priority) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            });
         }
 
         public void close () {
             if (!closed) {
                 closed = true;
-                download_queue.push_sorted ({ 0, null, null }, compare_tasks);
-                photo_downloader.join ();
+                ThreadPool.free ((owned) photo_downloader, true, false);
                 conv_data.close ();
             }
         }

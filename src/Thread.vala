@@ -84,7 +84,7 @@ namespace Fb {
             Pixbuf pixbuf;
             if (photo == null) {
                 pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);
-                pixbuf.fill ((uint32)0xaaaaaaff);
+                pixbuf.fill ((uint32)0xffffffff);
             } else {
                 pixbuf = photo;
             }
