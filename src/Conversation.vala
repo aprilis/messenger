@@ -24,22 +24,25 @@ namespace Ui {
                     display: none
                 }
                 """;
-                
-            private static int count = 0;
-            
-            private static UserContentManager content_manager = null;
-            
-            private int number;
-            private string username;
-            private string password;
+
+            private const string CHANGE_USER_SCRIPT = """
+                try {
+                    document.title = 'loading';
+                    element = document.getElementById('row_header_id_user:%lld');
+                    link = element.getElementsByTagName('a')[0];
+                    link.click();
+                    document.title = 'success';
+                } catch(err) {
+                    document.title = 'fail';
+                }
+            """;
         
+            private int64 last_id;
+
             public WebView webview { get; private set; }
-            public Fb.Id last_id { get; private set; default = 0; }
-            public int64 last_used { get; private set; default = 0; }
             public bool reload { get; set; default = false; }
-            public string id { owned get { return number.to_string (); } }
             
-            public signal void ready (View view);
+            public signal void ready ();
             public signal void auth_failed ();
             public signal void load_failed ();
             
@@ -61,16 +64,13 @@ namespace Ui {
                 }
                 return false;
             }
-            
-            static construct {
+
+            public View () {       
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
-                content_manager = new UserContentManager ();
+                var content_manager = new UserContentManager ();
                 content_manager.add_style_sheet (style_sheet);
-            }
 
-            public View () {            
-                number = count++;
                 webview = new WebView.with_user_content_manager (content_manager);
                 var settings = webview.get_settings ();
                 settings.enable_write_console_messages_to_stdout = true;
@@ -84,7 +84,7 @@ namespace Ui {
                         }
                         if (last_id != 0) {
                             Timeout.add (500, () => {
-                                ready (this);
+                                ready ();
                                 return false;
                             });
                         } else {
@@ -92,23 +92,43 @@ namespace Ui {
                         }
                     }
                 });
+                webview.notify ["title"].connect ((s, p) => {
+                    if (webview.title == "success") {
+                        ready ();
+                    } else if (webview.title == "fail" && last_id != 0) {
+                        load_conversation (last_id);
+                    }
+                });
                 webview.context_menu.connect (() => { return true; });
                 webview.show_notification.connect (() => { return true; });
                 webview.decide_policy.connect (decide_policy);
                 
                 webview.load_failed.connect ((event, uri, error) => { load_failed (); return false; });
+                load_home_page ();
             }
             
             public bool load (Fb.Id id) {
-                last_used = get_monotonic_time ();
-                if (!reload && last_id == id) {
+                if (reload) {
+                    load_conversation (id);
+                    return true;
+                }
+                if (last_id == id) {
                     return false;
                 }
                 last_id = id;
+                webview.run_javascript (CHANGE_USER_SCRIPT.printf (id), null);
+                return true;
+            }
+
+            public void load_conversation (Fb.Id id) {
                 reload = false;
+                last_id = id;
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
                 webview.load_uri (uri);
-                return true;
+            }
+
+            public void load_home_page () {
+                webview.load_uri (MESSENGER_URL);
             }
         }
         
@@ -170,47 +190,15 @@ namespace Ui {
             }
         
         }
-        
-        public const int64 CACHE_INTERVAL = 1000000 * 60 * 10; //10 minutes
-        public const int CACHE_LIMIT = 3;
 
         private Loading loading;
         private Stack stack;
         
-        private List<View> cache;
+        private View view;
         private LoginView login_view;
         
         private Fb.App app;
-        
-        private View get_view (Fb.Id id = 0) {
-            View best = null;
-            foreach (var view in cache) {
-                if (view.last_id == id) {
-                    best = view;
-                    break;
-                }
-                if (best == null || best.last_used > view.last_used) {
-                    best = view;
-                }
-            }
-            var time = get_monotonic_time ();
-            if (best == null || (best.last_id != id && time - best.last_used < CACHE_INTERVAL
-                 && cache.length () < CACHE_LIMIT)) {
-                best = new View ();
-                stack.add_named (best.webview, best.id);
-                best.ready.connect ((view) => {
-                    if (view.last_id == current_id) {
-                        stack.visible_child = view.webview;
-                        view.webview.show_now ();
-                    }
-                });
-                best.load_failed.connect (() => { app.network_error (); });
-                best.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
-                cache.append (best);
-            }
-            return best;
-        }
-        
+
         private void clear_login_view () {
             if (login_view != null) {
                 login_view.destroy ();
@@ -218,18 +206,10 @@ namespace Ui {
             login_view = null;
         }
         
-        private void clear_cache () {
-            foreach (var view in cache) {
-                stack.remove (view.webview);
-            }
-            cache = new List<View> ();
-        }
-        
         public int64 current_id { get; private set; default = 0;}
         
         public void load_conversation (Fb.Id id) {
             current_id = id;
-            var view = get_view (id);
             if (view.load (id)) {
                 stack.visible_child = loading;
             } else {
@@ -241,18 +221,8 @@ namespace Ui {
             }
         }
         
-        public void reload (Fb.Id id) {
-            foreach (var view in cache) {
-                if (view.last_id == id) {
-                    view.reload = true;
-                }
-            }
-        }
-        
-        public void reload_all () {
-            foreach (var view in cache) {
-                view.reload = true;
-            }
+        public void reload () {
+            view.reload = true;
         }
         
         public new void show (int x, int y) {
@@ -281,14 +251,24 @@ namespace Ui {
             stack.margin_bottom = ARROW_HEIGHT;
             stack.margin_left = stack.margin_right = stack.margin_top = SHADOW_SIZE;
             stack.add_named (loading, "loading");
+
+            view = new View ();
+            stack.add_named (view.webview, "conversation");
+            view.ready.connect (() => {
+                stack.visible_child = view.webview;
+                view.webview.show_now ();
+            });
+            view.load_failed.connect (() => { app.network_error (); });
+            view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
+
             
             scrolled.add (stack);
             add (scrolled);
         }
         
         public void log_in (string username, string password) {
-            clear_cache ();
             clear_login_view ();
+            view.reload = true;
             login_view = new LoginView (username, password);
             login_view.finished.connect (() => {
                 clear_login_view ();
@@ -309,8 +289,8 @@ namespace Ui {
         }
         
         public void log_out () {
-            clear_cache ();
             clear_cookies ();
+            view.load_home_page ();
         }
     }
 

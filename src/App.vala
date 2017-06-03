@@ -72,7 +72,7 @@ namespace Fb {
                         window.current.network_ok ();
                         query_threads (THREADS_COUNT);
                         query_contacts ();
-                        conversation.reload_all ();
+                        conversation.reload ();
                     }
                 }
             }
@@ -298,7 +298,7 @@ namespace Fb {
                 }
             });
             
-            conversation.reload_all ();
+            conversation.reload ();
             query_contacts ();
             query_threads (THREADS_COUNT);
             connect_api ();
@@ -552,7 +552,7 @@ namespace Fb {
         }
         
         public void reload_conversation (Fb.Id id) {
-            conversation.reload (id);
+            conversation.reload ();
         }
         
         public void show_window () {
