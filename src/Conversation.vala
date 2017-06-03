@@ -28,7 +28,11 @@ namespace Ui {
             private const string CHANGE_USER_SCRIPT = """
                 try {
                     document.title = 'loading';
-                    element = document.getElementById('row_header_id_user:%lld');
+                    id = '%lld';
+                    element = document.getElementById('row_header_id_user:' + id);
+                    if (element == null) {
+                        element = document.getElementById('row_header_id_thread:' + id);
+                    }
                     link = element.getElementsByTagName('a')[0];
                     link.click();
                     document.title = 'success';
