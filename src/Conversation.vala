@@ -166,11 +166,11 @@ namespace Ui {
             private string username;
             private string password;
                 
-            public signal void finished ();
+            public signal void finished (LoginView view);
             
-            public signal void failed ();
+            public signal void failed (LoginView view);
             
-            public signal void load_failed ();
+            public signal void load_failed (LoginView view);
                 
             public LoginView (string user, string pass) {                
                 username = user;
@@ -183,17 +183,17 @@ namespace Ui {
                         if (uri.has_prefix (FAIL_URL)) {
                             username = "";
                             password = "";
-                            failed ();
+                            failed (this);
                         } else if (uri.has_prefix (LOGIN_URL)) {
                             webview.run_javascript (LOGIN_SCRIPT.printf(username, password).to_ascii (), null);
                         } else {
                             username = "";
                             password = "";
-                            finished ();
+                            finished (this);
                         }
                     }
                 });
-                webview.load_failed.connect ((event, uri, error) => { load_failed (); return false; });
+                webview.load_failed.connect ((event, uri, error) => { load_failed (this); return false; });
                 webview.load_uri (LOGIN_URL);
             }
         
@@ -281,16 +281,25 @@ namespace Ui {
         public void log_in (string username, string password) {
             clear_login_view ();
             login_view = new LoginView (username, password);
-            login_view.finished.connect (() => {
+            login_view.finished.connect ((lv) => {
+                if (login_view != lv) {
+                    return;
+                }
                 clear_login_view ();
                 view.load_home_page ();
                 app.auth_target_done (Fb.App.AuthTarget.WEBVIEW);
             });
-            login_view.failed.connect (() => {
+            login_view.failed.connect ((lv) => {
+                if (login_view != lv) {
+                    return;
+                }
                 clear_login_view ();
                 app.show_login_dialog (true);
             });
-            login_view.load_failed.connect (() => {
+            login_view.load_failed.connect ((lv) => {
+                if (login_view != lv) {
+                    return;
+                }
                 clear_login_view ();
                 app.network_error ();
             });

@@ -19,6 +19,8 @@ namespace Ui {
         public InfoBar network_error_bar { get; private set; }
         
         public InfoBar auth_error_bar { get; private set; }
+
+        public InfoBar other_error_bar { get; private set; }
         
         private void set_login_widgets_sensitive (bool sensitive) {
             foreach (var w in login_widgets) {
@@ -78,6 +80,7 @@ namespace Ui {
             
             network_error_bar = Utils.create_infobar ("Connection failed", MessageType.ERROR, true);
             auth_error_bar = Utils.create_infobar ("Wrong username or password", MessageType.ERROR, true);
+            other_error_bar = Utils.create_infobar ("Other error", MessageType.ERROR, true);
             
             var box1 = new Box (Orientation.VERTICAL, 5);
             box1.pack_start (icon, false, false);
@@ -90,6 +93,7 @@ namespace Ui {
             var box2 = new Box (Orientation.VERTICAL, 0);
             box2.pack_start (network_error_bar, false);
             box2.pack_start (auth_error_bar, false);
+            box2.pack_start (other_error_bar, false);
             box2.pack_start (box1, true, false);
             widget = box2;
             
@@ -121,11 +125,17 @@ namespace Ui {
         
         public override void network_ok () {
             network_error_bar.visible = false;
+            other_error_bar.visible = false;
         }
         
         public override void cowardly_user () {
             login.text = "";
             password.text = "";
+            set_login_widgets_sensitive (true);
+        }
+
+        public override void other_error () {
+            other_error_bar.visible = true;
             set_login_widgets_sensitive (true);
         }
         

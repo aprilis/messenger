@@ -24,6 +24,8 @@ namespace Ui {
         public virtual void network_ok () { }
         
         public virtual void cowardly_user () { }
+
+        public virtual void other_error () { }
     
     }
 

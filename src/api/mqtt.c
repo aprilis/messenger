@@ -689,9 +689,9 @@ fb_mqtt_disconnect(FbMqtt *mqtt)
 		return;
 	}
 
-	msg = fb_mqtt_message_new(FB_MQTT_MESSAGE_TYPE_DISCONNECT, 0);
+	/*msg = fb_mqtt_message_new(FB_MQTT_MESSAGE_TYPE_DISCONNECT, 0);
 	fb_mqtt_write(mqtt, msg);
-	g_object_unref(msg);
+	g_object_unref(msg);*/
 	fb_mqtt_close(mqtt);
 }
 

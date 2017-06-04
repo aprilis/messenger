@@ -310,7 +310,7 @@ namespace Fb {
         }
         
         private void api_error (Error e) {
-            Quark[] known_quarks = { Fb.Mqtt.error_quark (), Fb.Api.error_quark (),
+            Quark[] network_quarks = { Fb.Mqtt.error_quark (),
                                      ResolverError.quark (), Fb.http_error_quark () };
             warning ("Api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
             if (e.matches (Fb.Api.error_quark (), ApiError.AUTH) ||
@@ -319,10 +319,11 @@ namespace Fb {
                 auth_error ();
             } else if (e.matches (Fb.Mqtt.error_quark (), MqttError.UNAUTHORIZED)) {
                 auth_needed ();
-            } else if (e.domain in known_quarks) {
+            } else if (e.domain in network_quarks) {
                 network_error ();
             } else {
                 warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
+                window.current.other_error ();
             }
         }
         
@@ -416,6 +417,8 @@ namespace Fb {
                 user_login = username;
             }
             auth_target = AuthTarget.API | AuthTarget.WEBVIEW;
+            webview_auth_fail = false;
+            show_login_dialog_infobar = false;
             conversation.log_in (username, password);
             authenticate (username, password);
         }
