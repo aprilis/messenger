@@ -1,4 +1,4 @@
-The best available desktop app for Facebook Messenger. Created for [elementary OS](https://elementary.io). Inspired by [this mockup](https://github.com/elementary/mockups/blob/master/apps/plank/with-chat-bubble.png). Many thanks to [purple facebook](https://github.com/dequis/purple-facebook) for creating API to communicate with Messenger service.
+The best available desktop app for Facebook Messenger. Created for [elementary OS](https://elementary.io). Inspired by [this mockup](https://github.com/elementary/mockups/blob/master/apps/plank/with-chat-bubble.png). Many thanks to [purple facebook](https://github.com/dequis/purple-facebook)'s authors for creating API to communicate with Messenger service.
 
 ## Features
 
