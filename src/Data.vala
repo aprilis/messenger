@@ -262,13 +262,17 @@ namespace Fb {
         }
         
         public void parse_contacts (SList<ApiUser?> users, bool friends_only = false) {
+            bool any = false;
             foreach (var user in users) {
                 if (user == null) {
                     selective_updates.release ();
                     save_contacts ();
-                } else {
-                    parse_contact (user, friends_only);
+                } else if (parse_contact (user, friends_only)) {
+                    any = true;
                 }
+            }
+            if (!any) {
+                selective_updates.release ();
             }
         }
         

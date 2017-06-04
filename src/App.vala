@@ -187,7 +187,7 @@ namespace Fb {
         public bool check_awake () {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
-                reconnect ();
+                connect_api ();
                 query_threads (THREADS_COUNT);
                 conversation.reload ();
             }
@@ -196,10 +196,9 @@ namespace Fb {
         }
         
         public bool reconnect () {
-            if (data == null || network_problem == false) { 
+            if (data == null || !network_problem) { 
                 return false;
             }
-            disconnect_api ();
             connect_api ();
             return true;
         }
@@ -455,7 +454,7 @@ namespace Fb {
             var quit_item = new Gtk.MenuItem.with_label ("Quit");
             
             preferences_item.sensitive = false;
-            reconnect_item.activate.connect (() => { data.close (); data = null; disconnect_api (); auth_done (); });
+            reconnect_item.activate.connect (() => { data.close (); data = null; auth_done (); });
             remove_item.activate.connect (() => { remove_heads (); });
             logout_item.activate.connect (() => { log_out (); });
             about_item.activate.connect (() => { application.show_about (window); });

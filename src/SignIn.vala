@@ -123,7 +123,7 @@ namespace Ui {
             network_error_bar.visible = false;
         }
         
-        public virtual void cowardly_user () {
+        public override void cowardly_user () {
             login.text = "";
             password.text = "";
             set_login_widgets_sensitive (true);
