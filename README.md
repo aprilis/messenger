@@ -17,6 +17,7 @@ The best available desktop app for Facebook Messenger. Created for [elementary O
   ./autogen.sh
   make
   sudo make install
+  sudo ldconfig
   killall plank    #this will restart plank
   cd ..
   ```
