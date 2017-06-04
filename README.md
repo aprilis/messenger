@@ -1,4 +1,13 @@
-The best available desktop app for Facebook Messenger. Created for [elementary OS](https://elementary.io).
+The best available desktop app for Facebook Messenger. Created for [elementary OS](https://elementary.io). Inspired by [this mockup](https://github.com/elementary/mockups/blob/master/apps/plank/with-chat-bubble.png). Many thanks to [purple facebook](https://github.com/dequis/purple-facebook)'s authors for creating API to communicate with Messenger service.
+
+## Features
+
+1. Native notifications of incoming messages (including notification badges)
+2. Easy access to your conversations via chat bubbles
+3. Simple, beautiful interface
+4. No useless, Snapchat-like features :)
+
+![alt text](https://raw.githubusercontent.com/aprilis/messenger/master/screenshot.png)
 
 ## Getting started
 
