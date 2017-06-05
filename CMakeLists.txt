@@ -108,5 +108,5 @@ target_link_libraries(${EXEC_NAME} PUBLIC ${PLANK_LIBRARIES})
 install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
 
 # install our .desktop file so the Applications menu will see it
-install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/org.messenger.app.desktop DESTINATION ${DATADIR}/applications/)
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/com.github.aprilis.messenger.desktop DESTINATION ${DATADIR}/applications/)
 

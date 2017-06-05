@@ -3,7 +3,7 @@ using Gtk;
 
 public class Main : Granite.Application {
 
-    public const string APP_ID = "org.messenger.app";
+    public const string APP_ID = "com.github.aprilis.messenger.app";
     public const string APP_NAME = "messenger";
     
     private bool is_fake;
@@ -160,7 +160,7 @@ public class Main : Granite.Application {
         if (is_fake) {
             hold ();
             var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
-                "Messenger is not running. To start the conversation please run the Messenger app first");
+                "Messenger is not running. To start the conversation, close this dialog and run the Messenger app first");
             msg.response.connect ((id) => { release (); });
             msg.show ();
         }
