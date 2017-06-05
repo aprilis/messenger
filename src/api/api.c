@@ -1038,12 +1038,12 @@ fb_api_cb_seqid(GObject *source, GAsyncResult *res,
         return;
     }
 
-    JsonGenerator *gen = json_generator_new();
+    /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
     json_generator_set_indent(gen, 4);
     json_generator_set_root(gen, root);
-    //json_generator_to_file(gen, "seqid.json", NULL);
-    g_object_unref(gen);
+    json_generator_to_file(gen, "seqid.json", NULL);
+    g_object_unref(gen);*/
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE,
@@ -1121,13 +1121,6 @@ fb_api_cb_publish_mark(FbApi *api, GByteArray *pload)
     if (!fb_api_json_chk(api, pload->data, pload->len, &root)) {
         return;
     }
-
-    JsonGenerator *gen = json_generator_new();
-    json_generator_set_pretty(gen, TRUE);
-    json_generator_set_indent(gen, 4);
-    json_generator_set_root(gen, root);
-    //json_generator_to_file(gen, "publish.json", NULL);
-    g_object_unref(gen);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_BOOL, FALSE, "$.succeeded");
@@ -2091,12 +2084,12 @@ fb_api_cb_contacts(GObject *source, GAsyncResult *res,
         return;
     }
 
-    JsonGenerator *gen = json_generator_new();
+    /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
     json_generator_set_indent(gen, 4);
     json_generator_set_root(gen, root);
     //json_generator_to_file(gen, "contacts.json", NULL);
-    g_object_unref(gen);
+    g_object_unref(gen);*/
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE,
@@ -2664,6 +2657,8 @@ fb_api_thread_parse(FbApi *api, FbApiThread *thrd, JsonNode *root,
                        "$.unread_count");
     fb_json_values_add(values, FB_JSON_TYPE_STR, FALSE,
                        "$.updated_time_precise");
+    fb_json_values_add(values, FB_JSON_TYPE_INT, FALSE,
+                       "$.mute_until");
     fb_json_values_update(values, &err);
 
     if (G_UNLIKELY(err != NULL)) {
@@ -2676,6 +2671,7 @@ fb_api_thread_parse(FbApi *api, FbApiThread *thrd, JsonNode *root,
     thrd->unread = fb_json_values_next_int(values, 0);
     str = fb_json_values_next_str(values, "0");
     thrd->update_time = g_ascii_strtoll(str, NULL, 10);
+    thrd->mute_until = fb_json_values_next_int(values, 0);
     g_object_unref(values);
 
     values = fb_json_values_new(root);
@@ -2785,12 +2781,12 @@ fb_api_cb_thread(GObject *source, GAsyncResult *res,
         return;
     }
 
-    JsonGenerator *gen = json_generator_new();
+    /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
     json_generator_set_indent(gen, 4);
     json_generator_set_root(gen, root);
-    //json_generator_to_file(gen, "thread.json", NULL);
-    g_object_unref(gen);
+    json_generator_to_file(gen, "thread.json", NULL);
+    g_object_unref(gen);*/
 
     node = fb_json_node_get_nth(root, 0);
 
@@ -2991,12 +2987,12 @@ fb_api_cb_threads(GObject *source, GAsyncResult *res,
         return;
     }
 
-    JsonGenerator *gen = json_generator_new();
+    /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
     json_generator_set_indent(gen, 4);
     json_generator_set_root(gen, root);
-    //json_generator_to_file(gen, "threads.json", NULL);
-    g_object_unref(gen);
+    json_generator_to_file(gen, "threads.json", NULL);
+    g_object_unref(gen);*/
 
     arr = fb_json_node_get_arr(root, "$.viewer.message_threads.nodes",
                                &err);

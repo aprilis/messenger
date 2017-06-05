@@ -16,6 +16,8 @@ namespace Fb {
         public string last_message { get; set; }
         
         public int unread { get; set; default = 0; }
+
+        public int64 mute_until { get; set; default = 0; }
         
         public int64 update_time { get; set; default = 0; }
         
@@ -33,6 +35,7 @@ namespace Fb {
     
         public virtual bool load_from_api (Fb.ApiThread thread) {
             id = thread.tid;
+            mute_until = thread.mute_until;
             if (update_time < thread.update_time) {
                 update_time = thread.update_time;
                 last_message = thread.last_message;
@@ -50,6 +53,7 @@ namespace Fb {
             id = object.get_int_member ("id");
             last_message = object.get_string_member ("last_message");
             unread = (int) object.get_int_member ("unread");
+            mute_until = (int) object.get_int_member ("mute_until");
             update_time = object.get_int_member ("update_time");
             is_loaded = true;
         }
@@ -69,6 +73,9 @@ namespace Fb {
             builder.set_member_name ("unread");
             builder.add_int_value (unread);
             
+            builder.set_member_name ("mute_until");
+            builder.add_int_value (mute_until);
+
             builder.set_member_name ("is_group");
             builder.add_boolean_value (is_group);
             

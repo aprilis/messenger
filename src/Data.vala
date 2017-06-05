@@ -300,7 +300,7 @@ namespace Fb {
                 return;
             }
             var th = get_thread (thread.tid, thread.is_group);
-            if (th.load_from_api (thread) && th.unread > 0) {
+            if (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0) {
                 new_message (th, th.last_message);
             }
             unread_count (th.id, th.unread);
@@ -375,7 +375,7 @@ namespace Fb {
         
         public void check_unread_count (Fb.Id id) {
             if (!(id in threads)) {
-                app.query_threads (10);
+                app.query_thread (id);
             } else {
                 unread_count (id, threads [id].unread);
             }

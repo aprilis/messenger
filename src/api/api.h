@@ -524,6 +524,7 @@ struct _FbApiPresence
  * @last_message: The last message
  * @is_group: Is the thread a group thread
  * @unread: The number of unread messages
+ * @mute_until: The time the thread is muted until, -1 if it's muted forever or 0 if not muted
  * @users: (element-type FbId): The #GSList of #FbId
  *
  * Represents a Facebook message thread.
@@ -535,6 +536,7 @@ struct _FbApiThread
     gchar *last_message;
     gboolean is_group;
     gint unread;
+	gint64 mute_until;
     gint64 update_time;
 	GSList *users;
 };
