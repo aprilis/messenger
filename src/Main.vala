@@ -11,6 +11,7 @@ public class Main : Granite.Application {
     private Main (bool fake) {
         Object (application_id: APP_ID,
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE);
+        inactivity_timeout = 500;
         is_fake = fake;
         app_icon = "internet-chat";
         app_launcher = APP_ID + ".desktop";
@@ -25,6 +26,9 @@ public class Main : Granite.Application {
         program_name = "Messenger";
         exec_name = APP_NAME;
         startup.connect (_startup);
+
+        data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
+        cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
         
         var open_chat = new SimpleAction ("open-chat", VariantType.INT64);
         open_chat.activate.connect ((id) => {
@@ -33,18 +37,20 @@ public class Main : Granite.Application {
         add_action (open_chat);
         var close_all = new SimpleAction ("close-all", null);
         close_all.activate.connect (() => {
-            hold ();
-            Fb.App.remove_heads ();
-            release ();
+            remove_heads ();
         });
         add_action (close_all);
         var close_all_but_one = new SimpleAction ("close-all-but-one", VariantType.INT64);
         close_all_but_one.activate.connect ((id) => {
-            hold ();
-            Fb.App.remove_heads (id.get_int64 ());
-            release ();
+            remove_heads (id.get_int64 ());
         });
         add_action (close_all_but_one);
+    }
+
+    private void remove_heads (int64 id = 0) {
+        hold ();
+        Fb.App.remove_heads (id);
+        release ();
     }
     
     private void make_dir (string path) {
@@ -78,11 +84,9 @@ public class Main : Granite.Application {
         
         Plank.DBusClient.get_instance ();
         
-        data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
-        cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
         make_dir (data_path);
         make_dir (cache_path);
-        
+
         var app = Fb.App.instance ();
         app.quit.connect (release);
         app.send_notification.connect ((id, not) => {
@@ -152,12 +156,12 @@ public class Main : Granite.Application {
             }
         }
         if (close_all) {
-            activate_action ("close-all", null);
+            remove_heads ();
         }
         if (id_close != 0) {
-            activate_action ("close-all-but-one", new Variant.int64 (id_close));
+            remove_heads (id_close);
         }
-        if (is_fake) {
+        if (is_fake && id_open != 0) {
             hold ();
             var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
                 "Messenger is not running. To start the conversation, close this dialog and run the Messenger app first");
