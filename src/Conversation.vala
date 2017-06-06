@@ -121,7 +121,7 @@ namespace Ui {
                 webview.show_notification.connect (() => { return true; });
                 webview.decide_policy.connect (decide_policy);
                 
-                webview.load_failed.connect ((event, uri, error) => { print ("network error: %s\n", error.message); load_failed (); return false; });
+                webview.load_failed.connect ((event, uri, error) => { print ("network error: %s %d\n", error.message, error.code); load_failed (); return false; });
                 load_home_page ();
             }
             
@@ -139,7 +139,9 @@ namespace Ui {
             }
 
             public void load_home_page () {
-                webview.load_uri (MESSENGER_URL);
+                if (!webview.is_loading) {
+                    webview.load_uri (MESSENGER_URL);
+                }
                 last_id = 0;
             }
         }
