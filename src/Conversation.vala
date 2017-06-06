@@ -121,7 +121,7 @@ namespace Ui {
                 webview.show_notification.connect (() => { return true; });
                 webview.decide_policy.connect (decide_policy);
                 
-                webview.load_failed.connect ((event, uri, error) => { load_failed (); return false; });
+                webview.load_failed.connect ((event, uri, error) => { print ("network error: %s\n", error.message); load_failed (); return false; });
                 load_home_page ();
             }
             
@@ -270,7 +270,7 @@ namespace Ui {
                 stack.visible_child = view.webview;
                 view.webview.show_now ();
             });
-            view.load_failed.connect (() => { print ("network error!\n"); app.network_error (); });
+            view.load_failed.connect (() => { app.network_error (); });
             view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
 
             
