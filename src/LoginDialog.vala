@@ -11,12 +11,8 @@ namespace Ui {
         private const string SUCCESS_URL = MESSENGER_URL + "/t/";
 
         private const string INIT_SCRIPT = """
-                document.onreadystatechange = function () {
-                    if (document.readyState == 'complete') {
-                        document.getElementById('u_0_3').checked = true;
-                    }
-                }​;
-                """;
+                document.getElementById('u_0_3').checked = true;
+            """;
 
         private WebView webview;
 
@@ -39,7 +35,10 @@ namespace Ui {
                         is_finished = true;
                         finished ();
                     } else if (uri.has_prefix (LOGIN_URL)) {
-                        webview.run_javascript (INIT_SCRIPT, null);
+                        Timeout.add (500, () => {
+                            webview.run_javascript (INIT_SCRIPT, null);
+                            return false;
+                        });
                     }
                 }
             });

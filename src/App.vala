@@ -19,6 +19,7 @@ namespace Fb {
         private const int THREADS_COUNT = 500;
         private const int RECONNECT_INTERVAL = 10*1000;
         private const int CHECK_AWAKE_INTERVAL = 4*1000;
+        private const int CONVERSATION_START_INTERVAL = 1000000 / 2;
         
         private string get_session_path () {
             return Main.cache_path + "/" + SESSION_FILE;
@@ -53,6 +54,7 @@ namespace Fb {
         private HashSet<string> confirmed_users = null;
 
         private int64 last_awake_check = 0;
+        private int64 last_conversation_time = 0;
 
         private bool webview_auth_fail = false;
         private bool show_login_dialog_infobar = false;
@@ -503,6 +505,11 @@ namespace Fb {
             if (data == null) {
                 return;
             }
+            var time = get_monotonic_time ();
+            if (time - last_conversation_time < CONVERSATION_START_INTERVAL) {
+                return;
+            }
+            last_conversation_time = time;
             conversation.load_conversation (id);
             add_to_plank (id);
             data.check_unread_count (id);

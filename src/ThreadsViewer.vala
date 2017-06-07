@@ -130,7 +130,7 @@ namespace Ui {
                 _search_query = value;
                 inactive = true;
                 filtered.refilter ();
-                Timeout.add (50, () => {
+                Timeout.add (100, () => {
                     inactive = false;
                     view.scroll_to_point (0, 0);
                     return false;
