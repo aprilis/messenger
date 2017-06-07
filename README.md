@@ -40,3 +40,15 @@ The best available desktop app for Facebook Messenger. Created for [elementary O
   make
   sudo make install
   ```
+
+## Updates
+
+As this app isn't stable yet, updates may occur quite often. To download and install an update, you should open the terminal and navigate to the directory with cloned repository (probably it's named messenger) and type:
+
+  ```
+  git pull
+  cd build
+  sudo make install
+  ```
+
+Now you have to restart the app. To do this, open the main window, click the gear icon and select 'Quit'. Now open the main window again - your app is up-to-date!
