@@ -225,9 +225,9 @@ namespace Ui {
         public void load_conversation (Fb.Id id) {
             current_id = id;
             if (view.load (id)) {
-                stack.visible_child = loading;
+                stack.visible_child_name = "loading";
             } else {
-                stack.visible_child = view.webview;
+                stack.visible_child_name = "conversation";
                 view.webview.show_now ();
             }
             if (is_active) {
@@ -256,8 +256,8 @@ namespace Ui {
             set_size_request (700, 500);
             
             var scrolled = new ScrolledWindow (null, null);
-            scrolled.hscrollbar_policy = PolicyType.NEVER;
-            scrolled.vscrollbar_policy = PolicyType.NEVER;
+            //scrolled.hscrollbar_policy = PolicyType.NEVER;
+            //scrolled.vscrollbar_policy = PolicyType.NEVER;
 
             loading = new Loading (40);
             
@@ -267,17 +267,17 @@ namespace Ui {
             stack.add_named (loading, "loading");
 
             view = new View ();
-            stack.add_named (view.webview, "conversation");
+            stack.add_named (scrolled, "conversation");
             view.ready.connect (() => {
-                stack.visible_child = view.webview;
+                stack.visible_child_name = "conversation";
                 view.webview.show_now ();
             });
             view.load_failed.connect (() => { app.network_error (); });
             view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
 
             
-            scrolled.add (stack);
-            add (scrolled);
+            scrolled.add (view.webview);
+            add (stack);
         }
         
         public void log_in (string username, string password) {
