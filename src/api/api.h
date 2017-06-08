@@ -102,14 +102,14 @@
  *
  */
 
-#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/38.0.0.22.155;FBBV/14477681]"
+#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/109.0.0.17.70;FBPN/com.facebook.orca;FBLC/en_US;FBBV/52182662]"
 
 /**
  * FB_API_AGENT:
  *
  * The HTTP User-Agent header.
  */
-#define FB_API_AGENT  "Facebook plugin / Purple / 0.9.3 " FB_ORCA_AGENT
+#define FB_API_AGENT  "Facebook plugin / Messenger app for elementary OS / 0.2 " FB_ORCA_AGENT
 
 /**
  * FB_API_MQTT_AGENT

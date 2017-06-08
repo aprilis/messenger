@@ -26,6 +26,8 @@ namespace Ui {
         public virtual void cowardly_user () { }
 
         public virtual void other_error () { }
+
+        public virtual void twostep_verification () { }
     
     }
 

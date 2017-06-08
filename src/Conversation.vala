@@ -92,7 +92,7 @@ namespace Ui {
                 settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
-                    if (load_event == LoadEvent.FINISHED) {
+                    if (load_event == LoadEvent.COMMITTED) {
                         if (webview.get_uri ().has_prefix (LOGIN_URL)) {
                             last_id = 0;
                             auth_failed ();
@@ -266,9 +266,9 @@ namespace Ui {
             stack.margin_bottom = ARROW_HEIGHT;
             stack.margin_left = stack.margin_right = stack.margin_top = SHADOW_SIZE;
             stack.add_named (loading, "loading");
+            stack.add_named (view_window, "conversation");
 
             view = new View ();
-            stack.add_named (view_window, "conversation");
             view.ready.connect (() => {
                 stack.visible_child = view_window;
                 view.webview.show_now ();

@@ -585,6 +585,7 @@ fb_mqtt_write(FbMqtt *mqtt, FbMqttMessage *msg)
 static void
 fb_mqtt_cb_open(gpointer data)
 {
+	printf ("mqtt opening\n");
 	FbMqtt *mqtt = data;
 	FbMqttPrivate *priv = mqtt->priv;
 
@@ -617,6 +618,8 @@ fb_mqtt_cb_open_error(GError *err,
 void
 fb_mqtt_open(FbMqtt *mqtt, const gchar *host, gint port)
 {
+	printf ("attempt to connect\n");
+
 	FbMqttPrivate *priv;
     GError *err = NULL;
 
@@ -628,6 +631,7 @@ fb_mqtt_open(FbMqtt *mqtt, const gchar *host, gint port)
 
 	if (priv->gsc == NULL) {
         fb_mqtt_cb_open_error(err, mqtt);
+		printf ("priv->gsc = null");
 		return;
 	}
 
