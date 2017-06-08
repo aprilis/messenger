@@ -71,12 +71,12 @@ namespace Plank
 		 * @return the array of uris
 		 */
 		public abstract string[] get_transient_applications () throws GLib.IOError;
-		
+
 		/**
-		 * Returns an array of 2 integers - x and y position of the menu
+		 * Returns an array of 2 integers - x and y position of the menu or null in case of failure
 		 *
-		 * @return the array 2 integers
+		 * @return the array 2 integers or null
 		 */
-		public abstract int[]? get_menu_position (string uri, Gtk.Requisition requisition) throws GLib.IOError;
+		public abstract bool get_menu_position (string uri, Gtk.Requisition requisition, out int x, out int y) throws GLib.IOError;
 	}
 }

@@ -307,26 +307,26 @@ namespace Plank
 			
 			return null;
 		}
-		
+
 		/**
-		 * Returns an array of 2 integers - x and y position of the menu
+		 * Returns an array of 2 integers - x and y position of the menu or null in case of failure
 		 *
-		 * @return the array 2 integers
+		 * @return the array 2 integers or null
 		 */
-		public int[]? get_menu_position (string uri, Gtk.Requisition requisition)
+		public bool get_menu_position (string uri, Gtk.Requisition requisition, out int x, out int y)
 		{
 			if (items_proxy == null) {
 				warning ("No proxy connected");
-				return null;
+				return false;
 			}
 			
 			try {
-				return items_proxy.get_menu_position (uri, requisition);
+				return items_proxy.get_menu_position (uri, requisition, out x, out y);
 			} catch (IOError e) {
 				warning (e.message);
 			}
 			
-			return null;
+			return false;
 		}
 	}
 }

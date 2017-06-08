@@ -136,24 +136,23 @@ namespace Plank
 			
 			return result;
 		}
-		
-		public int[]? get_menu_position (string uri, Gtk.Requisition requisition) {
+
+		public bool get_menu_position (string uri, Gtk.Requisition requisition, out int x, out int y) {
 			
 			unowned ApplicationDockItemProvider? provider = (controller.default_provider as ApplicationDockItemProvider);
 			if (provider == null)
-				return null;
+				return false;
 			
 			unowned DockItem? item = provider.item_for_uri (uri);
 			if (item == null)
-				return null;
+				return false;
 				
 			unowned PositionManager? manager = controller.position_manager;
 			if (manager == null)
-				return null;
+				return false;
 			
-			int x, y;
 			manager.get_menu_position (item, requisition, out x, out y);	
-			return { x, y };
+			return true;
 		}
 	}
 	
