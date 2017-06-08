@@ -228,8 +228,8 @@ namespace Ui {
             if (view.load (id)) {
                 stack.visible_child = loading;
             } else {
+                view_window.show_now ();
                 stack.visible_child = view_window;
-                view.webview.show_now ();
             }
             if (is_active) {
                 close (true);
@@ -270,8 +270,8 @@ namespace Ui {
 
             view = new View ();
             view.ready.connect (() => {
+                view_window.show_now ();
                 stack.visible_child = view_window;
-                view.webview.show_now ();
             });
             view.load_failed.connect (() => { app.network_error (); });
             view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
