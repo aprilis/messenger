@@ -121,7 +121,13 @@ namespace Ui {
                 webview.show_notification.connect (() => { return true; });
                 webview.decide_policy.connect (decide_policy);
                 
-                webview.load_failed.connect ((event, uri, error) => { print ("network error: %s %d\n", error.message, error.code); load_failed (); return false; });
+                webview.load_failed.connect ((event, uri, error) => {
+                    print ("network error: %s %d\n", error.message, error.code);
+                    if (error.code != 302) {
+                        load_failed ();
+                    }
+                    return false;
+                });
                 load_home_page ();
             }
             
