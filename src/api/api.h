@@ -522,6 +522,7 @@ struct _FbApiPresence
  * @tid: The thread or user #FbId.
  * @topic: The topic.
  * @last_message: The last message
+ * @message_sender: The last message's author
  * @is_group: Is the thread a group thread
  * @unread: The number of unread messages
  * @mute_until: The time the thread is muted until, -1 if it's muted forever or 0 if not muted

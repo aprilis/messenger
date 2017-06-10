@@ -92,7 +92,7 @@ namespace Ui {
                 settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
-                    if (load_event == LoadEvent.COMMITTED) {
+                    if (load_event == LoadEvent.FINISHED) {
                         if (webview.get_uri ().has_prefix (LOGIN_URL)) {
                             last_id = 0;
                             auth_failed ();
@@ -217,6 +217,8 @@ namespace Ui {
         private View view;
         private LoginView login_view;
         private ScrolledWindow view_window;
+
+        private PositionType position_type;
         
         private Fb.App app;
 
@@ -234,7 +236,6 @@ namespace Ui {
             if (view.load (id)) {
                 stack.visible_child = loading;
             } else {
-                view_window.show_now ();
                 stack.visible_child = view_window;
             }
             if (is_active) {
@@ -246,11 +247,32 @@ namespace Ui {
             view.load_home_page ();
         }
         
-        public new void show (int x, int y) {
-            move (x, y);
+        public new void show (int x, int y, Gtk.PositionType dock_position) {
+            update_position_type (dock_position);
+            set_position (x, y, dock_position);
             set_size_request (700, 500);
+            show_all ();
             activate ();
             present ();
+        }
+
+        void update_position_type (PositionType type) {
+            position_type = type;
+            stack.margin_left = stack.margin_right = stack.margin_top = stack.margin_bottom = SHADOW_SIZE;
+            switch (type) {
+            case PositionType.LEFT:
+                stack.margin_left = ARROW_HEIGHT;
+                break;
+            case PositionType.RIGHT:
+                stack.margin_right = ARROW_HEIGHT;
+                break;
+            case PositionType.TOP:
+                stack.margin_top = ARROW_HEIGHT;
+                break;
+            case PositionType.BOTTOM:
+                stack.margin_bottom = ARROW_HEIGHT;
+                break;
+            }
         }
         
         public Conversation (Fb.App _app) {
@@ -263,27 +285,28 @@ namespace Ui {
             set_size_request (700, 500);
             
             view_window = new ScrolledWindow (null, null);
+            view_window.show_now ();
             //view_window.hscrollbar_policy = PolicyType.NEVER;
             //view_window.vscrollbar_policy = PolicyType.NEVER;
 
-            loading = new Loading (40);
-            
-            stack = new Stack ();
-            stack.margin_bottom = ARROW_HEIGHT;
-            stack.margin_left = stack.margin_right = stack.margin_top = SHADOW_SIZE;
-            stack.add_named (loading, "loading");
-            stack.add_named (view_window, "conversation");
-
             view = new View ();
             view.ready.connect (() => {
-                view_window.show_now ();
+                print ("ready\n");
                 stack.visible_child = view_window;
             });
             view.load_failed.connect (() => { app.network_error (); });
             view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
-
-            
+            view.webview.show_now ();
             view_window.add (view.webview);
+
+            loading = new Loading (40);
+            loading.show_now ();
+            
+            stack = new Stack ();
+            update_position_type (PositionType.BOTTOM);
+            stack.add_named (loading, "loading");
+            stack.add_named (view_window, "conversation");
+            stack.show_now ();
             add (stack);
         }
         

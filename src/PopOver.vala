@@ -14,13 +14,17 @@ public class Ui.PopOver : CompositedWindow {
     protected Granite.Drawing.BufferSurface? main_buffer = null;
 
     private bool dont_close = false;
+
+    private Gtk.PositionType arrow_position = Gtk.PositionType.BOTTOM;    
     
-    
-    public Requisition size {
-        get {
-            var req = get_requisition ();
-            return { req.width, req.height - ARROW_HEIGHT };
+    public Requisition get_size (Gtk.PositionType position) {
+        var req = get_requisition ();
+        if (position == PositionType.TOP || position == PositionType.BOTTOM) {
+            req.height -= ARROW_HEIGHT;
+        } else {
+            req.width -= ARROW_HEIGHT;
         }
+        return { req.width, req.height };
     }
      
     private bool button_release (Gdk.EventButton event) {
@@ -42,33 +46,48 @@ public class Ui.PopOver : CompositedWindow {
     
     //Code from Granite.Widgets.PopOver
     protected void cairo_popover (Cairo.Context cr, double x, double y, double width, double height, double border_radius) {
-        var arrow_offset = (width - ARROW_WIDTH) / 2 + this.arrow_offset + x;
-        var arrow_up = false;
-        // The top half
-        if (arrow_up) {
-            cr.arc (x + border_radius, y + ARROW_HEIGHT + border_radius, border_radius, Math.PI, Math.PI * 1.5);
-            cr.line_to (arrow_offset, y + ARROW_HEIGHT);
-            cr.rel_line_to (ARROW_WIDTH / 2.0, -ARROW_HEIGHT);
-            cr.rel_line_to (ARROW_WIDTH / 2.0, ARROW_HEIGHT);
-            cr.arc (x + width - border_radius, y + ARROW_HEIGHT + border_radius, border_radius, Math.PI * 1.5, Math.PI * 2.0);
+        double arrow_offset;
+        var arrow_side_offset = ARROW_HEIGHT - SHADOW_SIZE;
+        if (arrow_position == PositionType.TOP || arrow_position == PositionType.BOTTOM) {
+            arrow_offset = (width - ARROW_WIDTH) / 2 + this.arrow_offset + x;
+            height -= arrow_side_offset;
+            if (arrow_position == PositionType.TOP) {
+                y += arrow_side_offset;
+            }
         } else {
-            cr.arc (x + border_radius, y + border_radius, border_radius, Math.PI, Math.PI * 1.5);
-            cr.arc (x + width - border_radius, y + border_radius, border_radius, Math.PI * 1.5, Math.PI * 2.0);
+            arrow_offset = (height - ARROW_WIDTH) / 2 + this.arrow_offset + y;
+            width -= arrow_side_offset;
+            if (arrow_position == PositionType.LEFT) {
+                x += arrow_side_offset;
+            }
         }
 
-        // The bottom half
-        if (arrow_up) {
-            cr.arc (x + width - border_radius, y + height - border_radius, border_radius, 0, Math.PI * 0.5);
-            cr.arc (x + border_radius, y + height - border_radius, border_radius, Math.PI * 0.5, Math.PI);
-        } else {
-            cr.arc (x + width - border_radius, y + height - ARROW_HEIGHT - border_radius, border_radius, 0, Math.PI * 0.5);
-            cr.line_to (arrow_offset + ARROW_WIDTH, y + height - ARROW_HEIGHT);
+        cr.arc (x + border_radius, y + border_radius, border_radius, Math.PI, Math.PI * 1.5);
+        if (arrow_position == PositionType.TOP) {
+            cr.line_to (arrow_offset, y);
+            cr.rel_line_to (ARROW_WIDTH / 2.0, -ARROW_HEIGHT);
+            cr.rel_line_to (ARROW_WIDTH / 2.0, ARROW_HEIGHT);
+        }
+        cr.arc (x + width - border_radius, y + border_radius, border_radius, Math.PI * 1.5, Math.PI * 2.0);
+        if (arrow_position == PositionType.RIGHT) {
+            cr.line_to (x + width, arrow_offset);
+            cr.rel_line_to (ARROW_HEIGHT, ARROW_WIDTH / 2.0);
+            cr.rel_line_to (-ARROW_HEIGHT, ARROW_WIDTH / 2.0);
+        }
+        cr.arc (x + width - border_radius, y + height - border_radius, border_radius, 0, Math.PI * 0.5);
+        if (arrow_position == PositionType.BOTTOM) {
+            cr.line_to (arrow_offset + ARROW_WIDTH, y + height);
             cr.rel_line_to (-ARROW_WIDTH / 2.0, ARROW_HEIGHT);
             cr.rel_line_to (-ARROW_WIDTH / 2.0, -ARROW_HEIGHT);
-            cr.arc (x + border_radius, y + height - ARROW_HEIGHT - border_radius, border_radius, Math.PI * 0.5, Math.PI);
+        }
+        cr.arc (x + border_radius, y + height - border_radius, border_radius, Math.PI * 0.5, Math.PI);
+        if (arrow_position == PositionType.LEFT) {
+            cr.line_to (x, arrow_offset + ARROW_WIDTH);
+            cr.rel_line_to (-ARROW_HEIGHT, -ARROW_WIDTH / 2.0);
+            cr.rel_line_to (ARROW_HEIGHT, -ARROW_WIDTH / 2.0);
         }
         cr.close_path ();
-    } 
+    }
     
     //Code from Granite.Widgets.PopOver
     void compute_shadow (int w, int h) {
@@ -76,7 +95,7 @@ public class Ui.PopOver : CompositedWindow {
   
           // Shadow first
           cairo_popover (main_buffer.context, SHADOW_SIZE + BORDER_WIDTH / 2.0, SHADOW_SIZE + BORDER_WIDTH / 2.0,
-                         w - SHADOW_SIZE * 2 - BORDER_WIDTH, h - SHADOW_SIZE - BORDER_WIDTH, BORDER_RADIUS);
+                         w - SHADOW_SIZE * 2 - BORDER_WIDTH, h - SHADOW_SIZE * 2 - BORDER_WIDTH, BORDER_RADIUS);
           main_buffer.context.set_source_rgba (0.0, 0.0, 0.0, 0.4);
           main_buffer.context.fill_preserve ();
           main_buffer.exponential_blur (SHADOW_SIZE / 2 - 1); // rough approximation
@@ -156,13 +175,19 @@ public class Ui.PopOver : CompositedWindow {
         return ret;
     }
     
-    public new void move (int x, int y) {
+    public void set_position (int x, int y, Gtk.PositionType arrow_pos) {
+        arrow_position = arrow_pos;
         var w = width_request, h = height_request, cx = x + w / 2, cy = y + h / 2;
         Gdk.Rectangle rect;
         screen.get_monitor_geometry (screen.get_monitor_at_point (cx, cy), out rect);
-        var offset = 0.clamp (rect.x - x, rect.x + rect.width - x - w);
-        arrow_offset = -offset;
-        base.move (x + offset, y);
+        var offset_x = 0.clamp (rect.x - x, rect.x + rect.width - x - w);
+        var offset_y = 0.clamp (rect.y - y, rect.y + rect.height - y - h);
+        if (arrow_pos == Gtk.PositionType.BOTTOM || arrow_pos == Gtk.PositionType.TOP) {
+            arrow_offset = -offset_x;
+        } else {
+            arrow_offset = -offset_y;
+        }
+        base.move (x + offset_x, y + offset_y);
     }
 }
 

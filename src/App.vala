@@ -535,9 +535,10 @@ namespace Fb {
                 var client = Plank.DBusClient.get_instance ();
                 var uri = data.desktop_file_uri (id);
                 try {
-                    var position = client.get_menu_position (uri, conversation.size);
+                    var dock_position = dock_preferences.Position;
+                    var position = client.get_menu_position (uri, conversation.get_size (dock_position));
                     if (conversation.current_id == id && position != null) {
-                        conversation.show(position[0], position[1]);
+                        conversation.show(position[0], position[1], dock_position);
                         data.read_all (id);
                         withdraw_notification (id.to_string ());
                     }
