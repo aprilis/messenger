@@ -523,8 +523,10 @@ namespace Fb {
                 var uri = data.desktop_file_uri (id);
                 try {
                     int x, y;
-                    var ok = client.get_menu_position (uri, conversation.size, out x, out y);
+                    Gtk.PositionType position_type;
+                    var ok = client.get_hover_position (uri, out x, out y, out position_type);
                     if (conversation.current_id == id && ok) {
+                        print ("plank position: %s\n", position_type.to_string ());
                         conversation.show(x, y);
                         data.read_all (id);
                         withdraw_notification (id.to_string ());
