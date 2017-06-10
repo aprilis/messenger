@@ -64,6 +64,7 @@ namespace Fb {
 	public class ApiThread {
 		public bool is_group;
 		public string last_message;
+		public string message_sender;
 		public int64 mute_until;
 		public Fb.Id tid;
 		public string topic;

@@ -201,6 +201,16 @@ namespace Fb {
         public override string participants_list {
             get { return _participants_list; }
         }
+
+        public override string notification_text {
+            owned get {
+                if (message_sender == null) {
+                    return "New message to " + _name;
+                } else {
+                    return "New message from " + message_sender + " to " + _name;
+                }
+            }
+        }
         
         public GroupThread (Id tid) {
             id = tid;

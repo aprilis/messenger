@@ -14,6 +14,8 @@ namespace Fb {
         public signal void name_changed ();
     
         public string last_message { get; set; }
+
+        public string message_sender { get; set; }
         
         public int unread { get; set; default = 0; }
 
@@ -30,6 +32,8 @@ namespace Fb {
         public abstract string name { get; }
         
         public abstract string participants_list { get; }
+
+        public abstract string notification_text { owned get; }
         
         public int64 update_request_time { get; set; default = 0; }
     
@@ -39,6 +43,7 @@ namespace Fb {
             if (update_time < thread.update_time) {
                 update_time = thread.update_time;
                 last_message = thread.last_message;
+                message_sender = thread.message_sender;
                 unread = thread.unread;
                 is_loaded = true;
                 return true;

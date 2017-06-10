@@ -2684,10 +2684,13 @@ fb_api_thread_parse(FbApi *api, FbApiThread *thrd, JsonNode *root,
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, FALSE,
                        "$.snippet");
+    fb_json_values_add(values, FB_JSON_TYPE_STR, FALSE,
+                       "$.message_sender.messaging_actor.name");
     fb_json_values_set_array(values, FALSE, "$.last_message.nodes");
 
     if(fb_json_values_update(values, &err)) {
         thrd->last_message = fb_json_values_next_str_dup(values, NULL);
+        thrd->message_sender = fb_json_values_next_str_dup(values, NULL);
     }
     g_object_unref(values);
 
@@ -2994,12 +2997,12 @@ fb_api_cb_threads(GObject *source, GAsyncResult *res,
         return;
     }
 
-    /*JsonGenerator *gen = json_generator_new();
+    JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
     json_generator_set_indent(gen, 4);
     json_generator_set_root(gen, root);
     json_generator_to_file(gen, "threads.json", NULL);
-    g_object_unref(gen);*/
+    g_object_unref(gen);
 
     arr = fb_json_node_get_arr(root, "$.viewer.message_threads.nodes",
                                &err);

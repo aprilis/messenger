@@ -353,7 +353,7 @@ namespace Fb {
                 return;
             }
             add_to_plank (thread.id);
-            var not = new Notification ("New message from " + thread.name);
+            var not = new Notification (thread.notification_text);
             not.set_body (message);
             try {
                 not.set_icon (Icon.new_for_string (data.icon_path (thread.id)));

@@ -534,6 +534,7 @@ struct _FbApiThread
 	FbId tid;
 	gchar *topic;
     gchar *last_message;
+	gchar *message_sender;
     gboolean is_group;
     gint unread;
 	gint64 mute_until;

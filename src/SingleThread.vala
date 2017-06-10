@@ -73,9 +73,11 @@ namespace Fb {
             }
         }
         
-        public override string participants_list {
-            get {
-                return contact == null ? "" : contact.name;
+        public override string participants_list { get { return name; } }
+
+        public override string notification_text {
+            owned get {
+                return "New message from " + name;
             }
         }
                
