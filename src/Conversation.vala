@@ -35,14 +35,15 @@ namespace Ui {
                     }
                     link = element.getElementsByTagName('a')[0];
                     link.click();
-                    document.title = 'success';
+                    document.title = '__success__';
                 } catch(err) {
-                    document.title = 'fail';
+                    document.title = '__fail__';
                 }
             """;
         
             private int64 last_id;
             private bool user_changed = false;
+            private bool loading_finished = true;
 
             public WebView webview { get; private set; }
             
@@ -53,6 +54,7 @@ namespace Ui {
             private void load_conversation (Fb.Id id) {
                 last_id = id;
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
+                loading_finished = false;
                 webview.load_uri (uri);
                 user_changed = true;
             }
@@ -81,6 +83,29 @@ namespace Ui {
                 return false;
             }
 
+            private bool handle_loading_finished () {
+                if (loading_finished) {
+                    return false;
+                }
+                loading_finished = true;
+                if (webview.get_uri ().has_prefix (LOGIN_URL)) {
+                    last_id = 0;
+                    auth_failed ();
+                    return false;
+                }
+                if (last_id != 0) {
+                    if (!user_changed) {
+                        run_script ();
+                    } else {
+                        Timeout.add (500, () => {
+                            ready ();
+                            return false;
+                        });
+                    }
+                }
+                return false;
+            }
+
             public View () {       
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
@@ -93,28 +118,21 @@ namespace Ui {
                 
                 webview.load_changed.connect ((load_event) => {
                     if (load_event == LoadEvent.FINISHED) {
-                        if (webview.get_uri ().has_prefix (LOGIN_URL)) {
-                            last_id = 0;
-                            auth_failed ();
-                            return;
-                        }
-                        if (last_id != 0) {
-                            if (!user_changed) {
-                                run_script ();
-                            } else {
-                                Timeout.add (500, () => {
-                                    ready ();
-                                    return false;
-                                });
-                            }
-                        }
+                        handle_loading_finished ();
                     }
                 });
                 webview.notify ["title"].connect ((s, p) => {
-                    if (webview.title == "success") {
+                    print ("title changed: %s\n", webview.title);
+                    if ("__success__" in webview.title) {
                         ready ();
-                    } else if (webview.title == "fail" && last_id != 0) {
+                        webview.run_javascript ("document.title = 'Messenger';", null);
+                    } else if ("__fail__" in webview.title && last_id != 0) {
                         load_conversation (last_id);
+                    }
+                });
+                webview.notify ["is-loading"].connect ((s, p) => {
+                    if (!webview.is_loading) {
+                        handle_loading_finished ();
                     }
                 });
                 webview.context_menu.connect (() => { return true; });
@@ -132,7 +150,7 @@ namespace Ui {
             }
             
             public bool load (Fb.Id id) {
-                if (last_id == id) {
+                if (last_id == id && user_changed) {
                     return false;
                 }
                 last_id = id;
@@ -140,12 +158,14 @@ namespace Ui {
                     run_script ();
                 } else {
                     user_changed = false;
+                    Timeout.add (6000, handle_loading_finished);
                 }
                 return true;
             }
 
             public void load_home_page () {
                 if (!webview.is_loading) {
+                    loading_finished = false;
                     webview.load_uri (MESSENGER_URL);
                 }
                 last_id = 0;
@@ -183,7 +203,6 @@ namespace Ui {
             public LoginView (string user, string pass) {                
                 username = user;
                 password = pass;
-                WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
                 webview = new WebView ();
                 webview.load_changed.connect ((load_event) => {
                     if (load_event == LoadEvent.FINISHED) {
@@ -312,6 +331,7 @@ namespace Ui {
         
         public void log_in (string username, string password) {
             clear_login_view ();
+            clear_cookies ();
             login_view = new LoginView (username, password);
             login_view.finished.connect ((lv) => {
                 if (login_view != lv) {
@@ -338,7 +358,7 @@ namespace Ui {
         }
 
         public void clear_cookies () {
-            WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
+            WebContext.get_default ().get_cookie_manager ().delete_cookies_for_domain ("messenger.com");
         }
         
         public void log_out () {
