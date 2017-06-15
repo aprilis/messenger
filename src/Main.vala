@@ -3,7 +3,7 @@ using Gtk;
 
 public class Main : Granite.Application {
 
-    public const string APP_ID = "com.github.aprilis.messenger.app";
+    public const string APP_ID = "com.github.aprilis.messenger";
     public const string APP_NAME = "messenger";
     
     private bool is_fake;
