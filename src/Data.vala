@@ -20,6 +20,11 @@ namespace Fb {
             int64 contact_id;
         }
 
+        private struct LoadTask {
+            string path;
+            Promise<Pixbuf> promise;
+        }
+
         private class DelayedOps : Object {
 
             public delegate void Operation ();
@@ -84,6 +89,10 @@ namespace Fb {
         private Ui.ConvData conv_data;
                 
         private ThreadPool<DownloadTask?> photo_downloader;
+
+        private GLib.Queue<LoadTask?> load_queue;
+        private int opened_files = 0;
+        private const int OPENED_FILES_LIMIT = 100;
 
         private bool closed = false;
 
@@ -235,11 +244,30 @@ namespace Fb {
             var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
             photo.save_to_stream (stream, "jpeg");
         }
+
+        private async bool update_load_queue () {
+            if (!load_queue.is_empty () && opened_files < OPENED_FILES_LIMIT) {
+                opened_files++;
+                try {
+                    var task = load_queue.pop_head ();
+                    var file = File.new_for_path (task.path);
+                    var stream = yield file.read_async ();
+                    var photo = yield new Pixbuf.from_stream_async (stream, null);
+                    task.promise.set_value (photo);
+                } catch (Error e) {
+                    warning ("Error while loading photo: %d %s\n", e.code, e.message);
+                }
+                opened_files--;
+                update_load_queue.begin();
+            }
+            return false;
+        }
         
         public async Pixbuf load_photo (Id id) throws Error {
-            var file = File.new_for_path (photo_path (id));
-            var stream = yield file.read_async ();
-            return yield new Pixbuf.from_stream_async (stream, null);
+            var promise = new Promise<Pixbuf> ();
+            load_queue.push_tail ({photo_path (id), promise});
+            update_load_queue.begin ();
+            return yield promise.future.wait_async ();
         }
 
         public bool parse_contact (ApiUser user, bool friends_only) {
@@ -437,6 +465,8 @@ namespace Fb {
             api.threads.connect (threads_done);
             api.thread.connect (thread_done);
             api.messages.connect (messages);
+
+            load_queue = new GLib.Queue<LoadTask?> ();
 
             photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
                 DOWNLOAD_LIMIT, false);
