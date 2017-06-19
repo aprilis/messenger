@@ -431,6 +431,7 @@ namespace Fb {
             } else {
                 user_login = username;
             }
+            Data.delete_files ();
             auth_target = AuthTarget.API | AuthTarget.WEBVIEW;
             webview_auth_fail = false;
             show_login_dialog_infobar = false;
@@ -439,6 +440,8 @@ namespace Fb {
         }
         
         public App () {
+            Data.init_paths ();
+
             session = new Soup.Session ();
             session.use_thread_context = true;
             session.timeout = 10;

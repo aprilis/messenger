@@ -63,11 +63,11 @@ namespace Fb {
             }
         }
 
-        private string DATA_PATH;
-        private string CONTACTS_PATH;
-        private string THREADS_PATH;
-        private string PICTURES_PATH;
-        private string DESKTOP_PATH;
+        private static string DATA_PATH;
+        private static string CONTACTS_PATH;
+        private static string THREADS_PATH;
+        private static string PICTURES_PATH;
+        private static string DESKTOP_PATH;
         
         private const int64 UPDATE_THREAD_INTERVAL = 1000000; //one second
         private const int DOWNLOAD_LIMIT = 3;
@@ -195,12 +195,16 @@ namespace Fb {
             new_thread (thread);
         }
         
-        public void delete_files () {
+        public static void delete_files () {
             try {
                 var file = File.new_for_path (THREADS_PATH);
-                file.delete ();
+                if (file.query_exists ()) {
+                    file.delete ();
+                }
                 file = File.new_for_path (CONTACTS_PATH);
-                file.delete ();
+                if (file.query_exists ()) {
+                    file.delete ();
+                }
             } catch (Error e) {
                 warning ("%s\n", e.message);
             }
@@ -432,13 +436,15 @@ namespace Fb {
             }
         }
         
-        public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
+        public static void init_paths () {
             DATA_PATH = Main.data_path + "/data";
             CONTACTS_PATH = DATA_PATH + "/contacts";
             THREADS_PATH = DATA_PATH + "/threads";
             PICTURES_PATH = DATA_PATH + "/pictures";
             DESKTOP_PATH = DATA_PATH + "/desktop";
-        
+        }
+
+        public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
             session = ses;
             client = cli;
             app = ap;
