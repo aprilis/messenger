@@ -44,6 +44,7 @@ namespace Ui {
             private int64 last_id;
             private bool user_changed = false;
             private bool loading_finished = true;
+            private bool failed = false;
 
             public WebView webview { get; private set; }
             
@@ -55,6 +56,7 @@ namespace Ui {
                 last_id = id;
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
                 loading_finished = false;
+                failed = false;
                 webview.load_uri (uri);
                 user_changed = true;
             }
@@ -117,6 +119,7 @@ namespace Ui {
                 settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
+                    print ("load changed: %s\n", load_event.to_string ());
                     if (load_event == LoadEvent.FINISHED) {
                         handle_loading_finished ();
                     }
@@ -142,6 +145,7 @@ namespace Ui {
                 webview.load_failed.connect ((event, uri, error) => {
                     print ("network error: %s %d\n", error.message, error.code);
                     if (error.code != 302) {
+                        failed = true;
                         load_failed ();
                     }
                     return false;
@@ -164,7 +168,8 @@ namespace Ui {
             }
 
             public void load_home_page () {
-                if (!webview.is_loading) {
+                if (!webview.is_loading || failed) {
+                    failed = false;
                     loading_finished = false;
                     webview.load_uri (MESSENGER_URL);
                 }
