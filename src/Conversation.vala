@@ -167,8 +167,8 @@ namespace Ui {
                 return true;
             }
 
-            public void load_home_page () {
-                if (!webview.is_loading || failed) {
+            public void load_home_page (bool force = false) {
+                if (force || !webview.is_loading || failed) {
                     failed = false;
                     loading_finished = false;
                     webview.load_uri (MESSENGER_URL);
@@ -267,8 +267,8 @@ namespace Ui {
             }
         }
         
-        public void reload () {
-            view.load_home_page ();
+        public void reload (bool force = false) {
+            view.load_home_page (force);
         }
         
         public new void show (int x, int y, Gtk.PositionType dock_position) {

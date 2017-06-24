@@ -578,7 +578,7 @@ namespace Fb {
         }
         
         public void reload_conversation (Fb.Id id) {
-            conversation.reload ();
+            conversation.reload (true);
         }
         
         public void show_window () {
