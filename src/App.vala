@@ -3,6 +3,7 @@ using Gdk;
 using Gtk;
 using Gee;
 using Unity;
+using Utils;
 
 namespace Fb {
 
@@ -60,6 +61,8 @@ namespace Fb {
         private bool show_login_dialog_infobar = false;
 
         private Ui.LoginDialog login_dialog = null;
+
+        private HashMap<Id?, Notify.Notification> notifications;
         
         public bool network_problem {
             get { return _network_problem; }
@@ -89,8 +92,6 @@ namespace Fb {
         public Granite.Application application { get; set; }
         
         public signal void quit ();
-        public signal void send_notification (string? id, Notification not);
-        public signal void withdraw_notification (string? id);
         
         public static unowned App instance () {
             return _instance.once(() => { return new App (); });
@@ -130,7 +131,7 @@ namespace Fb {
                 api.uid = int64.parse (obj.get_string_member ("uid"));
                 user_login = obj.get_string_member ("login");
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Load session error %d: %s\n", e.code, e.message);
                 return -1;
             }
             return 1;
@@ -146,7 +147,7 @@ namespace Fb {
                     confirmed_users.add (line);
                 }
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Load confirmed users error %d: %s\n", e.code, e.message);
             }
         }
         
@@ -156,7 +157,7 @@ namespace Fb {
                 var stream = new DataOutputStream (file.append_to (FileCreateFlags.PRIVATE));
                 stream.put_string (user + "\n");
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Save confirmed users error %d: %s\n", e.code, e.message);
             }
         }
 
@@ -353,15 +354,24 @@ namespace Fb {
                 return;
             }
             add_to_plank (thread.id);
-            var not = new Notification (thread.notification_text);
-            not.set_body (message);
-            try {
-                not.set_icon (Icon.new_for_string (data.icon_path (thread.id)));
-            } catch (Error e) {
-                warning ("Error %s\n", e.message);
+            Notify.Notification not;
+            if (thread.id in notifications) {
+                not = notifications [thread.id];
+                not.update (thread.notification_text, message, null);
+            } else {
+                not = new Notify.Notification (thread.notification_text, message, null);
+                not.add_action ("default", "View", (n, a) => {
+                    print ("starting conversaion: %lld\n", thread.id);
+                    start_conversation (thread.id);
+                });
+                notifications.set (thread.id, not);
             }
-            not.set_default_action_and_target_value ("app.open-chat", new Variant.int64 (thread.id));
-            send_notification (thread.id.to_string (), not);
+            not.set_image_from_pixbuf (thread.photo);
+            try {
+                not.show ();
+            } catch (Error e) {
+                warning ("Notification error: %d %s\n", e.code, e.message);
+            }
         }
         
         private void update_unread_count (Id id, int count) {
@@ -396,6 +406,7 @@ namespace Fb {
                 data.close ();
                 user_name = null;
                 data = null;
+                notifications.clear ();
                 disconnect_api ();
                 api.stoken = null;
                 api.token = null;
@@ -499,6 +510,8 @@ namespace Fb {
                 }
             });
             
+            notifications = new HashMap<Id?, Notify.Notification> (my_id_hash, my_id_equal);
+
             confirmed_users = new HashSet<string> ();
             load_confirmed_users ();
             
@@ -543,10 +556,12 @@ namespace Fb {
                     if (conversation.current_id == id && position != null) {
                         conversation.show(position[0], position[1], dock_position);
                         data.read_all (id);
-                        withdraw_notification (id.to_string ());
+                        if (id in notifications) {
+                            notifications [id].close ();
+                        }
                     }
                 } catch (Error e) {
-                    warning ("Error %d: %s\n", e.code, e.message);
+                    warning ("Plank DBus error %d: %s\n", e.code, e.message);
                 }
                 return false;
             });
@@ -573,7 +588,7 @@ namespace Fb {
                     return false;
                 });
             } catch (Error e) {
-                warning ("Error %s\n", e.message);
+                warning ("Remove heads error %s\n", e.message);
             }
         }
         

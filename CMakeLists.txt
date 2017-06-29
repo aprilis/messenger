@@ -61,6 +61,7 @@ PACKAGES
     granite
     unity
     plank
+    libnotify
     
 CUSTOM_VAPIS
     vapi/Fb.vapi
@@ -103,6 +104,9 @@ pkg_search_module(PLANK REQUIRED plank)
 target_compile_options(${EXEC_NAME} PUBLIC ${PLANK_CFLAGS})
 target_link_libraries(${EXEC_NAME} PUBLIC ${PLANK_LIBRARIES})
 
+pkg_search_module(LIBNOTIFY REQUIRED libnotify)
+target_compile_options(${EXEC_NAME} PUBLIC ${LIBNOTIFY_CFLAGS})
+target_link_libraries(${EXEC_NAME} PUBLIC ${LIBNOTIFY_LIBRARIES})
 
 # install the binaries we just made
 install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)

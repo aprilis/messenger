@@ -82,6 +82,8 @@ public class Main : Granite.Application {
         }
         hold ();
         
+        Notify.init (APP_NAME);
+
         Plank.DBusClient.get_instance ();
         
         make_dir (data_path);
@@ -89,20 +91,6 @@ public class Main : Granite.Application {
 
         var app = Fb.App.instance ();
         app.quit.connect (release);
-        app.send_notification.connect ((id, not) => {
-            var str = APP_ID;
-            if (id != null) {
-                str += "." + id;
-            }
-            send_notification (str, not);
-        });
-        app.withdraw_notification.connect ((id) => {
-            var str = APP_ID;
-            if (id != null) {
-                str += "." + id;
-            }
-            withdraw_notification (str);
-        });
         app.application = this;
     }
 

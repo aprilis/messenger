@@ -1,6 +1,7 @@
 using GLib;
 using Gdk;
 using Gee;
+using Utils;
 
 namespace Fb {
 
