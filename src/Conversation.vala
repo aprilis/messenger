@@ -144,8 +144,8 @@ namespace Ui {
                 
                 webview.load_failed.connect ((event, uri, error) => {
                     print ("network error: %s %d\n", error.message, error.code);
+                    failed = true;
                     if (error.code != 302) {
-                        failed = true;
                         load_failed ();
                     }
                     return false;
