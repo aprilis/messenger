@@ -287,7 +287,7 @@ namespace Fb {
                 return;
             }
             var th = get_thread (thread.tid, thread.is_group);
-            if (th.id == api.uid || (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0)) {
+            if (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0) {
                 new_message (th, th.last_message);
             }
             unread_count (th.id, th.unread);
