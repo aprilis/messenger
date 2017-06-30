@@ -11,7 +11,7 @@ namespace Utils {
         return (uint) id;
     }
 
-    private class DelayedOps : Object {
+    public class DelayedOps : Object {
 
         public delegate void Operation ();
 

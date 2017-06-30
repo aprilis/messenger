@@ -288,9 +288,9 @@ namespace Fb {
             }
             var th = get_thread (thread.tid, thread.is_group);
             if (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0) {
-                new_message (th, th.last_message);
+                th.do_when_ready (() => { new_message (th, th.last_message); });
             }
-            unread_count (th.id, th.unread);
+            th.do_when_ready (() => { unread_count (th.id, th.unread); });
         }
         
         public void parse_threads (SList<ApiThread> threads) {

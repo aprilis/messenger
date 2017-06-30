@@ -36,6 +36,17 @@ namespace Fb {
         public abstract string notification_text { owned get; }
         
         public int64 update_request_time { get; set; default = 0; }
+
+        private Utils.DelayedOps when_ready;
+
+        public Thread () {
+            when_ready = new Utils.DelayedOps ();
+            photo_updated.connect (() => {
+                if (photo != null) {
+                    when_ready.release ();
+                }
+            });
+        }
     
         public virtual bool load_from_api (Fb.ApiThread thread) {
             id = thread.tid;
@@ -124,6 +135,10 @@ namespace Fb {
                 pixbuf.fill ((uint32)0xaaaaaaff);
             }
             return pixbuf;
+        }
+
+        public void do_when_ready (owned Utils.DelayedOps.Operation op) {
+            when_ready.add ((owned) op);
         }
     }
 
