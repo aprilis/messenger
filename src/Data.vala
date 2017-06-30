@@ -1,16 +1,9 @@
 using GLib;
 using Gee;
 using Gdk;
+using Utils;
 
 namespace Fb {
-
-    bool my_id_equal (Fb.Id? a, Fb.Id? b) {
-        return a == b;
-    }
-    
-    uint my_id_hash (Fb.Id? id) {
-        return (uint) id;
-    }
 
     public class Data : Object {
         
@@ -23,44 +16,6 @@ namespace Fb {
         private struct LoadTask {
             string path;
             Promise<Pixbuf> promise;
-        }
-
-        private class DelayedOps : Object {
-
-            public delegate void Operation ();
-
-            private class OpWrapper {
-                private Operation op;
-
-                public OpWrapper (owned Operation o) {
-                    op = (owned)o;
-                }
-
-                public void run () {
-                    op ();
-                }
-            }
-
-            private GLib.List<OpWrapper> ops = new GLib.List<OpWrapper> ();
-            private bool released = false;
-
-            public void add (owned Operation op) {
-                if (released) {
-                    op ();
-                } else {
-                    ops.append (new OpWrapper ((owned)op));
-                }
-            }
-
-            public void release () {
-                if (!released) {
-                    released = true;
-                    foreach (var op in ops) {
-                        op.run ();
-                    }
-                    ops = null;
-                }
-            }
         }
 
         private static string DATA_PATH;
