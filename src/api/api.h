@@ -109,7 +109,7 @@
  *
  * The HTTP User-Agent header.
  */
-#define FB_API_AGENT  "Facebook plugin / Messenger app for elementary OS / 0.2 " FB_ORCA_AGENT
+#define FB_API_AGENT  "Facebook plugin / Messenger app for elementary OS / 0.2.2 " FB_ORCA_AGENT
 
 /**
  * FB_API_MQTT_AGENT

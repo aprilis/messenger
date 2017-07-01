@@ -19,7 +19,7 @@ public class Main : Granite.Application {
         about_license_type = License.GPL_3_0;
         app_copyright = "2017";
         app_years = "2017";
-        build_version = "0.2.1";
+        build_version = "0.2.2";
         //bug_url = "https://github.com/aprilis/messenger/issues";
         help_url = "https://github.com/aprilis/messenger/wiki";
         main_url = "https://github.com/aprilis/messenger";
