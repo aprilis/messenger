@@ -45,6 +45,7 @@ namespace Ui {
             private bool user_changed = false;
             private bool loading_finished = true;
             private bool failed = false;
+            private bool script_running = false;
 
             public WebView webview { get; private set; }
             
@@ -53,6 +54,7 @@ namespace Ui {
             public signal void load_failed ();
 
             private void load_conversation (Fb.Id id) {
+                script_running = false;
                 last_id = id;
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
                 loading_finished = false;
@@ -63,7 +65,14 @@ namespace Ui {
 
             private void run_script () {
                 user_changed = true;
+                script_running = true;
                 webview.run_javascript (CHANGE_USER_SCRIPT.printf (last_id), null);
+                Timeout.add (1000, () => {
+                    if (script_running) {
+                        load_conversation (last_id);
+                    }
+                    return false;
+                });
             }
             
             private bool decide_policy (PolicyDecision decision, PolicyDecisionType type) {
@@ -125,8 +134,8 @@ namespace Ui {
                     }
                 });
                 webview.notify ["title"].connect ((s, p) => {
-                    print ("title changed: %s\n", webview.title);
                     if ("__success__" in webview.title) {
+                        script_running = false;
                         ready ();
                         webview.run_javascript ("document.title = 'Messenger';", null);
                     } else if ("__fail__" in webview.title && last_id != 0) {
@@ -171,6 +180,7 @@ namespace Ui {
                 if (force || !webview.is_loading || failed) {
                     failed = false;
                     loading_finished = false;
+                    script_running = false;
                     webview.load_uri (MESSENGER_URL);
                 }
                 last_id = 0;
