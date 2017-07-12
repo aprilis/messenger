@@ -207,14 +207,15 @@ namespace Fb {
         private async bool update_load_queue () {
             if (!load_queue.is_empty () && opened_files < OPENED_FILES_LIMIT) {
                 opened_files++;
+                var task = load_queue.pop_head ();
                 try {
-                    var task = load_queue.pop_head ();
                     var file = File.new_for_path (task.path);
                     var stream = yield file.read_async ();
                     var photo = yield new Pixbuf.from_stream_async (stream, null);
                     task.promise.set_value (photo);
                 } catch (Error e) {
                     warning ("Error while loading photo: %d %s\n", e.code, e.message);
+                    task.promise.set_value (null);
                 }
                 opened_files--;
                 update_load_queue.begin();
