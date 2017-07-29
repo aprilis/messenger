@@ -24,7 +24,7 @@ namespace Ui {
                     display: none;
                 }
                 span._3oh-._58nk {
-                    white-space: pre;
+                    /*white-space: pre;*/
                 }
                 div._1p1v {
                     white-space: pre;
