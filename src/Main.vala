@@ -149,7 +149,7 @@ public class Main : Granite.Application {
         if (id_close != 0) {
             remove_heads (id_close);
         }
-        if (is_fake && id_open != 0) {
+        if (is_fake && id_open != 0 && !command_line.is_remote) {
             hold ();
             var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
                 "Messenger is not running. To start the conversation, close this dialog and run the Messenger app first");
