@@ -14,14 +14,20 @@ namespace Ui {
             
             private const string STYLE_SHEET = """
                 div._1enh {
-                    max-width: 0px;
-                    min-width: 0px;
+                    max-width: 1px;
+                    min-width: 1px;
                 }
                 div._1q5- {
-                    border-left: none
+                    border-left: none;
                 }
                 a._30yy._2oc8 {
-                    display: none
+                    display: none;
+                }
+                span._3oh-._58nk {
+                    white-space: pre;
+                }
+                div._1p1v {
+                    white-space: pre;
                 }
                 """;
 
@@ -40,7 +46,7 @@ namespace Ui {
                     document.title = '__fail__';
                 }
             """;
-        
+
             private int64 last_id;
             private bool user_changed = false;
             private bool loading_finished = true;
@@ -245,6 +251,10 @@ namespace Ui {
         
         }
 
+        private const int WIDTH = 690;
+        private const int HEIGHT = 500;
+        
+
         private Loading loading;
         private Stack stack;
         
@@ -284,7 +294,7 @@ namespace Ui {
         public new void show (int x, int y, Gtk.PositionType dock_position) {
             update_position_type (dock_position);
             set_position (x, y, dock_position);
-            set_size_request (700, 500);
+            set_size_request (WIDTH, HEIGHT);
             show_all ();
             activate ();
             present ();
@@ -316,7 +326,7 @@ namespace Ui {
 
             app = _app;
         
-            set_size_request (700, 500);
+            set_size_request (WIDTH, HEIGHT);
             
             view_window = new ScrolledWindow (null, null);
             view_window.show_now ();
