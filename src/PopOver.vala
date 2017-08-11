@@ -138,7 +138,7 @@ public class Ui.PopOver : CompositedWindow {
         
         button_release_event.connect (button_release);
         key_release_event.connect (key_release);
-        focus_out_event.connect (focus_out);
+        //focus_out_event.connect (focus_out);
         size_allocate.connect(on_size_allocate);
         notify ["arrow-offset"].connect ((s, p) => {
             compute_shadow (old_w, old_h);
