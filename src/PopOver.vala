@@ -43,6 +43,12 @@ public class Ui.PopOver : CompositedWindow {
         close ();
         return false;
     }
+
+    private bool window_state (Gdk.EventWindowState event) {
+        print ("window state %s\n", event.new_window_state.to_string ());
+        close ();
+        return false;
+    }
     
     //Code from Granite.Widgets.PopOver
     protected void cairo_popover (Cairo.Context cr, double x, double y, double width, double height, double border_radius) {
@@ -139,6 +145,7 @@ public class Ui.PopOver : CompositedWindow {
         button_release_event.connect (button_release);
         key_release_event.connect (key_release);
         //focus_out_event.connect (focus_out);
+        window_state_event.connect (window_state);
         size_allocate.connect(on_size_allocate);
         notify ["arrow-offset"].connect ((s, p) => {
             compute_shadow (old_w, old_h);
