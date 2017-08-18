@@ -1,3 +1,11 @@
+v. 0.2.3
+
+- fixed problem with webpage not fitting into bubble
+- changed all http requests into asynchronous ones (it should prevent from freezing with low connection)
+- preventing chat bubbles from closing when switching keyboard layout
+- deprecated the "Messenger is not running..." dialog - now clicking on chat bubble always opens it
+- downloading photo when loading from disk fails
+
 v. 0.2.2
 
 - ensuring all data is deleted when logging out
