@@ -162,31 +162,31 @@ namespace Fb {
         }
 
         public void query_threads (int count) {
-            Idle.add (() => { api.threads_func (count); return false; });
+            api.threads_func (count);;
         }
 
         public void query_thread (Fb.Id id) {
-            Idle.add (() => { api.thread_func (id); return false; });
+            api.thread_func (id);
         }
 
         public void query_contacts () {
-            Idle.add (() => { api.contacts_func (); return false; });
+            api.contacts_func ();
         }
 
         public void query_contact (Fb.Id id) {
-            Idle.add (() => { api.contact_func (id); return false; });
+            api.contact_func (id);
         }
 
         public void connect_api () {
-            Idle.add (() => { api.connect_func (false); return false; });
+            api.connect_func (false);
         }
 
         public void disconnect_api () {
-            Idle.add (() => { api.disconnect_func (); return false; });
+            api.disconnect_func ();
         }
         
         public void authenticate (string username, string password) {
-            Idle.add (() => { api.auth_func (username, password); return false; });
+            api.auth_func (username, password);
         }
 
         public bool check_awake () {

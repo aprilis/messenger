@@ -33,6 +33,7 @@
 #include "internal.h"
 
 typedef struct _FbApiData FbApiData;
+typedef struct _FbApiCbData FbApiCbData;
 
 enum
 {
@@ -75,6 +76,13 @@ struct _FbApiData
 {
     gpointer data;
     GDestroyNotify func;
+};
+
+struct _FbApiCbData
+{
+    GAsyncReadyCallback callback;
+    FbApi *api;
+    gpointer handle;
 };
 
 static void
@@ -647,16 +655,13 @@ fb_api_json_chk(FbApi *api, gconstpointer data, gssize size, JsonNode **node)
 }
 
 static gboolean
-fb_api_http_chk(FbApi *api, SoupRequestHTTP *con,
-                JsonNode **root)
+fb_api_http_chk(FbApi *api, SoupRequestHTTP *con)
 {
-    const gchar *data;
     const gchar *msg;
     FbApiPrivate *priv = api->priv;
     gchar *emsg;
     GError *err = NULL;
     gint code;
-    gsize size;
 
     if (fb_http_conns_is_canceled(priv->cons)) {
         return FALSE;
@@ -666,8 +671,6 @@ fb_api_http_chk(FbApi *api, SoupRequestHTTP *con,
 
     msg = res->reason_phrase;
     code = res->status_code;
-    data = res->response_body->data;
-    size = res->response_body->length;
     fb_http_conns_remove(priv->cons, con);
 
     if (msg != NULL) {
@@ -680,16 +683,19 @@ fb_api_http_chk(FbApi *api, SoupRequestHTTP *con,
     fb_util_debug(FB_UTIL_DEBUG_INFO, "  Response Error: %s", emsg);
     g_free(emsg);
 
-    if (G_LIKELY(size > 0)) {
-        fb_util_debug(FB_UTIL_DEBUG_INFO, "  Response Data: %.*s",
-                      (gint) size, data);
-    }
-
-    if (fb_http_error_chk(res, &err) && (root == NULL)) {
+    if (fb_http_error_chk(res, &err)) {
         g_object_unref(res);
         return TRUE;
     }
     g_object_unref(res);
+    return TRUE;
+}
+
+static gboolean
+fb_api_http_parse (FbApi *api, const gchar *data, gsize size,
+                   JsonNode **root)
+{
+    GError *err = NULL;
 
     /* Rudimentary check to prevent wrongful error parsing */
     if ((size < 2) || (data[0] != '{') || (data[size - 1] != '}')) {
@@ -705,6 +711,29 @@ fb_api_http_chk(FbApi *api, SoupRequestHTTP *con,
 
     FB_API_ERROR_EMIT(api, err, return FALSE);
     return TRUE;
+}
+
+static void
+fb_api_cb_http_req(GObject *source, GAsyncResult *res,
+                    gpointer data)
+{
+    GError *err = NULL;
+
+    SoupRequest *req = (SoupRequest*)source;
+    FbApiCbData *cb_data = (FbApiCbData*)data;
+    GInputStream *stream = soup_request_send_finish((SoupRequest*)req, res, &err);
+
+    if (!fb_api_http_chk(cb_data->api, (SoupRequestHTTP*)req) || stream == NULL) {
+        g_free(cb_data);
+        g_object_unref(req);
+        return;
+    }
+
+    GDataInputStream *data_stream = g_data_input_stream_new(stream);
+    g_data_input_stream_read_upto_async(data_stream, "\0", 1, G_PRIORITY_DEFAULT,
+        NULL, cb_data->callback, cb_data);
+
+    g_object_unref(req);
 }
 
 static SoupRequestHTTP *
@@ -766,7 +795,13 @@ fb_api_http_req(FbApi *api, const gchar *url, const gchar *name,
 
     data = fb_http_params_close(params, NULL);
     soup_message_body_append(msg->request_body, SOUP_MEMORY_COPY, data, strlen(data));
-    soup_request_send_async((SoupRequest*)req, NULL, callback, api);
+    
+    FbApiCbData *cb_data = g_new0(FbApiCbData, 1);
+    cb_data->callback = callback;
+    cb_data->api = api;
+    cb_data->handle = req;
+
+    soup_request_send_async((SoupRequest*)req, NULL, fb_api_cb_http_req, cb_data);
     fb_http_conns_add(priv->cons, req);
 
     g_object_unref(msg);
@@ -828,24 +863,21 @@ static void
 fb_api_cb_http_bool(GObject *source, GAsyncResult *res,
                     gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
-    const gchar *hata;
-    FbApi *api = data;
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *hata;
+    FbApiCbData *cb_data = (FbApiCbData*)data;
+    FbApi *api = cb_data->api;
+    GError *err = NULL;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
-
-    if (!fb_api_http_chk(api, con, NULL)) {
-        return;
-    }
-
-    SoupMessage *msg = soup_request_http_get_message(con);
-    hata = msg->response_body->data;
-    g_object_unref(msg);
+    hata = g_data_input_stream_read_upto_finish (stream, res, NULL, &err);
+    g_object_unref(stream);
 
     if (g_strcmp0(hata, "true")) {
         fb_api_error(api, FB_API_ERROR,
                      _("Failed generic API operation"));
     }
+    g_free(hata);
 }
 
 static void
@@ -1025,19 +1057,26 @@ static void
 fb_api_cb_seqid(GObject *source, GAsyncResult *res,
                 gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiPrivate *priv = api->priv;
     FbJsonValues *values;
     GError *err = NULL;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
@@ -1871,9 +1910,10 @@ static void
 fb_api_cb_attach(GObject *source, GAsyncResult *res,
                  gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
+    gpointer con = cb_data->handle;
     FbApiMessage *msg;
     FbJsonValues *values;
     gchar *name;
@@ -1881,14 +1921,21 @@ fb_api_cb_attach(GObject *source, GAsyncResult *res,
     GSList *msgs = NULL;
     guint i;
     JsonNode *root;
+    g_free(cb_data);
 
     static const gchar *imgexts[] = {".jpg", ".png", ".gif"};
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE, "$.filename");
@@ -1943,18 +1990,25 @@ static void
 fb_api_cb_auth(GObject *source, GAsyncResult *res,
                gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiPrivate *priv = api->priv;
     FbJsonValues *values;
     GError *err = NULL;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE, "$.access_token");
@@ -1992,21 +2046,28 @@ static void
 fb_api_cb_contact(GObject *source, GAsyncResult *res,
                   gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiUser user;
     FbHttpParams *prms;
     FbJsonValues *values;
     GError *err = NULL;
     JsonNode *node;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     node = fb_json_node_get_nth(root, 0);
 
@@ -2070,10 +2131,10 @@ static void
 fb_api_cb_contacts(GObject *source, GAsyncResult *res,
                    gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *cursor;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiPrivate *priv = api->priv;
     FbApiUser *user;
     FbHttpParams *prms;
@@ -2084,12 +2145,19 @@ fb_api_cb_contacts(GObject *source, GAsyncResult *res,
     GSList *users = NULL;
     guint count = 0;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
@@ -2374,10 +2442,10 @@ static void
 fb_api_cb_unread_msgs(GObject *source, GAsyncResult *res,
                       gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *body;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiMessage *dmsg;
     FbApiMessage msg;
     FbId id;
@@ -2389,12 +2457,19 @@ fb_api_cb_unread_msgs(GObject *source, GAsyncResult *res,
     JsonNode *node;
     JsonNode *root;
     JsonNode *xode;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     node = fb_json_node_get_nth(root, 0);
 
@@ -2509,20 +2584,27 @@ static void
 fb_api_cb_unread(GObject *source, GAsyncResult *res,
                  gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *id;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbJsonValues *values;
     GError *err = NULL;
     gint64 count;
     JsonBuilder *bldr;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_INT, TRUE, "$.unread_count");
@@ -2593,20 +2675,28 @@ static void
 fb_api_cb_sticker(GObject *source, GAsyncResult *res,
                   gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
+    gpointer con = cb_data->handle;
     FbApiMessage *msg;
     FbJsonValues *values;
     GError *err = NULL;
     GSList *msgs = NULL;
     JsonNode *node;
     JsonNode *root;
+    g_free(data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     node = fb_json_node_get_nth(root, 0);
     values = fb_json_values_new(node);
@@ -2778,18 +2868,25 @@ static void
 fb_api_cb_thread(GObject *source, GAsyncResult *res,
                       gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiThread thrd;
     GError *err = NULL;
     JsonNode *node;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);
@@ -2843,19 +2940,26 @@ static void
 fb_api_cb_thread_create(GObject *source, GAsyncResult *res,
                         gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
     const gchar *str;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbId tid;
     FbJsonValues *values;
     GError *err = NULL;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     values = fb_json_values_new(root);
     fb_json_values_add(values, FB_JSON_TYPE_STR, TRUE, "$.thread_fbid");
@@ -2980,8 +3084,8 @@ static void
 fb_api_cb_threads(GObject *source, GAsyncResult *res,
                   gpointer data)
 {
-    SoupRequestHTTP *con = (SoupRequestHTTP*) source;
-    FbApi *api = data;
+    FbApiCbData *cb_data = data;
+    FbApi *api = cb_data->api;
     FbApiThread *dthrd;
     FbApiThread thrd;
     GError *err = NULL;
@@ -2990,12 +3094,19 @@ fb_api_cb_threads(GObject *source, GAsyncResult *res,
     GSList *thrds = NULL;
     JsonArray *arr;
     JsonNode *root;
+    g_free(cb_data);
 
-    fb_http_extract_data(con, res, NULL);
+    GDataInputStream *stream = (GDataInputStream*) source;
+    gchar *response;
+    gsize length;
+    response = g_data_input_stream_read_upto_finish (stream, res, &length, &err);
+    g_object_unref(stream);
 
-    if (!fb_api_http_chk(api, con, &root)) {
+    if (!fb_api_http_parse(api, response, length, &root)) {
+        g_free(response);
         return;
     }
+    g_free(response);
 
     /*JsonGenerator *gen = json_generator_new();
     json_generator_set_pretty(gen, TRUE);

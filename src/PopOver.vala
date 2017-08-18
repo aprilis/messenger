@@ -45,7 +45,6 @@ public class Ui.PopOver : CompositedWindow {
     }
 
     private bool window_state (Gdk.EventWindowState event) {
-        print ("window state %s\n", event.new_window_state.to_string ());
         close ();
         return false;
     }
