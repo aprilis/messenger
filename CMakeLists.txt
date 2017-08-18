@@ -47,6 +47,7 @@ vala_precompile(VALA_C messenger
     src/LoadingScreen.vala
     src/Utils.vala
     src/LoginDialog.vala
+    src/Version.vala
 
 # tell what libraries to use when compiling
 PACKAGES
@@ -110,6 +111,9 @@ target_link_libraries(${EXEC_NAME} PUBLIC ${LIBNOTIFY_LIBRARIES})
 
 # install the binaries we just made
 install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
+
+# install open chat script
+install (PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/script/messenger-open-chat DESTINATION bin)
 
 # install our .desktop file so the Applications menu will see it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/com.github.aprilis.messenger.desktop DESTINATION ${DATADIR}/applications/)

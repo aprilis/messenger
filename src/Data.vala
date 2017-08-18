@@ -406,7 +406,7 @@ namespace Fb {
             app = ap;
             api = a;
             
-            conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME);
+            conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME, Main.OPEN_CHAT_NAME);
             new_thread.connect (conv_data.add_thread);
             
             contacts = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
