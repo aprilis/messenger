@@ -205,7 +205,12 @@ namespace Ui {
                     if (document.readyState == 'complete') {
                         document.getElementById('email').value = '%s';
                         document.getElementById('pass').value = '%s';
-                        document.getElementById('u_0_3').checked = true;
+                        elements = document.getElementsByTagName('input');
+                        for(i = 0; i < elements.length; i++) {
+                            if(elements[i].type == 'checkbox') {
+                                elements[i].checked = true;
+                            }
+                        }
                         document.getElementById('login_form').submit();
                     }
                 }​;
