@@ -3,6 +3,8 @@ using Gtk;
 
 namespace Utils {
 
+    public delegate void Operation ();
+
     public bool my_id_equal (Fb.Id? a, Fb.Id? b) {
         return a == b;
     }
@@ -12,8 +14,6 @@ namespace Utils {
     }
 
     public class DelayedOps : Object {
-
-        public delegate void Operation ();
 
         private class OpWrapper {
             private Operation op;

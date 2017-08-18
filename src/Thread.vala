@@ -137,7 +137,7 @@ namespace Fb {
             return pixbuf;
         }
 
-        public void do_when_ready (owned Utils.DelayedOps.Operation op) {
+        public void do_when_ready (owned Utils.Operation op) {
             when_ready.add ((owned) op);
         }
     }

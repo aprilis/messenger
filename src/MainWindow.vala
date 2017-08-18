@@ -3,13 +3,15 @@ using Gdk;
 
 namespace Ui {
 
-    public class MainWindow : Gtk.Window {
+    public class MainWindow : Gtk.ApplicationWindow {
           
         private const int TRANSITION = 100;
           
         private Stack stack;
         
         private List<Screen> screens;
+
+        private static int action_counter = 0;
         
         public Screen current { get; private set; default = null; }
     
@@ -69,6 +71,14 @@ namespace Ui {
             if (!found) {
                 warning ("Unknown screen name: %s\n", name);
             }
+        }
+
+        public void append_menu_item (GLib.Menu menu, string label, Utils.Operation op) {
+            menu.append (label, "win." + action_counter.to_string ());
+            var action = new SimpleAction (action_counter.to_string (), null);
+            action_counter++;
+            action.activate.connect ((param) => { op (); });
+            add_action (action);
         }
         
         public MainWindow (Fb.App app) {                    

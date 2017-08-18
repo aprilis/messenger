@@ -477,29 +477,28 @@ namespace Fb {
             });
             window.show.connect (() => { if (network_problem) network_error (); });
             
-            var menu = new Gtk.Menu ();
-            var preferences_item = new Gtk.MenuItem.with_label ("Preferences");
-            var reconnect_item = new Gtk.MenuItem.with_label ("Reconnect");
-            var remove_item = new Gtk.MenuItem.with_label ("Close all conversations");
-            var logout_item = new Gtk.MenuItem.with_label ("Log Out");
-            var about_item = new Gtk.MenuItem.with_label ("About");
-            var quit_item = new Gtk.MenuItem.with_label ("Quit");
+            var menu = new GLib.Menu ();
+            var account_section = new GLib.Menu ();
+            menu.append_section ("Your account", account_section);
+            window.append_menu_item (account_section, "Reconnect", () => {
+                data.close ();
+                data = null;
+                auth_done ();
+            });
+            window.append_menu_item (account_section, "Close all conversations", () => {
+                remove_heads (); 
+            });
+            window.append_menu_item (account_section, "Log Out", log_out);
+            var app_section = new GLib.Menu ();
+            menu.append_section ("App", app_section);
+            //window.append_menu_item ("Preferences", TODO);
+            window.append_menu_item (app_section, "About", () => {
+                application.show_about (window);
+            });
+            window.append_menu_item (app_section, "Quit", () => {
+                quit ();
+            });
             
-            preferences_item.sensitive = false;
-            reconnect_item.activate.connect (() => { data.close (); data = null; auth_done (); });
-            remove_item.activate.connect (() => { remove_heads (); });
-            logout_item.activate.connect (() => { log_out (); });
-            about_item.activate.connect (() => { application.show_about (window); });
-            quit_item.activate.connect (() => { quit (); });
-            
-            //menu.add (preferences_item);
-            menu.add (remove_item);
-            menu.add (reconnect_item);
-            menu.add (logout_item);
-            menu.add (new SeparatorMenuItem ());
-            menu.add (about_item);
-            menu.add (new SeparatorMenuItem ());
-            menu.add (quit_item);
             window.header.set_menu (menu);
             
             conversation = new Ui.Conversation (this);
