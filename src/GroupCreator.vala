@@ -363,6 +363,7 @@ namespace Ui {
 
             popover.closed.connect (() => {
                 search_entry.text = "";
+                message_entry.text = "";
                 selected = 0;
                 foreach (var item in items.values) {
                     item.change_list (search_list);
