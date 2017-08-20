@@ -189,6 +189,11 @@ namespace Fb {
             api.auth_func (username, password);
         }
 
+        public void create_group_thread (GLib.SList<Id?> ids, string message) {
+            api.thread_create_func (ids, message);
+            window.threads.show_toast ("Group thread is being created");
+        }
+
         public bool check_awake () {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {

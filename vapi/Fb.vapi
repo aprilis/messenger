@@ -23,7 +23,7 @@ namespace Fb {
 		public void read (Fb.Id id, bool thread);
 		public void rehash ();
 		[CCode (cname = "fb_api_thread_create")]
-		public void thread_create_func (GLib.SList<Fb.Id?> uids);
+		public void thread_create_func (GLib.SList<Fb.Id?> uids, string message);
 		[CCode (cname = "fb_api_thread")]
 		public void thread_func (Fb.Id tid);
 		public void thread_invite (Fb.Id tid, Fb.Id uid);

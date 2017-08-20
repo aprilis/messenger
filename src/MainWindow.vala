@@ -4,7 +4,7 @@ using Gdk;
 namespace Ui {
 
     public class MainWindow : Gtk.ApplicationWindow {
-          
+
         private const int TRANSITION = 100;
           
         private Stack stack;
@@ -115,7 +115,7 @@ namespace Ui {
                 set_current_screen (current);
             });
             key_press_event.connect ((event) => {
-                if (current == threads) {
+                if (current == threads && !threads.group_creator_active) {
                     if (event.keyval == Key.Escape) {
                         threads.search_entry.text = "";
                         set_focus (null);
@@ -129,7 +129,7 @@ namespace Ui {
             var primary_color = Gdk.RGBA ();
             primary_color.parse ("#55ACEE");
             Granite.Widgets.Utils.set_color_primary (this, primary_color);
-        }   
+        }
     }
 
 }

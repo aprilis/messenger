@@ -2980,7 +2980,7 @@ fb_api_cb_thread_create(GObject *source, GAsyncResult *res,
 }
 
 void
-fb_api_thread_create(FbApi *api, GSList *uids)
+fb_api_thread_create(FbApi *api, GSList *uids, const gchar *message)
 {
     FbApiPrivate *priv;
     FbHttpParams *prms;
@@ -3010,6 +3010,7 @@ fb_api_thread_create(FbApi *api, GSList *uids)
     json = fb_json_bldr_close(bldr, JSON_NODE_ARRAY, NULL);
     prms = fb_http_params_new();
     fb_http_params_set_str(prms, "to", json);
+    fb_http_params_set_str(prms, "message", message);
     fb_api_http_req(api, FB_API_URL_THREADS, "createThread", "POST",
                     prms, fb_api_cb_thread_create);
     g_free(json);

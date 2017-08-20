@@ -104,37 +104,7 @@ namespace Fb {
         }
         
         public Pixbuf get_icon (int size, bool line = false) {  
-            Pixbuf pixbuf;
-            if (photo == null) {
-                pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);
-                pixbuf.fill ((uint32)0xffffffff);
-            } else {
-                pixbuf = photo;
-            }
-        
-            var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, size, size);
-            var context = new Cairo.Context (surface);
-            var center = size * 0.5, radius = center * 0.95;
-            
-            context.arc (center, center, radius, 0, 2 * Math.PI);
-            var scale = size / (double)pixbuf.width;
-            context.scale (scale, scale);
-            cairo_set_source_pixbuf (context, pixbuf, 0, 0);
-            context.fill_preserve ();
-            if (line) {
-                context.scale (1 / scale, 1 / scale);
-                context.set_source_rgba (0, 0, 0, 0.5);
-                context.set_line_width (0.5);
-                context.stroke ();
-            }
-            
-            pixbuf = pixbuf_get_from_surface (surface, 0, 0, size, size);
-            if (pixbuf == null) {
-                warning ("Failed to create pixbuf");
-                pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);
-                pixbuf.fill ((uint32)0xaaaaaaff);
-            }
-            return pixbuf;
+            return Utils.make_icon (photo, size, line);
         }
 
         public void do_when_ready (owned Utils.Operation op) {

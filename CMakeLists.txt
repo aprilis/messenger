@@ -48,6 +48,8 @@ vala_precompile(VALA_C messenger
     src/Utils.vala
     src/LoginDialog.vala
     src/Version.vala
+    src/GroupCreator.vala
+    src/FadeOutBin.vala
 
 # tell what libraries to use when compiling
 PACKAGES

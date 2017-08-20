@@ -164,6 +164,12 @@ namespace Fb {
                 warning ("%s\n", e.message);
             }
         }
+
+        public Fb.Id user_id {
+            get {
+                return api.uid;
+            }
+        }
         
         public Contact get_contact (Id id, bool query = true) {
             if (!contacts.has_key (id)) {
@@ -330,7 +336,9 @@ namespace Fb {
                 var time = get_monotonic_time () + UPDATE_THREAD_INTERVAL;
                 var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
-                    threads [msg.tid].update_request_time = time;
+                    if (msg.tid in threads) {
+                        threads [msg.tid].update_request_time = time;
+                    }
                     app.query_thread (msg.tid);
                 } else if (last_time < time) {
                     threads [msg.tid].update_request_time = time + UPDATE_THREAD_INTERVAL;
