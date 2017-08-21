@@ -111,6 +111,7 @@ namespace Utils {
         var now = get_real_time () / 1000000;
         var diff = now - time;
         if (diff < 60) {
+            next_update_time = 60 - (diff % 60);
             return "now";
         } else if (diff < 60*60) {
             next_update_time = 60 - (diff % 60);
