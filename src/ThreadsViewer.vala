@@ -210,6 +210,8 @@ namespace Ui {
             time_renderer.alignment = Pango.Alignment.RIGHT;
             time_renderer.align_set = true;
             time_renderer.yalign = 0.32f;
+            time_renderer.xalign = 1;
+            time_renderer.xpad = 6;
             view.insert_column_with_attributes (-1, "Time", time_renderer, "text", Index.TIME_DESCRIPTION);
             
             var selection = view.get_selection ();
