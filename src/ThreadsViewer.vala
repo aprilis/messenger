@@ -76,7 +76,6 @@ namespace Ui {
                     Utils.get_time_description (thread.update_time / 1000, out next_update_time),
                     -1);
                 if (next_update_time != 0) {
-                    print ("next update: %lld\n", next_update_time);
                     if (update_time_id != 0) {
                         GLib.Source.remove (update_time_id);
                     }
