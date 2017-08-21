@@ -17,10 +17,12 @@ namespace Fb {
         
         private const string SESSION_FILE = "session";
         private const string CONFIRMED_FILE = "confirmed_users";
-        private const int THREADS_COUNT = 500;
         private const int RECONNECT_INTERVAL = 10*1000;
         private const int CHECK_AWAKE_INTERVAL = 4*1000;
+        private const int64 QUERY_CONTACTS_INTERVAL = 24LL*60*60*1000000;
         private const int CONVERSATION_START_INTERVAL = 1000000 / 2;
+        public const int THREADS_COUNT = 500;
+        public const int SMALL_THREADS_COUNT = 30;
         
         private string get_session_path () {
             return Main.cache_path + "/" + SESSION_FILE;
@@ -55,6 +57,7 @@ namespace Fb {
         private HashSet<string> confirmed_users = null;
 
         private int64 last_awake_check = 0;
+        private int64 last_query_contacts = 0;
         private int64 last_conversation_time = 0;
 
         private bool webview_auth_fail = false;
@@ -77,8 +80,7 @@ namespace Fb {
                         Timeout.add (RECONNECT_INTERVAL, reconnect);
                     } else {
                         window.current.network_ok ();
-                        query_threads (THREADS_COUNT);
-                        query_contacts ();
+                        query_threads (SMALL_THREADS_COUNT);
                         conversation.reload ();
                     }
                 }
@@ -161,8 +163,8 @@ namespace Fb {
             }
         }
 
-        public void query_threads (int count) {
-            api.threads_func (count);;
+        public void query_threads (int count = THREADS_COUNT) {
+            api.threads_func (count);
         }
 
         public void query_thread (Fb.Id id) {
@@ -171,6 +173,7 @@ namespace Fb {
 
         public void query_contacts () {
             api.contacts_func ();
+            last_query_contacts = get_real_time ();
         }
 
         public void query_contact (Fb.Id id) {
@@ -198,10 +201,16 @@ namespace Fb {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 connect_api ();
-                query_threads (THREADS_COUNT);
+                query_threads (SMALL_THREADS_COUNT);
                 conversation.reload ();
             }
             last_awake_check = time;
+            if (data != null && last_query_contacts != 0 &&
+                 time - last_query_contacts > QUERY_CONTACTS_INTERVAL) {
+                print ("query contacts\n");
+                query_contacts ();
+                last_query_contacts = time;
+            }
             return true;
         }
         
@@ -309,7 +318,6 @@ namespace Fb {
             });
             
             query_contacts ();
-            query_threads (THREADS_COUNT);
             connect_api ();
         }
         

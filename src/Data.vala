@@ -97,8 +97,11 @@ namespace Fb {
                     var thread = get_thread (id, group);
                     thread.load_from_json (node);
                 }
+                loading_finished ();
+                app.query_threads (app.SMALL_THREADS_COUNT);
             } catch (Error e) {
                 warning ("%s\n", e.message);
+                app.query_threads (app.THREADS_COUNT);
             }
             collective_updates.release ();
         }
@@ -289,20 +292,30 @@ namespace Fb {
             }
         }
         
-        private void update_thread (Fb.ApiThread thread) {
+        private bool update_thread (Fb.ApiThread thread) {
             if (thread.tid in null_contacts) {
-                return;
+                return false;
             }
             var th = get_thread (thread.tid, thread.is_group);
+            var result = th.update_time != thread.update_time;
             if (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0) {
                 th.do_when_ready (() => { new_message (th, th.last_message); });
             }
             th.do_when_ready (() => { unread_count (th.id, th.unread); });
+            return result;
         }
         
         public void parse_threads (SList<ApiThread> threads) {
+            const int CHECK_LAST_THREADS = 10;
+            int i = 0, last_updated = -CHECK_LAST_THREADS, len = (int) threads.length ();
             foreach (var thread in threads) {
-                update_thread (thread);
+                if (update_thread (thread)) {
+                    last_updated = i;
+                }
+                i++;
+            }
+            if (len <= app.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
+                app.query_threads (app.THREADS_COUNT);
             }
             save_threads ();
             selective_updates.add (() => {
