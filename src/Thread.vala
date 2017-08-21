@@ -41,11 +41,15 @@ namespace Fb {
 
         public Thread () {
             when_ready = new Utils.DelayedOps ();
-            photo_updated.connect (() => {
-                if (photo != null) {
-                    when_ready.release ();
-                }
-            });
+            if (photo != null) {
+                when_ready.release ();
+            } else {
+                photo_updated.connect (() => {
+                    if (photo != null) {
+                        when_ready.release ();
+                    }
+                });
+            }
         }
     
         public virtual bool load_from_api (Fb.ApiThread thread) {

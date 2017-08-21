@@ -150,7 +150,9 @@ namespace Fb {
         
         private void add_thread (Thread thread) {
             threads [thread.id] = thread;
-            new_thread (thread);
+            thread.do_when_ready (() => {
+                new_thread (thread);
+            });
         }
         
         public static void delete_files () {

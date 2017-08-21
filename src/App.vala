@@ -307,12 +307,14 @@ namespace Fb {
             data.unread_count.connect (update_unread_count);
             data.new_thread.connect ((thread) => {
                 if (thread.id == api.uid) {
+                    print ("found me!\n");
                     user_name = thread.name == null ? "" : thread.name;
                     thread.name_updated.connect (() => {
                         user_name = thread.name;
                     });
+                    window.header.set_photo (thread.get_icon (window.header.PHOTO_SIZE, true));
                     thread.photo_updated.connect (() => {
-                        window.header.set_photo(thread.get_icon (window.header.PHOTO_SIZE, true));
+                        window.header.set_photo (thread.get_icon (window.header.PHOTO_SIZE, true));
                     });
                 }
             });
