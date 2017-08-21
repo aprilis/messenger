@@ -102,4 +102,45 @@ namespace Utils {
         
         return bar;
     }
+
+    public string get_time_description (int64 time, out int64 next_update_time) {
+        if (time == 0) {
+            next_update_time = 0;
+            return "";
+        }
+        var now = get_real_time () / 1000000;
+        var diff = now - time;
+        if (diff < 60) {
+            return "now";
+        } else if (diff < 60*60) {
+            next_update_time = 60 - (diff % 60);
+            return (diff / 60).to_string () + " min";
+        } else if (diff < 60*60*5) {
+            next_update_time = 60*60 - (diff % (60*60));
+            return (diff / (60*60)).to_string () + "hrs";
+        } else {
+            var date1 = new Date ();
+            date1.set_time_t ((time_t)time);
+            var date2 = new Date ();
+            date2.set_time_t ((time_t)now);
+            var tm = Time.local ((time_t)time);
+            int days = date1.days_between (date2);
+            if (days == 0) {
+                Time next_day;
+                date2.add_days (1);
+                date2.to_time (out next_day);
+                next_update_time = next_day.mktime () - now;
+                return tm.format ("%R").chomp ();
+            } else if (days < 7) {
+                Time next_day;
+                date2.add_days (1);
+                date2.to_time (out next_day);
+                next_update_time = next_day.mktime () - now;
+                return tm.format ("%a").chomp ();
+            } else {
+                next_update_time = 0;
+                return tm.format ("%e %b").chomp ();
+            }
+        }
+    }
 }
