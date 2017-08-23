@@ -26,6 +26,8 @@ namespace Fb {
         public bool is_loaded { get; private set; default = false; }
         
         public int64 id { get; protected set; }
+
+        public bool is_present { get; set; }
          
         public abstract Pixbuf photo { get; }
         

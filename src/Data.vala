@@ -341,6 +341,14 @@ namespace Fb {
             update_thread (thread);
             save_threads ();
         }
+
+        public void update_presence (void *ptr) {
+            unowned SList<ApiPresence?> pres = (SList<ApiPresence?>) ptr;
+            foreach (unowned ApiPresence? p in pres) {
+                var contact = get_contact (p.uid);
+                contact.is_present = p.active;
+            }
+        }
         
         private void messages (void *ptr) {
             unowned SList<ApiMessage?> msgs = (SList<ApiMessage?>)ptr;
@@ -450,6 +458,7 @@ namespace Fb {
             api.threads.connect (threads_done);
             api.thread.connect (thread_done);
             api.messages.connect (messages);
+            api.presences.connect (update_presence);
 
             load_queue = new GLib.Queue<LoadTask?> ();
 

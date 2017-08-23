@@ -64,17 +64,21 @@ namespace Ui {
                 }
                 list.set (iter, Index.PHOTO, thread.get_icon (ICON_SIZE), -1);
             }
-            
+
             private void update_time () {
                 TreeIter iter;
                 if (!get_iter (out iter)) {
                     return;
                 }
                 int64 next_update_time;
+                var time_description = Utils.get_time_description (thread.update_time / 1000,
+                    out next_update_time);
+                var time_markup = "<span foreground = \"gray\">" + time_description + "</span>";
+                if (thread.is_present) {
+                    time_description += "\n<span font_desc = \"10.0\" foreground = \"#2DC814\">●</span>";
+                }
                 list.set (iter, Index.UPDATE_TIME, thread.update_time,
-                    Index.TIME_DESCRIPTION,
-                    Utils.get_time_description (thread.update_time / 1000, out next_update_time),
-                    -1);
+                    Index.TIME_DESCRIPTION, time_description, -1);
                 if (next_update_time != 0) {
                     if (update_time_id != 0) {
                         GLib.Source.remove (update_time_id);
@@ -122,6 +126,7 @@ namespace Ui {
                 thread.notify["last-message"].connect ((s, p) => { update_name (); });
                 thread.notify["unread"].connect ((s, p) => { update_name (); });
                 thread.notify["update-time"].connect ((s, p) => { update_time (); });
+                thread.notify["is-present"].connect ((s, p) => { update_time (); });
                 update_time ();
             }
         }
@@ -212,7 +217,8 @@ namespace Ui {
             time_renderer.yalign = 0.32f;
             time_renderer.xalign = 1;
             time_renderer.xpad = 6;
-            view.insert_column_with_attributes (-1, "Time", time_renderer, "text", Index.TIME_DESCRIPTION);
+            view.insert_column_with_attributes (-1, "Time", time_renderer, "markup",
+                Index.TIME_DESCRIPTION);
             
             var selection = view.get_selection ();
             selection.mode = SelectionMode.MULTIPLE;
