@@ -2,3 +2,4 @@ build/*
 *~
 *.user
 .vscode/*
+vapi/doc
