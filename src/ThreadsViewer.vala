@@ -75,10 +75,10 @@ namespace Ui {
                     out next_update_time);
                 var time_markup = "<span foreground = \"gray\">" + time_description + "</span>";
                 if (thread.is_present) {
-                    time_description += "\n<span font_desc = \"10.0\" foreground = \"#2DC814\">●</span>";
+                    time_markup += "\n<span font_desc = \"13.0\" foreground = \"#2DC814\">⚫</span>";
                 }
                 list.set (iter, Index.UPDATE_TIME, thread.update_time,
-                    Index.TIME_DESCRIPTION, time_description, -1);
+                    Index.TIME_DESCRIPTION, time_markup, -1);
                 if (next_update_time != 0) {
                     if (update_time_id != 0) {
                         GLib.Source.remove (update_time_id);
@@ -142,19 +142,15 @@ namespace Ui {
         private Gtk.TreeModelFilter filtered;
         
         private string _search_query = "";
-        
-        private bool inactive = false;
-        
+                
         public Widget widget { get { return view; } }
         
         public string search_query { 
             get { return _search_query; }
             set {
                 _search_query = value;
-                inactive = true;
                 filtered.refilter ();
                 Timeout.add (100, () => {
-                    inactive = false;
                     view.scroll_to_point (0, 0);
                     return false;
                 });
@@ -201,6 +197,10 @@ namespace Ui {
             view.can_focus = false;
             view.headers_visible = false;
             view.enable_grid_lines = TreeViewGridLines.HORIZONTAL;
+            view.name = "threads";
+            view.activate_on_single_click = true;
+            view.hover_selection = true;
+
             view.insert_column_with_attributes (-1, "Photo", new CellRendererPixbuf (), "pixbuf", Index.PHOTO);
             
             var name_renderer = new CellRendererText ();
@@ -217,23 +217,18 @@ namespace Ui {
             time_renderer.yalign = 0.32f;
             time_renderer.xalign = 1;
             time_renderer.xpad = 6;
+            time_renderer.set_fixed_height_from_font (2);
             view.insert_column_with_attributes (-1, "Time", time_renderer, "markup",
                 Index.TIME_DESCRIPTION);
-            
-            var selection = view.get_selection ();
-            selection.mode = SelectionMode.MULTIPLE;
-            selection.changed.connect(() => {
-                TreeModel model;
-                var selected = selection.get_selected_rows (out model);
-                if (!inactive && selected.length () != 0) {
-                    var path = selected.data;
-                    TreeIter iter;
-                    model.get_iter (out iter, path);
-                    Fb.Id id;
-                    model.get (iter, Index.ID, out id, -1);
+
+            view.row_activated.connect ((path, column) => {
+                TreeIter iter;
+                filtered.get_iter (out iter, path);
+                Fb.Id id = 0;
+                filtered.get (iter, Index.ID, out id, -1);
+                if (id != 0) {
                     thread_selected (id);
                 }
-                selection.unselect_all ();
             });
         }
         

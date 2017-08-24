@@ -216,6 +216,7 @@ namespace Ui {
             search_view.set_model (filtered);
             search_view.headers_visible = false;
             search_view.activate_on_single_click = true;
+            search_view.hover_selection = true;
 
             search_view.row_activated.connect ((path, column) => {
                 TreeIter iter;
@@ -261,6 +262,7 @@ namespace Ui {
             group_view.set_model (group_list);
             group_view.headers_visible = false;
             group_view.activate_on_single_click = true;
+            group_view.hover_selection = true;
 
             group_view.row_activated.connect ((path, column) => {
                 if (column.title == "Delete") {

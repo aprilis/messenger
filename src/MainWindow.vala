@@ -5,6 +5,12 @@ namespace Ui {
 
     public class MainWindow : Gtk.ApplicationWindow {
 
+        private const string STYLESHEET = """
+            GtkTreeView#threads row:selected {
+                background: white;
+            }
+        """;
+
         private const int TRANSITION = 100;
           
         private Stack stack;
@@ -129,6 +135,8 @@ namespace Ui {
             var primary_color = Gdk.RGBA ();
             primary_color.parse ("#55ACEE");
             Granite.Widgets.Utils.set_color_primary (this, primary_color);
+            Granite.Widgets.Utils.set_theming_for_screen (get_screen (), STYLESHEET,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
         }
     }
 
