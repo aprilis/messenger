@@ -285,6 +285,24 @@ namespace Fb {
                 parse_contacts (copy);
             });
         }
+
+        public void contacts_delta (void *added, void *removed) {
+            unowned SList<ApiUser?> users = (SList<ApiUser?>) added;
+            var copy = users.copy_deep ((user) => { return user.dup (true); });
+            copy.append (null);
+            collective_updates.add (() => {
+                parse_contacts (copy);
+            });
+
+            unowned SList<string> removed_users = (SList<string>) removed;
+            foreach (unowned string s in removed_users) {
+                contacts.unset (int64.parse (s));
+            }
+
+            if (removed_users.length () > 0) {
+                save_contacts ();
+            }
+        }
         
         public void contact_done (void *ptr) {
             unowned ApiUser user = (ApiUser) ptr;
@@ -454,6 +472,7 @@ namespace Fb {
             load_from_disk.begin ();
             
             api.contacts.connect (contacts_done);
+            api.contacts_delta.connect (contacts_delta);
             api.contact.connect (contact_done);
             api.threads.connect (threads_done);
             api.thread.connect (thread_done);

@@ -19,7 +19,7 @@ namespace Fb {
         private const string CONFIRMED_FILE = "confirmed_users";
         private const int RECONNECT_INTERVAL = 10*1000;
         private const int CHECK_AWAKE_INTERVAL = 4*1000;
-        private const int64 QUERY_CONTACTS_INTERVAL = 24LL*60*60*1000000;
+        private const int64 QUERY_CONTACTS_INTERVAL = 20LL*60*1000000;
         private const int CONVERSATION_START_INTERVAL = 1000000 / 2;
         public const int THREADS_COUNT = 500;
         public const int SMALL_THREADS_COUNT = 30;
@@ -192,9 +192,17 @@ namespace Fb {
             api.auth_func (username, password);
         }
 
-        public void create_group_thread (GLib.SList<Id?> ids, string message) {
-            api.thread_create_func (ids, message);
+        public void create_group_thread (GLib.SList<Id?> ids, string name) {
+            api.thread_create_func (ids, name);
             window.threads.show_toast ("Group thread is being created");
+        }
+
+        public void thread_created (int64 id) {
+            query_thread (id);
+            Timeout.add (1000, () => {
+                window.threads.hide_toast ();
+                return false;
+            });
         }
 
         public bool check_awake () {
@@ -329,7 +337,8 @@ namespace Fb {
             save_session ();
         }
 
-        private void api_error (Error e) {
+        private void api_error (void *ptr) {
+            unowned Error e = (Error)ptr;
             Quark[] network_quarks = { Fb.Mqtt.error_quark (),
                                      ResolverError.quark (), Fb.http_error_quark () };
             warning ("Api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
@@ -479,6 +488,7 @@ namespace Fb {
             api.auth.connect (() => { auth_target_done (AuthTarget.API); });
             api.connect.connect (connect_done);
             api.error.connect (api_error);
+            api.thread_create.connect (thread_created);
             
             window = new Ui.MainWindow (this);
             window.set_default_size (500, 600);

@@ -158,7 +158,16 @@ namespace Ui {
         }
         
         private void add_item (Fb.Thread thread) {
+            var adjustment = view.get_vadjustment ();
+
             items.append (new ViewerItem (thread, list));
+
+            if (view.get_realized () && adjustment.value <= 10) {
+                Timeout.add (100, () => {
+                    view.scroll_to_point (0, 0);
+                    return false;
+                });
+            }
         }
         
         public void clear () {
@@ -173,7 +182,7 @@ namespace Ui {
         public ThreadsViewer () {
             list = new Gtk.ListStore (Index.COUNT, typeof (Fb.Id), typeof (Pixbuf), typeof (string),
                 typeof (string), typeof (string), typeof (string), typeof (bool), typeof (int64),
-                typeof (string), typeof (string));
+                typeof (string));
             sorted = new TreeModelSort.with_model (list);
             sorted.set_sort_column_id (Index.UPDATE_TIME, SortType.DESCENDING);
             filtered = new TreeModelFilter (sorted, null);

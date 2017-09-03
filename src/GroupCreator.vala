@@ -102,7 +102,7 @@ namespace Ui {
             }
         }
 
-        public signal void create_group (GLib.SList<Fb.Id?> ids, string message);
+        public signal void create_group (GLib.SList<Fb.Id?> ids, string name);
         
         private HashMap<Fb.Id?, ViewerItem> items;
         
@@ -130,12 +130,12 @@ namespace Ui {
 
         private Button create_button;
 
-        private Entry message_entry;
+        private Entry name_entry;
 
         private Popover popover;
 
         private void update_create_button () {
-            create_button.sensitive = selected > 1 && message_entry.text.length > 0;
+            create_button.sensitive = selected > 1;
         }
 
         private int _selected = 0;
@@ -307,10 +307,9 @@ namespace Ui {
             placeholder.get_style_context ().add_class ("h3");
             placeholder.show ();
 
-            message_entry = new Entry ();
-            message_entry.placeholder_text = "Enter welcome message";
-            message_entry.changed.connect (update_create_button);
-            message_entry.show ();
+            name_entry = new Gtk.Entry ();
+            name_entry.placeholder_text = "Group name (optional)";
+            name_entry.show ();
 
             create_button = new Button.with_label ("Create!");
             create_button.sensitive = false;
@@ -326,13 +325,13 @@ namespace Ui {
                     ids.append (id);
                     group_list.iter_next (ref iter);
                 }
-                create_group (ids, message_entry.text);
+                create_group (ids, name_entry.text);
                 popover.hide ();
             });
-            create_button.tooltip_text = "You have to select at least 2 users and enter welcome message";
+            create_button.tooltip_text = "You have to select at least 2 users";
 
             var bottom_box = new Box (Orientation.HORIZONTAL, 5);
-            bottom_box.pack_start (message_entry, true, true);
+            bottom_box.pack_start (name_entry, true, true);
             bottom_box.pack_start (create_button, false, false);
             bottom_box.show ();
 
@@ -365,7 +364,7 @@ namespace Ui {
 
             popover.closed.connect (() => {
                 search_entry.text = "";
-                message_entry.text = "";
+                name_entry.text = "";
                 selected = 0;
                 foreach (var item in items.values) {
                     item.change_list (search_list);

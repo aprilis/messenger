@@ -167,7 +167,7 @@
  *
  * The URL for thread management requests.
  */
-#define FB_API_URL_THREADS  FB_API_GHOST "/me/threads"
+#define FB_API_URL_THREADS  FB_API_GHOST "/me/group_threads"
 
 /**
  * FB_API_URL_TOPIC:
@@ -201,10 +201,8 @@
  *   2: big_img_size
  *   3: huge_img_size
  *   4: small_img_size
- *   5: low_res_cover_size
- *   6: media_type
  */
-#define FB_API_QUERY_CONTACTS  10153856456271729
+#define FB_API_QUERY_CONTACTS  10154444360806729
 
 /**
  * FB_API_QUERY_CONTACTS_AFTER:
@@ -218,10 +216,23 @@
  *   3: big_img_size
  *   4: huge_img_size
  *   5: small_img_size
- *   6: low_res_cover_size
- *   7: media_type
  */
-#define FB_API_QUERY_CONTACTS_AFTER  10153856456281729
+#define FB_API_QUERY_CONTACTS_AFTER  10154444360816729
+
+/**
+ * FB_API_QUERY_CONTACTS_DELTA:
+ *
+ * The query hash for the `FetchContactsDeltaQuery`.
+ *
+ * Key mapping:
+ *   0: after
+ *   1: profile_types
+ *   2: limit
+ *   3: big_img_size
+ *   4: huge_img_size
+ *   5: small_img_size
+ */
+ #define FB_API_QUERY_CONTACTS_DELTA  10154444360801729
 
 /**
  * FB_API_QUERY_STICKER:
@@ -762,13 +773,13 @@ fb_api_thread(FbApi *api, FbId tid);
  * fb_api_thread_create:
  * @api: The #FbApi.
  * @uids: (element-type Fb.Id): The #GSList of #FbId's.
- * @message: The welcome message.
+ * @name: The (optional) name of a new thread.
  *
  * Sends a thread creation request. In order to create a thread, there
  * must be at least two other users in @uids.
  */
 void
-fb_api_thread_create(FbApi *api, GSList *uids, const gchar *message);
+fb_api_thread_create(FbApi *api, GSList *uids, const gchar *name);
 
 /**
  * fb_api_thread_invite:

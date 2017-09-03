@@ -23,7 +23,7 @@ namespace Fb {
 		public void read (Fb.Id id, bool thread);
 		public void rehash ();
 		[CCode (cname = "fb_api_thread_create")]
-		public void thread_create_func (GLib.SList<Fb.Id?> uids, string message);
+		public void thread_create_func (GLib.SList<Fb.Id?> uids, string name);
 		[CCode (cname = "fb_api_thread")]
 		public void thread_func (Fb.Id tid);
 		public void thread_invite (Fb.Id tid, Fb.Id uid);
@@ -50,12 +50,14 @@ namespace Fb {
 		public signal void connect ();
 		public signal void contact (void* user);
 		public signal void contacts (void* users, bool complete);
-		public signal void error (GLib.Error error);
+		public signal void contacts_delta (void* added, void* removed);
+		public signal void error (void* error);
 		public signal void events (void* events);
 		public signal void messages (void* msgs);
 		public signal void presences (void* press);
 		public signal void thread (void* thrd);
 		public signal void thread_create (int64 tid);
+		public signal void thread_kicked (void* thrd);
 		public signal void threads (void* thrds);
 		public signal void typing (void* typg);
 	}
@@ -371,6 +373,8 @@ namespace Fb {
 	public const int API_QUERY_CONTACTS;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_CONTACTS_AFTER")]
 	public const int API_QUERY_CONTACTS_AFTER;
+	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_CONTACTS_DELTA")]
+	public const int API_QUERY_CONTACTS_DELTA;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_SEQ_ID")]
 	public const int API_QUERY_SEQ_ID;
 	[CCode (cheader_filename = "Fb.h", cname = "FB_API_QUERY_STICKER")]

@@ -101,6 +101,11 @@ namespace Ui {
         public void show_toast (string message) {
             toast.title = message;
             toast.send_notification ();
+            toast.show ();
+        }
+
+        public void hide_toast () {
+            toast.hide ();
         }
         
     }
