@@ -131,12 +131,14 @@ namespace Ui {
 
                 webview = new WebView.with_user_content_manager (content_manager);
                 var settings = webview.get_settings ();
-                settings.enable_write_console_messages_to_stdout = true;
+                //settings.enable_write_console_messages_to_stdout = true;
                 
                 webview.load_changed.connect ((load_event) => {
                     print ("load changed: %s\n", load_event.to_string ());
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
                     if (load_event == LoadEvent.FINISHED) {
-                        handle_loading_finished ();
+                        //handle_loading_finished ();
                     }
                 });
                 webview.notify ["title"].connect ((s, p) => {
@@ -149,9 +151,15 @@ namespace Ui {
                     }
                 });
                 webview.notify ["is-loading"].connect ((s, p) => {
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
                     if (!webview.is_loading) {
                         handle_loading_finished ();
                     }
+                });
+                webview.notify ["estimated-load-progress"].connect ((s, p) => {
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
                 });
                 webview.context_menu.connect (() => { return true; });
                 webview.show_notification.connect (() => { return true; });
@@ -177,7 +185,7 @@ namespace Ui {
                     run_script ();
                 } else {
                     user_changed = false;
-                    Timeout.add (6000, handle_loading_finished);
+                    //Timeout.add (6000, handle_loading_finished);
                 }
                 return true;
             }

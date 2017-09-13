@@ -72,7 +72,7 @@ namespace Ui {
                 }
                 TreeIter iter;
                 if (get_iter (out iter)) {
-                    list.remove (iter);
+                    list.remove (ref iter);
                 }
                 list = new_list;
                 list.prepend (out iter);
@@ -204,7 +204,7 @@ namespace Ui {
             filtered.set_visible_func ((model, iter) => {
                 Value val;
                 model.get_value (iter, Index.NAME, out val);
-                if (val.type () == typeof (string) && val.get_string () != null
+                if (val.type () == typeof (string) && val.get_string () != null && val.get_string () != ""
                      && search_query.casefold () in val.get_string ().casefold ()) {
                     return true;
                 }

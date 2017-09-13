@@ -2584,8 +2584,6 @@ fb_api_contacts_after(FbApi *api, const gchar *cursor)
 void
 fb_api_contacts_delta(FbApi *api, const gchar *delta_cursor)
 {
-    printf("contacts delta\n");
-
 	JsonBuilder *bldr;
 
 	bldr = fb_json_bldr_new(JSON_NODE_OBJECT);

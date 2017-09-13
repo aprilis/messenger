@@ -288,19 +288,31 @@ namespace Fb {
 
         public void contacts_delta (void *added, void *removed) {
             unowned SList<ApiUser?> users = (SList<ApiUser?>) added;
-            var copy = users.copy_deep ((user) => { return user.dup (true); });
-            copy.append (null);
-            collective_updates.add (() => {
-                parse_contacts (copy);
-            });
-
-            unowned SList<string> removed_users = (SList<string>) removed;
-            foreach (unowned string s in removed_users) {
-                contacts.unset (int64.parse (s));
+            if (users != null) {
+                var copy = users.copy_deep ((user) => { return user.dup (true); });
+                copy.append (null);
+                collective_updates.add (() => {
+                    foreach (var contact in copy) {
+                        if (contact != null) {
+                            print ("contacts delta: added %lld\n", contact.uid);
+                        }
+                    }
+                    parse_contacts (copy);
+                });
             }
-
-            if (removed_users.length () > 0) {
-                save_contacts ();
+            unowned SList<string> removed_users = (SList<string>) removed;
+            if (removed_users != null) {
+                var copy_removed = removed_users.copy_deep ((id) => { return id.dup(); });
+                collective_updates.add (() => {
+                    foreach (string s in copy_removed) {
+                        print ("contacts delta: removed %s\n", s);
+                        contacts.unset (int64.parse (s));
+                    }
+        
+                    if (copy_removed.length () > 0) {
+                        save_contacts ();
+                    }
+                });
             }
         }
         
