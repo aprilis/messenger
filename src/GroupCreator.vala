@@ -72,7 +72,7 @@ namespace Ui {
                 }
                 TreeIter iter;
                 if (get_iter (out iter)) {
-                    list.remove (ref iter);
+                    list.remove (iter);
                 }
                 list = new_list;
                 list.prepend (out iter);
