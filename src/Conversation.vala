@@ -180,6 +180,8 @@ namespace Ui {
                 if (last_id == id && user_changed) {
                     return false;
                 }
+                print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                    webview.is_loading.to_string ());
                 last_id = id;
                 if (!webview.is_loading) {
                     run_script ();
@@ -190,8 +192,8 @@ namespace Ui {
                 return true;
             }
 
-            public void load_home_page (bool force = false) {
-                if (force || !webview.is_loading || failed) {
+            public void load_home_page () {
+                if (!webview.is_loading || failed) {
                     failed = false;
                     loading_finished = false;
                     script_running = false;
@@ -285,6 +287,21 @@ namespace Ui {
             }
             login_view = null;
         }
+
+        private void create_view () {
+            if (view_window.get_child () != null) {
+                view_window.remove (view_window.get_child ());
+            }
+            view = new View ();
+            view.ready.connect (() => {
+                print ("ready\n");
+                stack.visible_child = view_window;
+            });
+            view.load_failed.connect (() => { app.network_error (); });
+            view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
+            view.webview.show_now ();
+            view_window.child = view.webview;
+        }
         
         public int64 current_id { get; private set; default = 0;}
         
@@ -300,8 +317,11 @@ namespace Ui {
             }
         }
         
-        public void reload (bool force = false) {
-            view.load_home_page (force);
+        public void reload (bool hard = false) {
+            if (hard) {
+                create_view ();
+            }
+            view.load_home_page ();
         }
         
         public new void show (int x, int y, Gtk.PositionType dock_position) {
@@ -343,18 +363,7 @@ namespace Ui {
             
             view_window = new ScrolledWindow (null, null);
             view_window.show_now ();
-            //view_window.hscrollbar_policy = PolicyType.NEVER;
-            //view_window.vscrollbar_policy = PolicyType.NEVER;
-
-            view = new View ();
-            view.ready.connect (() => {
-                print ("ready\n");
-                stack.visible_child = view_window;
-            });
-            view.load_failed.connect (() => { app.network_error (); });
-            view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
-            view.webview.show_now ();
-            view_window.add (view.webview);
+            create_view ();
 
             loading = new Loading (40);
             loading.show_now ();
