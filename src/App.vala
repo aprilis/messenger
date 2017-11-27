@@ -210,7 +210,7 @@ namespace Fb {
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 connect_api ();
                 query_threads (SMALL_THREADS_COUNT);
-                conversation.reload (true);
+                //conversation.reload (true);
             }
             last_awake_check = time;
             if (data != null && last_query_contacts != 0 &&

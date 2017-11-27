@@ -211,7 +211,7 @@ namespace Ui {
             private const string FAIL_URL = LOGIN_URL + "/password";
             
             private const string LOGIN_SCRIPT = """
-                document.onreadystatechange = function () {
+                var interval = setInterval(function () {
                     if (document.readyState == 'complete') {
                         document.getElementById('email').value = '%s';
                         document.getElementById('pass').value = '%s';
@@ -222,8 +222,9 @@ namespace Ui {
                             }
                         }
                         document.getElementById('login_form').submit();
+                        clearInterval(interval);
                     }
-                }​;
+                }, 100)​;
                 """;
                 
             private WebView webview;
