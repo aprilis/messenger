@@ -267,6 +267,8 @@ namespace Ui {
         
         }
 
+        public signal void close_bubble (Fb.Id id);
+
         private const int WIDTH = 690;
         private const int HEIGHT = 500;
         
@@ -352,6 +354,14 @@ namespace Ui {
                 break;
             }
         }
+
+        public bool key_release (Gdk.EventKey event) {
+            if (Gdk.keyval_name (event.keyval) == "Escape" &&
+                 (event.state & Gdk.ModifierType.CONTROL_MASK) != 0) {
+                close_bubble (current_id);
+            }
+            return false;
+        }
         
         public Conversation (Fb.App _app) {
             var context = WebContext.get_default ();
@@ -368,6 +378,8 @@ namespace Ui {
 
             loading = new Loading (40);
             loading.show_now ();
+
+            key_release_event.connect(key_release);
             
             stack = new Stack ();
             update_position_type (PositionType.BOTTOM);

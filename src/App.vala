@@ -533,6 +533,7 @@ namespace Fb {
                     plank_settings_changed = false;
                 }
             });
+            conversation.close_bubble.connect (remove_head);
             
             notifications = new HashMap<Id?, Notify.Notification> (my_id_hash, my_id_equal);
 
@@ -589,6 +590,31 @@ namespace Fb {
                 }
                 return false;
             });
+        }
+        
+        public static void remove_head (Fb.Id removed_id) {
+            try {
+                var client = Plank.DBusClient.get_instance ();
+                
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
+                    var apps = client.get_persistent_applications ();
+                    foreach (var app in apps) {
+                        var f = File.new_for_uri (app);
+                        var name = f.get_basename ().split (".")[0];
+                        int64 id;
+                        if (int64.try_parse (name, out id) && id == removed_id && f.get_path ().has_prefix (Main.data_path)) {
+                            client.remove_item (app);
+                        }
+                    }
+                    return false;
+                });
+            } catch (Error e) {
+                warning ("Remove head error %s\n", e.message);
+            }
         }
         
         public static void remove_heads (Fb.Id except = 0) {
