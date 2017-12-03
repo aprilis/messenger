@@ -72,7 +72,11 @@ namespace Ui {
                 }
                 TreeIter iter;
                 if (get_iter (out iter)) {
+#if VALA_0_36
                     list.remove (ref iter);
+#else
+                    list.remove (iter);
+#endif
                 }
                 list = new_list;
                 list.prepend (out iter);
