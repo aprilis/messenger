@@ -269,9 +269,8 @@ namespace Ui {
 
         public signal void close_bubble (Fb.Id id);
 
-        private const int WIDTH = 690;
-        private const int HEIGHT = 500;
-        
+        private int width = 690;
+        private int height = 500;
 
         private Loading loading;
         private Stack stack;
@@ -281,6 +280,8 @@ namespace Ui {
         private ScrolledWindow view_window;
 
         private PositionType position_type;
+
+        private Shortcut close_bubble_shortcut;
         
         private Fb.App app;
 
@@ -330,13 +331,13 @@ namespace Ui {
         public new void show (int x, int y, Gtk.PositionType dock_position) {
             update_position_type (dock_position);
             set_position (x, y, dock_position);
-            set_size_request (WIDTH, HEIGHT);
+            set_size_request (width, height);
             show_all ();
             activate ();
             present ();
         }
 
-        void update_position_type (PositionType type) {
+        private void update_position_type (PositionType type) {
             position_type = type;
             stack.margin_left = stack.margin_right = stack.margin_top = stack.margin_bottom = SHADOW_SIZE;
             switch (type) {
@@ -355,12 +356,19 @@ namespace Ui {
             }
         }
 
-        public bool key_release (Gdk.EventKey event) {
-            if (Gdk.keyval_name (event.keyval) == "Escape" &&
-                 (event.state & Gdk.ModifierType.CONTROL_MASK) != 0) {
+        private bool key_release (Gdk.EventKey event) {
+            if (close_bubble_shortcut.activated (event)) {
+                close ();
                 close_bubble (current_id);
             }
             return false;
+        }
+
+        private void update_settings () {
+            close_bubble_shortcut = new Shortcut.parse (app.settings.close_and_remove_shortcut);
+            width = app.settings.chat_width;
+            height = app.settings.chat_height;
+            set_size_request (width, height);
         }
         
         public Conversation (Fb.App _app) {
@@ -369,8 +377,6 @@ namespace Ui {
             manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
 
             app = _app;
-        
-            set_size_request (WIDTH, HEIGHT);
             
             view_window = new ScrolledWindow (null, null);
             view_window.show_now ();
@@ -387,6 +393,9 @@ namespace Ui {
             stack.add_named (view_window, "conversation");
             stack.show_now ();
             add (stack);
+
+            update_settings ();
+            app.settings.changed.connect (update_settings);
         }
         
         public void log_in (string username, string password) {

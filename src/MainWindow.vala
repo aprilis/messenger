@@ -63,6 +63,13 @@ namespace Ui {
             });
             screen.change_screen.connect (set_screen);
         }
+
+        private void update_title_bar_color (Settings settings) {
+            var col = new Gdk.RGBA ();
+            if (col.parse(settings.title_bar_color)) {
+                Granite.Widgets.Utils.set_color_primary (this, col);
+            }
+        }
         
         public new void set_screen (string name) {
             print ("set screen %s\n", name);
@@ -132,9 +139,16 @@ namespace Ui {
                 return false;
             });
             
-            var primary_color = Gdk.RGBA ();
-            primary_color.parse ("#55ACEE");
-            Granite.Widgets.Utils.set_color_primary (this, primary_color);
+            update_title_bar_color (app.settings);
+            app.settings.changed.connect(() => {
+                update_title_bar_color (app.settings);
+            });
+            size_allocate.connect ((alloc) => {
+                int width, height;
+                get_size (out width, out height);
+                app.settings.window_width = width;
+                app.settings.window_height = height;
+            });
             Granite.Widgets.Utils.set_theming_for_screen (get_screen (), STYLESHEET,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
         }

@@ -1,0 +1,61 @@
+<schemalist>
+  <schema id="com.github.aprilis.messenger" path="/com/github/aprilis/messenger/" gettext-domain="messenger">
+
+    <key name="close-and-remove-shortcut" type="s">
+      <default>"&lt;Control&gt;Escape"</default>
+      <summary>close-and-remove-shortcut</summary>
+      <description>
+        Shortcut for close and remove action
+      </description>
+    </key>
+
+    <key name="create-new-bubbles" type="b">
+      <default>true</default>
+      <summary>create-new-bubbles</summary>
+      <description>
+        Add new bubbles to the dock when someone writes a message to you
+      </description>
+    </key>
+
+    <key name="title-bar-color" type="s">
+      <default>"#55ACEE"</default>
+      <summary>title-bar-color</summary>
+      <description>
+        The color of the title bar
+      </description>
+    </key>
+    
+    <key name="chat-width" type="i">
+      <default>690</default>
+      <summary>chat-width</summary>
+      <description>
+        Width of a chat bubble
+      </description>
+    </key>
+
+    <key name="chat-height" type="i">
+      <default>500</default>
+      <summary>chat-height</summary>
+      <description>
+        Height of a chat bubble
+      </description>
+    </key>
+
+    <key name="window-width" type="i">
+      <default>500</default>
+      <summary>window-width</summary>
+      <description>
+        Width of the main window
+      </description>
+    </key>
+
+    <key name="window-height" type="i">
+      <default>600</default>
+      <summary>window-height</summary>
+      <description>
+        Height of the main window
+      </description>
+    </key>
+
+  </schema>
+</schemalist>

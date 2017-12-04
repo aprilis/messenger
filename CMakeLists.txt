@@ -50,6 +50,8 @@ vala_precompile(VALA_C messenger
     src/Version.vala
     src/GroupCreator.vala
     src/FadeOutBin.vala
+    src/Shortcut.vala
+    src/Settings.vala
 
 # tell what libraries to use when compiling
 PACKAGES
@@ -120,3 +122,5 @@ install (PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/script/messenger-open-chat DESTINA
 # install our .desktop file so the Applications menu will see it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/com.github.aprilis.messenger.desktop DESTINATION ${DATADIR}/applications/)
 
+include(GSettings)
+add_schema("schemas/com.github.aprilis.messenger.gschema.xml")

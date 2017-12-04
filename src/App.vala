@@ -92,6 +92,8 @@ namespace Fb {
         public string user_name { get; private set; }
 
         public Granite.Application application { get; set; }
+
+        public Ui.Settings settings { get; private set; }
         
         public signal void quit ();
         
@@ -476,6 +478,7 @@ namespace Fb {
         
         public App () {
             Data.init_paths ();
+            settings = new Ui.Settings (); 
 
             session = new Soup.Session ();
             session.use_thread_context = true;
@@ -491,7 +494,7 @@ namespace Fb {
             api.thread_create.connect (thread_created);
             
             window = new Ui.MainWindow (this);
-            window.set_default_size (500, 600);
+            window.set_default_size (settings.window_width, settings.window_height);
             window.delete_event.connect (() => {
                 if (data == null) {
                     quit ();
@@ -549,7 +552,7 @@ namespace Fb {
                     api.rehash();
                 }
             }
-            
+
             dock_preferences = new Plank.DockPreferences ("dock1");
 
             Timeout.add (CHECK_AWAKE_INTERVAL, check_awake);
