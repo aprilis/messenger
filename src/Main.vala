@@ -6,6 +6,7 @@ public class Main : Granite.Application {
     public const string APP_ID = "com.github.aprilis.messenger";
     public const string APP_NAME = "messenger";
     public const string OPEN_CHAT_NAME = "messenger-open-chat";
+    public const string APP_LAUNCHER = APP_ID + ".desktop";
     
     private bool is_fake;
     
@@ -15,7 +16,7 @@ public class Main : Granite.Application {
         inactivity_timeout = 500;
         is_fake = fake;
         app_icon = "internet-chat";
-        app_launcher = APP_ID + ".desktop";
+        app_launcher = APP_LAUNCHER;
         about_authors = { "Jarosław Kwiecień <kwiecienjaro@gmail.com>" };
         about_license_type = License.GPL_3_0;
         app_copyright = "2017";

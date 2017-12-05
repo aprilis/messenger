@@ -66,6 +66,9 @@ namespace Fb {
         private Ui.LoginDialog login_dialog = null;
 
         private HashMap<Id?, Notify.Notification> notifications;
+
+        private HashMap<Id?, int> hidden_unread_count;
+        private int hidden_unread_sum = 0;
         
         public bool network_problem {
             get { return _network_problem; }
@@ -368,6 +371,38 @@ namespace Fb {
                 }
             }
         }
+
+        private void update_hidden_unread (Fb.Id id, int count) {
+            int diff = 0;
+            if (hidden_unread_count [id] == 0 && count > 0) diff = 1;
+            else if (hidden_unread_count [id] > 0 && count == 0) diff = -1;
+            hidden_unread_count [id] = count;
+            hidden_unread_sum += diff;
+
+            if (diff != 0) {
+                bool on_plank = false;
+                var client = Plank.DBusClient.get_instance ();
+                foreach (var app in client.get_transient_applications ()) {
+                    if (app.has_suffix(Main.APP_LAUNCHER)) {
+                        on_plank = true;
+                        break;
+                    }
+                }
+                foreach (var app in client.get_persistent_applications ()) {
+                    if (app.has_suffix(Main.APP_LAUNCHER)) {
+                        on_plank = true;
+                        break;
+                    }
+                }
+                if (on_plank) {
+                    var entry = LauncherEntry.get_for_desktop_id (Main.APP_LAUNCHER);
+                    if (entry != null) {
+                        entry.count = hidden_unread_sum;
+                        entry.count_visible = hidden_unread_sum > 0;
+                    }
+                }
+            }
+        }
         
         private void add_to_plank (Fb.Id id) {
             var client = Plank.DBusClient.get_instance ();
@@ -379,7 +414,9 @@ namespace Fb {
             if (conversation.is_active && conversation.current_id == thread.id) {
                 return;
             }
-            add_to_plank (thread.id);
+            if (settings.create_new_bubbles) {
+                add_to_plank (thread.id);
+            }
             Notify.Notification not;
             if (thread.id in notifications) {
                 not = notifications [thread.id];
@@ -411,6 +448,9 @@ namespace Fb {
                 var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (id));
                 entry.count = count;
                 entry.count_visible = count > 0;
+                update_hidden_unread (id, 0);
+            } else {
+                update_hidden_unread (id, count);
             }
         }
         
@@ -439,6 +479,9 @@ namespace Fb {
                 api.uid = 0;
                 save_session ();
                 window.header.clear_photo ();
+                hidden_unread_sum = 0;
+                hidden_unread_count.clear ();
+                update_hidden_unread (0, 0);
                 print ("logged out\n");
             } catch (Error e) {
                 warning ("%s\n", e.message);
@@ -519,7 +562,10 @@ namespace Fb {
             window.append_menu_item (account_section, "Log Out", log_out);
             var app_section = new GLib.Menu ();
             menu.append_section ("App", app_section);
-            //window.append_menu_item ("Preferences", TODO);
+            window.append_menu_item (app_section, "Preferences", () => {
+                var settings_window = new Ui.SettingsWindow (window, settings);
+                settings_window.show_all ();
+            });
             window.append_menu_item (app_section, "About", () => {
                 application.show_about (window);
             });
@@ -539,6 +585,8 @@ namespace Fb {
             conversation.close_bubble.connect (remove_head);
             
             notifications = new HashMap<Id?, Notify.Notification> (my_id_hash, my_id_equal);
+
+            hidden_unread_count = new HashMap<Id?, int> (my_id_hash, my_id_equal);
 
             confirmed_users = new HashSet<string> ();
             load_confirmed_users ();
