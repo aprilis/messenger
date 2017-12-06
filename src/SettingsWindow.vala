@@ -25,7 +25,8 @@ namespace Ui {
             grid.row_spacing = 6;
             grid.column_spacing = 20;
 
-            var header = new Granite.HeaderLabel ("Preferences");
+            var header = new Gtk.Label ("Preferences");
+            header.get_style_context ().add_class ("h4");
             header.halign = Gtk.Align.CENTER;
             header.valign = Gtk.Align.START;
             grid.attach (header, 0, 0, 2, 2);
