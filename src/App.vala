@@ -313,7 +313,7 @@ namespace Fb {
             }
         }
         
-        void auth_done () {
+        private void auth_done () {
             data = new Data (session, socket_client, this, api);
             window.set_screen ("loading");
             data.new_message.connect (message_notification);
@@ -330,13 +330,18 @@ namespace Fb {
                         window.header.set_photo (thread.get_icon (window.header.PHOTO_SIZE, true));
                     });
                 }
+                thread.notify ["is-present"].connect ((s, p) => {
+                    var t = (Thread) s;
+                    update_presence (t.id, t.is_present);
+                });
+                update_presence (thread.id, thread.is_present);
             });
             
             query_contacts ();
             connect_api ();
         }
         
-        void connect_done () {
+        private void connect_done () {
             print ("connected!\n");
             network_problem = false;
             save_session ();
@@ -368,6 +373,47 @@ namespace Fb {
                 } else {
                     warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
                     window.current.other_error ();
+                }
+            }
+        }
+
+        private void update_presence (Fb.Id id, bool present) {
+            if (id == 0) {
+                var client = Plank.DBusClient.get_instance ();
+                
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
+                    var apps = client.get_persistent_applications ();
+                    foreach (var app in apps) {
+                        var f = File.new_for_uri (app);
+                        var name = f.get_basename ().split (".")[0];
+                        int64 tid;
+                        if (int64.try_parse (name, out tid) && f.get_path ().has_prefix (Main.data_path)) {
+                            var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (tid));
+                            if (!settings.show_available_users) {
+                                entry.progress_visible = false;
+                            }
+                            else {
+                                var thread = data.try_get_thread (tid);
+                                if (thread != null) {
+                                    entry.progress_visible = thread.is_present;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                });
+            }
+            else if (settings.show_available_users) {
+                var client = Plank.DBusClient.get_instance ();
+                var uri = data.desktop_file_uri (id);
+                if (uri in client.get_persistent_applications ()) {
+                    var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (id));
+                    entry.progress = 1;
+                    entry.progress_visible = present;
                 }
             }
         }
@@ -408,6 +454,11 @@ namespace Fb {
             var client = Plank.DBusClient.get_instance ();
             var uri = data.desktop_file_uri (id);
             client.add_item (uri);
+            Timeout.add (500, () => {
+                var thread = data.try_get_thread (id);
+                update_presence (id, thread.is_present);
+                return false;
+            });
         }
         
         private void message_notification (Thread thread, string message) {
@@ -604,6 +655,11 @@ namespace Fb {
             dock_preferences = new Plank.DockPreferences ("dock1");
 
             Timeout.add (CHECK_AWAKE_INTERVAL, check_awake);
+
+            update_presence (0, false);
+            settings.notify ["show-available-users"].connect ((s, p) => {
+                update_presence (0, false);
+            });
         }
         
         public void start_conversation (Fb.Id id) {

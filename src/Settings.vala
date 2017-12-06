@@ -13,6 +13,7 @@ namespace Ui {
         public int chat_height { get; set; }
         public int window_width { get; set; }
         public int window_height { get; set; }
+        public bool show_available_users { get; set; }
 
         public Settings () {
             base ("com.github.aprilis.messenger");

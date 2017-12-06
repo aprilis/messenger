@@ -57,5 +57,13 @@
       </description>
     </key>
 
+    <key name="show-available-users" type="b">
+      <default>false</default>
+      <summary>show-available-users</summary>
+      <description>
+        Show information about user's availability on chat icons (restart the app to see result)
+      </description>
+    </key>
+
   </schema>
 </schemalist>

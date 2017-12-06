@@ -200,6 +200,13 @@ namespace Fb {
             var thread = threads [id];
             return thread;
         }
+
+        public Thread? try_get_thread (Id id) {
+            if (!threads.has_key (id)) {
+                return null;
+            }
+            return threads [id];
+        }
         
         public void download_photo (string uri, int64 priority, Fb.Id id) {
             if (closed) {
