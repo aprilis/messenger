@@ -33,7 +33,6 @@ namespace Ui {
             var close_and_remove_label = new Gtk.Label ("Close & forget shortcut:");
             close_and_remove_label.halign = Gtk.Align.END;
             var close_and_remove_shortcut = new ShotcutButton (settings.close_and_remove_shortcut);
-            close_and_remove_shortcut.halign = Gtk.Align.START;
             settings.schema.bind ("close-and-remove-shortcut", close_and_remove_shortcut, "shortcut", 
                 SettingsBindFlags.DEFAULT);
             grid.attach (close_and_remove_label, 0, 2, 1, 1);
@@ -52,7 +51,6 @@ namespace Ui {
             grid.margin_bottom = 40;
 
             var content = (Gtk.Container) get_content_area ();
-            content.border_width = 20;
             content.add (grid);
 
         }
@@ -85,7 +83,7 @@ namespace Ui {
         }
 
         public ShotcutButton (string initial) {
-            width_request = 120;
+            width_request = 128;
             shortcut = initial;
             get_style_context ().add_class ("flat");
             set_focus_on_click (true);
