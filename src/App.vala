@@ -500,7 +500,7 @@ namespace Fb {
                 entry.count = count;
                 entry.count_visible = count > 0;
                 update_hidden_unread (id, 0);
-            } else {
+            } else if (!settings.create_new_bubbles) {
                 update_hidden_unread (id, count);
             }
         }
