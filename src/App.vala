@@ -378,6 +378,9 @@ namespace Fb {
         }
 
         private void update_presence (Fb.Id id, bool present) {
+            if (!settings.show_available_users) {
+                return;
+            }
             if (id == 0) {
                 var client = Plank.DBusClient.get_instance ();
                 
@@ -406,8 +409,7 @@ namespace Fb {
                     }
                     return false;
                 });
-            }
-            else if (settings.show_available_users) {
+            } else if (settings.show_available_users) {
                 var client = Plank.DBusClient.get_instance ();
                 var uri = data.desktop_file_uri (id);
                 if (uri in client.get_persistent_applications ()) {

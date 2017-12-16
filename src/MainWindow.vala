@@ -143,11 +143,16 @@ namespace Ui {
             app.settings.changed.connect(() => {
                 update_title_bar_color (app.settings);
             });
+            
             size_allocate.connect ((alloc) => {
                 int width, height;
                 get_size (out width, out height);
-                app.settings.window_width = width;
-                app.settings.window_height = height;
+                if (app.settings.window_width != width) {
+                    app.settings.window_width = width;
+                }
+                if (app.settings.window_height != height) {
+                    app.settings.window_height = height;
+                }
             });
             Granite.Widgets.Utils.set_theming_for_screen (get_screen (), STYLESHEET,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
