@@ -8,7 +8,9 @@ namespace Ui {
         private int border;
 
         public override bool draw (Cairo.Context cr) {
-            var w = get_allocated_width (), h = get_allocated_height ();
+            var scale = get_scale_factor ();
+
+            var w = get_allocated_width () * scale, h = get_allocated_height () * scale;
             var source = new Cairo.ImageSurface (Cairo.Format.A8, w, h);
             var cs = new Cairo.Context (source);
             cs.rectangle (0, border, w, h - border * 2);
@@ -32,6 +34,7 @@ namespace Ui {
             cs.fill ();
 
             var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, w, h);
+            surface.set_device_scale(scale, scale);
             var cx = new Cairo.Context (surface);
             var ret = base.draw (cx);
             cr.set_source_surface (surface, 0, 0);
