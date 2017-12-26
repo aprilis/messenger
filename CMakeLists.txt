@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(messenger)
 
+link_directories(/usr/local/lib)
+
 # tell cmake where its modules can be found in our project directory
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake-modules/src)
 
@@ -78,7 +80,6 @@ OPTIONS
 
 # tell cmake what to call the executable we just made
 add_executable(${EXEC_NAME} ${VALA_C})
-
 target_link_libraries(${EXEC_NAME} PUBLIC api)
 target_include_directories(${EXEC_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
@@ -125,3 +126,4 @@ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/com.github.aprilis.messenger.des
 
 include(GSettings)
 add_schema("schemas/com.github.aprilis.messenger.gschema.xml")
+
