@@ -676,7 +676,7 @@ namespace Fb {
             conversation.load_conversation (id);
             add_to_plank (id);
             data.check_unread_count (id);
-            if (!plank_settings_changed) {
+            if (!plank_settings_changed && dock_preferences.HideMode != Plank.HideType.NONE) {
                 plank_settings_changed = true;
                 plank_hide_type = dock_preferences.HideMode;
                 dock_preferences.HideMode = window.is_maximized ? Plank.HideType.NONE : Plank.HideType.INTELLIGENT;
