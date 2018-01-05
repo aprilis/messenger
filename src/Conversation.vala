@@ -123,13 +123,14 @@ namespace Ui {
                 return false;
             }
 
-            public View () {       
+            public View () {
+                var context = new WebContext();
+                var manager = context.get_cookie_manager ();
+                manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);       
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
-                var content_manager = new UserContentManager ();
-                content_manager.add_style_sheet (style_sheet);
-
-                webview = new WebView.with_user_content_manager (content_manager);
+                webview = new WebView.with_context (context);
+                webview.user_content_manager.add_style_sheet(style_sheet);
                 var settings = webview.get_settings ();
                 //settings.enable_write_console_messages_to_stdout = true;
                 
