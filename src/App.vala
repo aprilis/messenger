@@ -458,7 +458,10 @@ namespace Fb {
             client.add_item (uri);
             Timeout.add (500, () => {
                 var thread = data.try_get_thread (id);
-                update_presence (id, thread.is_present);
+                if(thread != null) {
+                    update_presence (id, thread.is_present);
+                    update_unread_count(id, thread.unread);
+                }
                 return false;
             });
         }
