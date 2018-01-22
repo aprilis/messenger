@@ -456,7 +456,7 @@ namespace Fb {
             var client = Plank.DBusClient.get_instance ();
             var uri = data.desktop_file_uri (id);
             client.add_item (uri);
-            Timeout.add (500, () => {
+            Timeout.add (1000, () => {
                 var thread = data.try_get_thread (id);
                 if(thread != null) {
                     update_presence (id, thread.is_present);
@@ -521,7 +521,7 @@ namespace Fb {
                 return;
             }
             try {
-                window.set_screen ("welcome");
+                //window.set_screen ("welcome");
                 remove_heads ();
                 conversation.log_out ();
                 data.delete_files ();
@@ -539,6 +539,8 @@ namespace Fb {
                 hidden_unread_count.clear ();
                 update_hidden_unread (0, 0);
                 print ("logged out\n");
+                quit ();
+
             } catch (Error e) {
                 warning ("%s\n", e.message);
             }
@@ -615,7 +617,7 @@ namespace Fb {
             window.append_menu_item (account_section, "Close all conversations", () => {
                 remove_heads (); 
             });
-            window.append_menu_item (account_section, "Log Out", log_out);
+            window.append_menu_item (account_section, "Log Out & Quit", log_out);
             var app_section = new GLib.Menu ();
             menu.append_section ("App", app_section);
             window.append_menu_item (app_section, "Preferences", () => {
