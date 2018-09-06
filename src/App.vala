@@ -303,6 +303,7 @@ namespace Fb {
                     auth_target_done (AuthTarget.WEBVIEW);
                     login_dialog.destroy ();
                     login_dialog = null;
+                    conversation.reload (true);
                 });
                 login_dialog.canceled.connect (() => { auth_error (); login_dialog = null; });
                 login_dialog.show_all ();

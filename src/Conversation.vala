@@ -6,7 +6,7 @@ using Granite.Widgets;
 namespace Ui {
 
     public class Conversation : PopOver {
-            
+
         private class View {
         
             private const string MESSENGER_URL = "https://www.messenger.com";
@@ -65,6 +65,7 @@ namespace Ui {
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
                 loading_finished = false;
                 failed = false;
+                print ("loading uri: %s\n", uri);
                 webview.load_uri (uri);
                 user_changed = true;
             }
@@ -72,6 +73,7 @@ namespace Ui {
             private void run_script () {
                 user_changed = true;
                 script_running = true;
+                print ("running script\n");
                 webview.run_javascript (CHANGE_USER_SCRIPT.printf (last_id), null);
                 Timeout.add (1000, () => {
                     if (script_running) {
@@ -101,6 +103,8 @@ namespace Ui {
             }
 
             private bool handle_loading_finished () {
+                print ("handle_loading_finished - loading_finished = %s\n", loading_finished.to_string ());
+                print ("uri: %s\n", webview.get_uri ());
                 if (loading_finished) {
                     return false;
                 }
@@ -123,16 +127,23 @@ namespace Ui {
                 return false;
             }
 
-            public View () {       
+            public View (string cookie_path) {       
+                var context = new WebContext ();
+                var manager = context.get_cookie_manager ();
+                manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
+                webview = new WebView.with_context (context);
+
+                manager.get_cookies.begin("https://www.messenger.com", null, (obj, res) => {
+                    var cookies = manager.get_cookies.end (res);
+                    foreach(var cookie in cookies) {
+                        print ("%s\n", cookie.to_cookie_header ());
+                    }
+                });
+                
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
-                var content_manager = new UserContentManager ();
-                content_manager.add_style_sheet (style_sheet);
+                webview.user_content_manager.add_style_sheet (style_sheet);
 
-                webview = new WebView.with_user_content_manager (content_manager);
-                var settings = webview.get_settings ();
-                //settings.enable_write_console_messages_to_stdout = true;
-                
                 webview.load_changed.connect ((load_event) => {
                     print ("load changed: %s\n", load_event.to_string ());
                     print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
@@ -197,6 +208,7 @@ namespace Ui {
                     failed = false;
                     loading_finished = false;
                     script_running = false;
+                    print ("loading uri: %s\n", MESSENGER_URL);
                     webview.load_uri (MESSENGER_URL);
                 }
                 last_id = 0;
@@ -237,7 +249,7 @@ namespace Ui {
             
             public signal void load_failed (LoginView view);
                 
-            public LoginView (string user, string pass) {                
+            public LoginView (string user, string pass, string cookie_path) {                
                 username = user;
                 password = pass;
                 webview = new WebView ();
@@ -285,6 +297,8 @@ namespace Ui {
         
         private Fb.App app;
 
+        private string cookie_path;
+
         private void clear_login_view () {
             if (login_view != null) {
                 login_view.destroy ();
@@ -296,7 +310,7 @@ namespace Ui {
             if (view_window.get_child () != null) {
                 view_window.remove (view_window.get_child ());
             }
-            view = new View ();
+            view = new View (cookie_path);
             view.ready.connect (() => {
                 print ("ready\n");
                 stack.visible_child = view_window;
@@ -372,9 +386,11 @@ namespace Ui {
         }
         
         public Conversation (Fb.App _app) {
+            cookie_path = Main.cache_path + "/cookies";
+            
             var context = WebContext.get_default ();
             var manager = context.get_cookie_manager ();
-            manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
+            manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
 
             app = _app;
             
@@ -401,13 +417,13 @@ namespace Ui {
         public void log_in (string username, string password) {
             clear_login_view ();
             clear_cookies ();
-            login_view = new LoginView (username, password);
+            login_view = new LoginView (username, password, cookie_path);
             login_view.finished.connect ((lv) => {
                 if (login_view != lv) {
                     return;
                 }
                 clear_login_view ();
-                view.load_home_page ();
+                reload (true);
                 app.auth_target_done (Fb.App.AuthTarget.WEBVIEW);
             });
             login_view.failed.connect ((lv) => {
@@ -427,7 +443,7 @@ namespace Ui {
         }
 
         public void clear_cookies () {
-            WebContext.get_default ().get_cookie_manager ().delete_cookies_for_domain ("messenger.com");
+            WebContext.get_default ().get_cookie_manager ().delete_cookies_for_domain ("https://www.messenger.com");
         }
         
         public void log_out () {
