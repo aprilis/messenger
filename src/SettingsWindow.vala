@@ -6,6 +6,26 @@ namespace Ui {
 
         private Settings settings;
 
+        private Label create_label (string text) {
+            var label = new Gtk.Label (text);
+            label.halign = Gtk.Align.END;
+            label.justify = Justification.RIGHT;
+            label.wrap = true;
+            label.wrap_mode = Pango.WrapMode.WORD_CHAR;
+            label.max_width_chars = 30;
+            return label;
+        }
+
+        private Switch create_switch (Settings settings, string property) {
+            var swit = new Gtk.Switch ();
+            swit.halign = Gtk.Align.START;
+            swit.valign = Gtk.Align.CENTER;
+            swit.active = false;
+            settings.schema.bind (property, swit, "active", 
+                SettingsBindFlags.DEFAULT);
+            return swit;
+        }
+
         public SettingsWindow (Gtk.Window? parent, Settings settings) {
             border_width = 10;
             deletable = false;
@@ -20,6 +40,11 @@ namespace Ui {
 
             var close = add_button ("Close", Gtk.ResponseType.CLOSE);
             response.connect ((id) => { destroy(); });
+            destroy.connect (() => {
+                if (parent != null) {
+                    parent.show_all ();
+                }
+            });
 
             var grid = new Gtk.Grid ();
             grid.row_spacing = 6;
@@ -31,24 +56,23 @@ namespace Ui {
             header.valign = Gtk.Align.START;
             grid.attach (header, 0, 0, 2, 2);
 
-            var close_and_remove_label = new Gtk.Label ("Close & forget shortcut:");
-            close_and_remove_label.halign = Gtk.Align.END;
+            var close_and_remove_label = create_label ("Close & forget shortcut:");
             var close_and_remove_shortcut = new ShotcutButton (settings.close_and_remove_shortcut);
             settings.schema.bind ("close-and-remove-shortcut", close_and_remove_shortcut, "shortcut", 
                 SettingsBindFlags.DEFAULT);
             grid.attach (close_and_remove_label, 0, 2, 1, 1);
             grid.attach (close_and_remove_shortcut, 1, 2, 1, 1);
 
-            var create_new_bubbles_label = new Gtk.Label ("Automatically add bubbles:");
-            create_new_bubbles_label.halign = Gtk.Align.END;
-            var create_new_bubbles_switch = new Gtk.Switch ();
-            create_new_bubbles_switch.halign = Gtk.Align.START;
-            create_new_bubbles_switch.active = false;
-            settings.schema.bind ("create-new-bubbles", create_new_bubbles_switch, "active", 
-                SettingsBindFlags.DEFAULT);
-
+            var create_new_bubbles_label = create_label ("Automatically add bubbles:");
+            var create_new_bubbles_switch = create_switch (settings, "create-new-bubbles");
             grid.attach (create_new_bubbles_label, 0, 3, 1, 1);
             grid.attach (create_new_bubbles_switch, 1, 3, 1, 1);
+
+            var window_bubble_label = create_label ("Main window in a bubble (restart required):");
+            var window_bubble_switch = create_switch (settings, "main-window-bubble");
+            grid.attach (window_bubble_label, 0, 4, 1, 1);
+            grid.attach (window_bubble_switch, 1, 4, 1, 1);
+                    
             grid.margin_bottom = 40;
 
             var content = (Gtk.Container) get_content_area ();

@@ -11,8 +11,11 @@ namespace Ui {
         public string title_bar_color { get; set; }
         public int chat_width { get; set; }
         public int chat_height { get; set; }
+        public int window_bubble_width { get; set; }
+        public int window_bubble_height { get; set; }
         public int window_width { get; set; }
         public int window_height { get; set; }
+        public bool main_window_bubble { get; set; }
         public bool show_available_users { get; set; }
 
         public Settings () {
@@ -45,6 +48,16 @@ namespace Ui {
                 case "chat-height":
                     if (chat_height < MIN_DIMENSION) {
                         chat_height = MIN_DIMENSION;
+                    }
+                    break;
+                case "window-bubble-width":
+                    if (window_bubble_width < MIN_DIMENSION) {
+                        window_bubble_width = MIN_DIMENSION;
+                    }
+                    break;
+                case "window-bubble-height":
+                    if (window_bubble_height < MIN_DIMENSION) {
+                        window_bubble_height = MIN_DIMENSION;
                     }
                     break;
                 case "window-width":

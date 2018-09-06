@@ -35,10 +35,11 @@ vala_precompile(VALA_C messenger
     src/Conversation.vala
     src/FocusGrabber.vala
     src/ConvData.vala
+    src/ApplicationPopOver.vala
     src/PopOver.vala
     src/Main.vala
     src/HeaderBar.vala
-    src/MainWindow.vala
+    src/MainWindowManager.vala
     src/Loading.vala
     src/Screen.vala
     src/SignIn.vala

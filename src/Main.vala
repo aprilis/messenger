@@ -13,6 +13,7 @@ public class Main : Granite.Application {
     private Main (bool fake) {
         Object (application_id: APP_ID,
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE);
+        Fb.App.application = this;
         inactivity_timeout = 500;
         is_fake = fake;
         app_icon = "internet-chat";
@@ -84,18 +85,12 @@ public class Main : Granite.Application {
         if (is_fake) {
             return;
         }
-        hold ();
         
         Notify.init (APP_NAME);
-
-        Plank.DBusClient.get_instance ();
-        
         make_dir (data_path);
         make_dir (cache_path);
 
-        var app = Fb.App.instance ();
-        app.quit.connect (release);
-        app.application = this;
+        Fb.App.instance ();
     }
 
     public override int command_line (ApplicationCommandLine command_line) {

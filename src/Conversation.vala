@@ -132,13 +132,6 @@ namespace Ui {
                 var manager = context.get_cookie_manager ();
                 manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
                 webview = new WebView.with_context (context);
-
-                manager.get_cookies.begin("https://www.messenger.com", null, (obj, res) => {
-                    var cookies = manager.get_cookies.end (res);
-                    foreach(var cookie in cookies) {
-                        print ("%s\n", cookie.to_cookie_header ());
-                    }
-                });
                 
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
@@ -343,31 +336,11 @@ namespace Ui {
         }
         
         public new void show (int x, int y, Gtk.PositionType dock_position) {
-            update_position_type (dock_position);
             set_position (x, y, dock_position);
             set_size_request (width, height);
             show_all ();
             activate ();
             present ();
-        }
-
-        private void update_position_type (PositionType type) {
-            position_type = type;
-            stack.margin_left = stack.margin_right = stack.margin_top = stack.margin_bottom = SHADOW_SIZE;
-            switch (type) {
-            case PositionType.LEFT:
-                stack.margin_left = ARROW_HEIGHT;
-                break;
-            case PositionType.RIGHT:
-                stack.margin_right = ARROW_HEIGHT;
-                break;
-            case PositionType.TOP:
-                stack.margin_top = ARROW_HEIGHT;
-                break;
-            case PositionType.BOTTOM:
-                stack.margin_bottom = ARROW_HEIGHT;
-                break;
-            }
         }
 
         private bool key_release (Gdk.EventKey event) {
@@ -404,7 +377,6 @@ namespace Ui {
             key_release_event.connect(key_release);
             
             stack = new Stack ();
-            update_position_type (PositionType.BOTTOM);
             stack.add_named (loading, "loading");
             stack.add_named (view_window, "conversation");
             stack.show_now ();

@@ -36,7 +36,7 @@ namespace Fb {
         
         private SocketClient socket_client;
         
-        private Ui.MainWindow window;
+        private Ui.MainWindowManager window_manager;
         
         private Api api;
         
@@ -46,7 +46,7 @@ namespace Fb {
         
         private AuthTarget auth_target = 0;
         
-        private Plank.DockPreferences dock_preferences;
+        public Plank.DockPreferences dock_preferences { get; private set; }
         private Plank.HideType plank_hide_type;
         private bool plank_settings_changed = false;
         
@@ -69,12 +69,14 @@ namespace Fb {
 
         private HashMap<Id?, int> hidden_unread_count;
         private int hidden_unread_sum = 0;
+
+        private string plank_launcher_uri = null;
         
         public bool network_problem {
             get { return _network_problem; }
             private set {
                 if (value) {
-                    window.current.network_error ();
+                    window_manager.current.network_error ();
                 }
                 if (_network_problem != value) {
                     _network_problem = value;
@@ -82,9 +84,9 @@ namespace Fb {
                         reconnect ();
                         Timeout.add (RECONNECT_INTERVAL, reconnect);
                     } else {
-                        window.current.network_ok ();
+                        window_manager.current.network_ok ();
                         query_threads (SMALL_THREADS_COUNT);
-                        conversation.reload ();
+                        //conversation.reload ();
                     }
                 }
             }
@@ -94,12 +96,10 @@ namespace Fb {
         
         public string user_name { get; private set; }
 
-        public Granite.Application application { get; set; }
+        public static Granite.Application application { get; set; }
 
         public Ui.Settings settings { get; private set; }
-        
-        public signal void quit ();
-        
+                
         public static unowned App instance () {
             return _instance.once(() => { return new App (); });
         }
@@ -199,13 +199,13 @@ namespace Fb {
 
         public void create_group_thread (GLib.SList<Id?> ids, string name) {
             api.thread_create_func (ids, name);
-            window.threads.show_toast ("Group thread is being created");
+            window_manager.threads.show_toast ("Group thread is being created");
         }
 
         public void thread_created (int64 id) {
             query_thread (id);
             Timeout.add (1000, () => {
-                window.threads.hide_toast ();
+                window_manager.threads.hide_toast ();
                 return false;
             });
         }
@@ -236,7 +236,7 @@ namespace Fb {
         }
         
         public void auth_error () {
-            window.current.auth_error ();
+            window_manager.current.auth_error ();
         }
         
         public void network_error () {
@@ -244,11 +244,10 @@ namespace Fb {
         }
         
         public void auth_needed () {
-            if (window.current == window.threads || window.current == window.password) {
-                window.set_screen ("password");
+            if (window_manager.current == window_manager.threads || window_manager.current == window_manager.password) {
+                window_manager.set_screen ("password");
                 conversation.close (true);
-                window.show_all ();
-                window.present ();
+                window_manager.show ();
             }
         }
         
@@ -316,7 +315,7 @@ namespace Fb {
         
         private void auth_done () {
             data = new Data (session, socket_client, this, api);
-            window.set_screen ("loading");
+            window_manager.set_screen ("loading");
             data.new_message.connect (message_notification);
             data.unread_count.connect (update_unread_count);
             data.new_thread.connect ((thread) => {
@@ -326,9 +325,9 @@ namespace Fb {
                     thread.name_updated.connect (() => {
                         user_name = thread.name;
                     });
-                    window.header.set_photo (thread.get_icon (window.header.PHOTO_SIZE, true));
+                    window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
                     thread.photo_updated.connect (() => {
-                        window.header.set_photo (thread.get_icon (window.header.PHOTO_SIZE, true));
+                        window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
                     });
                 }
                 thread.notify ["is-present"].connect ((s, p) => {
@@ -370,10 +369,10 @@ namespace Fb {
                     error_code = int.parse (info.fetch (1));
                 }
                 if (error_code == 406) {
-                    window.current.twostep_verification ();
+                    window_manager.current.twostep_verification ();
                 } else {
                     warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
-                    window.current.other_error ();
+                    window_manager.current.other_error ();
                 }
             }
         }
@@ -510,6 +509,26 @@ namespace Fb {
                 update_hidden_unread (id, count);
             }
         }
+
+        public string get_plank_launcher_uri () {
+            if (plank_launcher_uri != null) {
+                return plank_launcher_uri;
+            }
+            var client = Plank.DBusClient.get_instance ();
+            foreach (var app in client.get_transient_applications ()) {
+                if (app.has_suffix(Main.APP_LAUNCHER)) {
+                    plank_launcher_uri = app;
+                    break;
+                }
+            }
+            foreach (var app in client.get_persistent_applications ()) {
+                if (app.has_suffix(Main.APP_LAUNCHER)) {
+                    plank_launcher_uri = app;
+                    break;
+                }
+            }
+            return plank_launcher_uri;
+        }
         
         public void show_login_dialog (bool show_infobar) {
             show_login_dialog_infobar = show_infobar;
@@ -522,7 +541,7 @@ namespace Fb {
                 return;
             }
             try {
-                //window.set_screen ("welcome");
+                //window_manager.set_screen ("welcome");
                 remove_heads ();
                 conversation.log_out ();
                 data.delete_files ();
@@ -535,7 +554,7 @@ namespace Fb {
                 api.token = null;
                 api.uid = 0;
                 save_session ();
-                window.header.clear_photo ();
+                window_manager.header.clear_photo ();
                 hidden_unread_sum = 0;
                 hidden_unread_count.clear ();
                 update_hidden_unread (0, 0);
@@ -549,7 +568,7 @@ namespace Fb {
         
         public void log_in (string? username, string password) {
             if (username != null && !(username in confirmed_users)) {
-                var dialog = new MessageDialog (window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
+                var dialog = new MessageDialog (window_manager.window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
                     "Please note that this is NOT an official Facebook Messenger app. Use it at your own risk. Do you still want to continue?");
                 dialog.response.connect ((response_id) => {
                     if (response_id == ResponseType.YES) {
@@ -557,7 +576,7 @@ namespace Fb {
                         save_confirmed_user (username);
                         log_in (username, password);
                     } else {
-                        window.current.cowardly_user ();
+                        window_manager.current.cowardly_user ();
                     }
                     dialog.destroy ();
                 });
@@ -595,44 +614,35 @@ namespace Fb {
             api.error.connect (api_error);
             api.thread_create.connect (thread_created);
             
-            window = new Ui.MainWindow (this);
-            window.set_default_size (settings.window_width, settings.window_height);
-            window.delete_event.connect (() => {
-                if (data == null) {
-                    quit ();
-                    return true;
-                } else {
-                    return window.hide_on_delete ();
-                }
-            });
-            window.show.connect (() => { if (network_problem) network_error (); });
+            window_manager = new Ui.MainWindowManager (this);
+            window_manager.window.show.connect (() => { if (network_problem) network_error (); });
             
             var menu = new GLib.Menu ();
             var account_section = new GLib.Menu ();
             menu.append_section ("Your account", account_section);
-            window.append_menu_item (account_section, "Reconnect", () => {
+            window_manager.append_menu_item (account_section, "Reconnect", () => {
                 data.close ();
                 data = null;
                 auth_done ();
             });
-            window.append_menu_item (account_section, "Close all conversations", () => {
+            window_manager.append_menu_item (account_section, "Close all conversations", () => {
                 remove_heads (); 
             });
-            window.append_menu_item (account_section, "Log Out & Quit", log_out);
+            window_manager.append_menu_item (account_section, "Log Out & Quit", log_out);
             var app_section = new GLib.Menu ();
             menu.append_section ("App", app_section);
-            window.append_menu_item (app_section, "Preferences", () => {
-                var settings_window = new Ui.SettingsWindow (window, settings);
+            window_manager.append_menu_item (app_section, "Preferences", () => {
+                var settings_window = new Ui.SettingsWindow (window_manager.window, settings);
                 settings_window.show_all ();
             });
-            window.append_menu_item (app_section, "About", () => {
-                application.show_about (window);
+            window_manager.append_menu_item (app_section, "About", () => {
+                application.show_about (window_manager.window);
             });
-            window.append_menu_item (app_section, "Quit", () => {
+            window_manager.append_menu_item (app_section, "Quit", () => {
                 quit ();
             });
             
-            window.header.set_menu (menu);
+            window_manager.header.set_menu (menu);
             
             conversation = new Ui.Conversation (this);
             conversation.hide.connect (() => {
@@ -654,7 +664,7 @@ namespace Fb {
             if (loaded == 1) {
                 auth_done ();
             } else {
-                window.set_screen ("welcome");
+                window_manager.set_screen ("welcome");
                 if (loaded == -1) {
                     api.rehash();
                 }
@@ -685,7 +695,8 @@ namespace Fb {
             if (!plank_settings_changed && dock_preferences.HideMode != Plank.HideType.NONE) {
                 plank_settings_changed = true;
                 plank_hide_type = dock_preferences.HideMode;
-                dock_preferences.HideMode = window.is_maximized ? Plank.HideType.NONE : Plank.HideType.INTELLIGENT;
+                dock_preferences.HideMode = window_manager.window.is_maximized ?
+                     Plank.HideType.NONE : Plank.HideType.INTELLIGENT;
             }
             Timeout.add (500, () => {
                 var client = Plank.DBusClient.get_instance ();
@@ -762,12 +773,15 @@ namespace Fb {
         }
         
         public void show_window () {
-            window.show_all ();
-            window.present ();
+            window_manager.show ();
         }
         
         public void run () {
             Gtk.main ();
+        }
+
+        public void quit () {
+            window_manager.window.destroy ();
         }
     
     }

@@ -41,8 +41,24 @@
       </description>
     </key>
 
-    <key name="window-width" type="i">
+    <key name="window-bubble-width" type="i">
+      <default>480</default>
+      <summary>window-bubble-width</summary>
+      <description>
+        Width of the main window (as a bubble)
+      </description>
+    </key>
+
+    <key name="window-bubble-height" type="i">
       <default>500</default>
+      <summary>window-bubble-height</summary>
+      <description>
+        Height of the main window (as a bubble)
+      </description>
+    </key>
+
+    <key name="window-width" type="i">
+      <default>400</default>
       <summary>window-width</summary>
       <description>
         Width of the main window
@@ -50,10 +66,18 @@
     </key>
 
     <key name="window-height" type="i">
-      <default>600</default>
+      <default>500</default>
       <summary>window-height</summary>
       <description>
         Height of the main window
+      </description>
+    </key>
+
+    <key name="main-window-bubble" type="b">
+      <default>false</default>
+      <summary>main-window-bubble</summary>
+      <description>
+        Show the main window in a bubble
       </description>
     </key>
 
