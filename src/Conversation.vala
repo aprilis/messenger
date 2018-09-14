@@ -47,6 +47,16 @@ namespace Ui {
                 }
             """;
 
+            private const string MONITOR_COMPOSER = """
+                setTimeout(() => {
+                    setInterval(() => {
+                        if(document.getElementsByClassName('_kmc navigationFocus').length == 0) {
+                            document.title = '__reload__';
+                        }
+                    }, 2000);
+                }, 3000);
+            """;
+
             private int64 last_id;
             private bool user_changed = false;
             private bool loading_finished = true;
@@ -108,6 +118,7 @@ namespace Ui {
                 if (loading_finished) {
                     return false;
                 }
+                webview.run_javascript (MONITOR_COMPOSER, null);
                 loading_finished = true;
                 if (webview.get_uri ().has_prefix (LOGIN_URL)) {
                     last_id = 0;
@@ -151,6 +162,9 @@ namespace Ui {
                         ready ();
                         webview.run_javascript ("document.title = 'Messenger';", null);
                     } else if ("__fail__" in webview.title && last_id != 0) {
+                        load_conversation (last_id);
+                    } else if ("__reload__" in webview.title) {
+                        print ("'Could not display composer' detected, reloading...\n");
                         load_conversation (last_id);
                     }
                 });

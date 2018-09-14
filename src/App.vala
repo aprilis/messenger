@@ -86,7 +86,7 @@ namespace Fb {
                     } else {
                         window_manager.current.network_ok ();
                         query_threads (SMALL_THREADS_COUNT);
-                        //conversation.reload ();
+                        conversation.reload (true);
                     }
                 }
             }

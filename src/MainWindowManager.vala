@@ -146,7 +146,7 @@ namespace Ui {
             header = new HeaderBar ();
             header.subtitle = "Facebook Messenger";
             if (bubble) {
-                header.margin = 10;
+                header.margin = 5;
                 box.pack_start (header, false, false, 0);
             } else {
                 window.set_titlebar (header);
