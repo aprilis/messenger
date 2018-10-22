@@ -15,7 +15,7 @@ The best available desktop app for Facebook Messenger. Created for [elementary O
 
   ```
   git clone https://github.com/aprilis/messenger
-  sudo apt install elementary-sdk libwebkit2gtk-4.0-dev libunity-dev libsoup2.4-dev libnotify-dev libplank-dev libbamf3-dev libwnck-3-dev intltool
+  sudo apt install elementary-sdk libwebkit2gtk-4.0-dev libunity-dev libsoup2.4-dev libnotify-dev libplank-dev libbamf3-dev libwnck-3-dev intltool cmake
   sudo apt build-dep plank
   ```
 
