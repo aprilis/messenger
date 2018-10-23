@@ -21,7 +21,7 @@ namespace Fb {
         private const int CHECK_AWAKE_INTERVAL = 4*1000;
         private const int64 QUERY_CONTACTS_INTERVAL = 20LL*60*1000000;
         private const int CONVERSATION_START_INTERVAL = 1000000 / 2;
-        public const int THREADS_COUNT = 500;
+        public const int THREADS_COUNT = 400;
         public const int SMALL_THREADS_COUNT = 30;
         
         private string get_session_path () {
