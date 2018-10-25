@@ -9,4 +9,6 @@ fi
 INSTALL_PATH="/usr/local"
 
 rm -rf `find $INSTALL_PATH -name plank` `find $INSTALL_PATH -name plank.*` `find $INSTALL_PATH -name libplank*`
+ldconfig
+killall plank
 echo "Plank successfully uninstalled"
