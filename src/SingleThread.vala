@@ -28,6 +28,8 @@ namespace Fb {
                 });
                 _contact.photo_changed.connect (() => { photo_changed(); });
                 _contact.name_changed.connect (() => { name_changed(); });
+
+                _contact.bind_property ("is-present", this, "is-present", BindingFlags.DEFAULT);
                 
                 name_updated ();
                 photo_updated ();
@@ -73,9 +75,11 @@ namespace Fb {
             }
         }
         
-        public override string participants_list {
-            get {
-                return contact == null ? "" : contact.name;
+        public override string participants_list { get { return name; } }
+
+        public override string notification_text {
+            owned get {
+                return "New message from " + name;
             }
         }
                

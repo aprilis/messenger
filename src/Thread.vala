@@ -14,6 +14,8 @@ namespace Fb {
         public signal void name_changed ();
     
         public string last_message { get; set; }
+
+        public string message_sender { get; set; }
         
         public int unread { get; set; default = 0; }
 
@@ -24,14 +26,33 @@ namespace Fb {
         public bool is_loaded { get; private set; default = false; }
         
         public int64 id { get; protected set; }
+
+        public bool is_present { get; set; }
          
         public abstract Pixbuf photo { get; }
         
         public abstract string name { get; }
         
         public abstract string participants_list { get; }
+
+        public abstract string notification_text { owned get; }
         
         public int64 update_request_time { get; set; default = 0; }
+
+        private Utils.DelayedOps when_ready;
+
+        public Thread () {
+            when_ready = new Utils.DelayedOps ();
+            if (photo != null) {
+                when_ready.release ();
+            } else {
+                photo_updated.connect (() => {
+                    if (photo != null) {
+                        when_ready.release ();
+                    }
+                });
+            }
+        }
     
         public virtual bool load_from_api (Fb.ApiThread thread) {
             id = thread.tid;
@@ -39,6 +60,7 @@ namespace Fb {
             if (update_time < thread.update_time) {
                 update_time = thread.update_time;
                 last_message = thread.last_message;
+                message_sender = thread.message_sender;
                 unread = thread.unread;
                 is_loaded = true;
                 return true;
@@ -88,37 +110,11 @@ namespace Fb {
         }
         
         public Pixbuf get_icon (int size, bool line = false) {  
-            Pixbuf pixbuf;
-            if (photo == null) {
-                pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);
-                pixbuf.fill ((uint32)0xffffffff);
-            } else {
-                pixbuf = photo;
-            }
-        
-            var surface = new Cairo.ImageSurface (Cairo.Format.ARGB32, size, size);
-            var context = new Cairo.Context (surface);
-            var center = size * 0.5, radius = center * 0.95;
-            
-            context.arc (center, center, radius, 0, 2 * Math.PI);
-            var scale = size / (double)pixbuf.width;
-            context.scale (scale, scale);
-            cairo_set_source_pixbuf (context, pixbuf, 0, 0);
-            context.fill_preserve ();
-            if (line) {
-                context.scale (1 / scale, 1 / scale);
-                context.set_source_rgba (0, 0, 0, 0.5);
-                context.set_line_width (0.5);
-                context.stroke ();
-            }
-            
-            pixbuf = pixbuf_get_from_surface (surface, 0, 0, size, size);
-            if (pixbuf == null) {
-                warning ("Failed to create pixbuf");
-                pixbuf = new Pixbuf(Colorspace.RGB, true, 8, size, size);
-                pixbuf.fill ((uint32)0xaaaaaaff);
-            }
-            return pixbuf;
+            return Utils.make_icon (photo, size, line);
+        }
+
+        public void do_when_ready (owned Utils.Operation op) {
+            when_ready.add ((owned) op);
         }
     }
 

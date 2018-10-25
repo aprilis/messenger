@@ -3,23 +3,26 @@ using Gtk;
 
 public class Main : Granite.Application {
 
-    public const string APP_ID = "com.github.aprilis.messenger.app";
+    public const string APP_ID = "com.github.aprilis.messenger";
     public const string APP_NAME = "messenger";
+    public const string OPEN_CHAT_NAME = "messenger-open-chat";
+    public const string APP_LAUNCHER = APP_ID + ".desktop";
     
     private bool is_fake;
     
     private Main (bool fake) {
         Object (application_id: APP_ID,
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE);
+        Fb.App.application = this;
         inactivity_timeout = 500;
         is_fake = fake;
         app_icon = "internet-chat";
-        app_launcher = APP_ID + ".desktop";
+        app_launcher = APP_LAUNCHER;
         about_authors = { "Jarosław Kwiecień <kwiecienjaro@gmail.com>" };
         about_license_type = License.GPL_3_0;
         app_copyright = "2017";
         app_years = "2017";
-        build_version = "0.2";
+        build_version = "0.2.3";
         //bug_url = "https://github.com/aprilis/messenger/issues";
         help_url = "https://github.com/aprilis/messenger/wiki";
         main_url = "https://github.com/aprilis/messenger";
@@ -29,6 +32,8 @@ public class Main : Granite.Application {
 
         data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
         cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
+
+        Version.update_version (build_version, data_path);
         
         var open_chat = new SimpleAction ("open-chat", VariantType.INT64);
         open_chat.activate.connect ((id) => {
@@ -80,30 +85,12 @@ public class Main : Granite.Application {
         if (is_fake) {
             return;
         }
-        hold ();
         
-        Plank.DBusClient.get_instance ();
-        
+        Notify.init (APP_NAME);
         make_dir (data_path);
         make_dir (cache_path);
 
-        var app = Fb.App.instance ();
-        app.quit.connect (release);
-        app.send_notification.connect ((id, not) => {
-            var str = APP_ID;
-            if (id != null) {
-                str += "." + id;
-            }
-            send_notification (str, not);
-        });
-        app.withdraw_notification.connect ((id) => {
-            var str = APP_ID;
-            if (id != null) {
-                str += "." + id;
-            }
-            withdraw_notification (str);
-        });
-        app.application = this;
+        Fb.App.instance ();
     }
 
     public override int command_line (ApplicationCommandLine command_line) {
@@ -161,20 +148,13 @@ public class Main : Granite.Application {
         if (id_close != 0) {
             remove_heads (id_close);
         }
-        if (is_fake && id_open != 0) {
-            hold ();
-            var msg = new MessageDialog (null, DialogFlags.MODAL, MessageType.INFO, ButtonsType.OK,
-                "Messenger is not running. To start the conversation, close this dialog and run the Messenger app first");
-            msg.response.connect ((id) => { release (); });
-            msg.show ();
-        }
         return 0;
     }
 
     
     public static int main (string[] args) {
         bool fake = false;
-        string[] fake_args = { "--open-chat", "--reload-chat", "--close-all-but-one", "--close-all" };
+        string[] fake_args = { "--reload-chat", "--close-all-but-one", "--close-all" };
         foreach (var arg in args) {
             if (arg in fake_args) {
                 fake = true;

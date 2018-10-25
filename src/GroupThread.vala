@@ -1,6 +1,7 @@
 using GLib;
 using Gdk;
 using Gee;
+using Utils;
 
 namespace Fb {
 
@@ -17,7 +18,9 @@ namespace Fb {
         private string topic;
         
         private HashMap<Id?, Contact> participants;
-        
+
+        private HashSet<Id?> present_participants;
+
         private void update_photo () {
             Pixbuf[] pixbufs = { };
             foreach (var contact in participants.values) {
@@ -106,7 +109,15 @@ namespace Fb {
             });
             contact.name_changed.connect (() => {
                 name_changed ();
-            });            
+            });
+            contact.notify ["is-present"].connect ((s, p) => {
+                if (contact.is_present) {
+                    present_participants.add (contact.id);
+                } else {
+                    present_participants.remove (contact.id);
+                }
+                is_present = !present_participants.is_empty;
+            }); 
         }
         
         public override bool load_from_api (Fb.ApiThread thread) {
@@ -201,10 +212,21 @@ namespace Fb {
         public override string participants_list {
             get { return _participants_list; }
         }
+
+        public override string notification_text {
+            owned get {
+                if (message_sender == null) {
+                    return "New message to " + _name;
+                } else {
+                    return "New message from " + message_sender + " to " + _name;
+                }
+            }
+        }
         
         public GroupThread (Id tid) {
             id = tid;
             participants = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
+            present_participants = new HashSet<Id?> (my_id_hash, my_id_equal);
         }
         
     }

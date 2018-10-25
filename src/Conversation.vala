@@ -6,7 +6,7 @@ using Granite.Widgets;
 namespace Ui {
 
     public class Conversation : PopOver {
-            
+
         private class View {
         
             private const string MESSENGER_URL = "https://www.messenger.com";
@@ -14,14 +14,20 @@ namespace Ui {
             
             private const string STYLE_SHEET = """
                 div._1enh {
-                    max-width: 0px;
-                    min-width: 0px;
+                    max-width: 1px;
+                    min-width: 1px;
                 }
                 div._1q5- {
-                    border-left: none
+                    border-left: none;
                 }
                 a._30yy._2oc8 {
-                    display: none
+                    display: none;
+                }
+                span._3oh-._58nk {
+                    /*white-space: pre;*/
+                }
+                div._1p1v {
+                    white-space: pre;
                 }
                 """;
 
@@ -35,14 +41,27 @@ namespace Ui {
                     }
                     link = element.getElementsByTagName('a')[0];
                     link.click();
-                    document.title = 'success';
+                    document.title = '__success__';
                 } catch(err) {
-                    document.title = 'fail';
+                    document.title = '__fail__';
                 }
             """;
-        
+
+            private const string MONITOR_COMPOSER = """
+                setTimeout(() => {
+                    setInterval(() => {
+                        if(document.getElementsByClassName('_kmc navigationFocus').length == 0) {
+                            document.title = '__reload__';
+                        }
+                    }, 2000);
+                }, 3000);
+            """;
+
             private int64 last_id;
             private bool user_changed = false;
+            private bool loading_finished = true;
+            private bool failed = false;
+            private bool script_running = false;
 
             public WebView webview { get; private set; }
             
@@ -51,15 +70,27 @@ namespace Ui {
             public signal void load_failed ();
 
             private void load_conversation (Fb.Id id) {
+                script_running = false;
                 last_id = id;
                 var uri = MESSENGER_URL + "/t/" + id.to_string ();
+                loading_finished = false;
+                failed = false;
+                print ("loading uri: %s\n", uri);
                 webview.load_uri (uri);
                 user_changed = true;
             }
 
             private void run_script () {
                 user_changed = true;
+                script_running = true;
+                print ("running script\n");
                 webview.run_javascript (CHANGE_USER_SCRIPT.printf (last_id), null);
+                Timeout.add (1000, () => {
+                    if (script_running) {
+                        load_conversation (last_id);
+                    }
+                    return false;
+                });
             }
             
             private bool decide_policy (PolicyDecision decision, PolicyDecisionType type) {
@@ -81,65 +112,110 @@ namespace Ui {
                 return false;
             }
 
-            public View () {       
+            private bool handle_loading_finished () {
+                print ("handle_loading_finished - loading_finished = %s\n", loading_finished.to_string ());
+                print ("uri: %s\n", webview.get_uri ());
+                if (loading_finished) {
+                    return false;
+                }
+                webview.run_javascript (MONITOR_COMPOSER, null);
+                loading_finished = true;
+                if (webview.get_uri ().has_prefix (LOGIN_URL)) {
+                    last_id = 0;
+                    auth_failed ();
+                    return false;
+                }
+                if (last_id != 0) {
+                    if (!user_changed) {
+                        run_script ();
+                    } else {
+                        Timeout.add (500, () => {
+                            ready ();
+                            return false;
+                        });
+                    }
+                }
+                return false;
+            }
+
+            public View (string cookie_path) {       
+                var context = new WebContext ();
+                var manager = context.get_cookie_manager ();
+                manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
+                webview = new WebView.with_context (context);
+                
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
-                var content_manager = new UserContentManager ();
-                content_manager.add_style_sheet (style_sheet);
+                webview.user_content_manager.add_style_sheet (style_sheet);
 
-                webview = new WebView.with_user_content_manager (content_manager);
-                var settings = webview.get_settings ();
-                settings.enable_write_console_messages_to_stdout = true;
-                
                 webview.load_changed.connect ((load_event) => {
+                    print ("load changed: %s\n", load_event.to_string ());
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
                     if (load_event == LoadEvent.FINISHED) {
-                        if (webview.get_uri ().has_prefix (LOGIN_URL)) {
-                            last_id = 0;
-                            auth_failed ();
-                            return;
-                        }
-                        if (last_id != 0) {
-                            if (!user_changed) {
-                                run_script ();
-                            } else {
-                                Timeout.add (500, () => {
-                                    ready ();
-                                    return false;
-                                });
-                            }
-                        }
+                        //handle_loading_finished ();
                     }
                 });
                 webview.notify ["title"].connect ((s, p) => {
-                    if (webview.title == "success") {
+                    if ("__success__" in webview.title) {
+                        script_running = false;
                         ready ();
-                    } else if (webview.title == "fail" && last_id != 0) {
+                        webview.run_javascript ("document.title = 'Messenger';", null);
+                    } else if ("__fail__" in webview.title && last_id != 0) {
+                        load_conversation (last_id);
+                    } else if ("__reload__" in webview.title) {
+                        print ("'Could not display composer' detected, reloading...\n");
                         load_conversation (last_id);
                     }
+                });
+                webview.notify ["is-loading"].connect ((s, p) => {
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
+                    if (!webview.is_loading) {
+                        handle_loading_finished ();
+                    }
+                });
+                webview.notify ["estimated-load-progress"].connect ((s, p) => {
+                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                        webview.is_loading.to_string ());
                 });
                 webview.context_menu.connect (() => { return true; });
                 webview.show_notification.connect (() => { return true; });
                 webview.decide_policy.connect (decide_policy);
                 
-                webview.load_failed.connect ((event, uri, error) => { print ("network error: %s %d\n", error.message, error.code); load_failed (); return false; });
+                webview.load_failed.connect ((event, uri, error) => {
+                    print ("network error: %s %d\n", error.message, error.code);
+                    failed = true;
+                    if (error.code != 302) {
+                        load_failed ();
+                    }
+                    return false;
+                });
                 load_home_page ();
             }
             
             public bool load (Fb.Id id) {
-                if (last_id == id) {
+                if (last_id == id && user_changed) {
                     return false;
                 }
+                print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
+                    webview.is_loading.to_string ());
                 last_id = id;
                 if (!webview.is_loading) {
                     run_script ();
                 } else {
                     user_changed = false;
+                    //Timeout.add (6000, handle_loading_finished);
                 }
                 return true;
             }
 
             public void load_home_page () {
-                if (!webview.is_loading) {
+                if (!webview.is_loading || failed) {
+                    failed = false;
+                    loading_finished = false;
+                    script_running = false;
+                    print ("loading uri: %s\n", MESSENGER_URL);
                     webview.load_uri (MESSENGER_URL);
                 }
                 last_id = 0;
@@ -154,14 +230,20 @@ namespace Ui {
             private const string FAIL_URL = LOGIN_URL + "/password";
             
             private const string LOGIN_SCRIPT = """
-                document.onreadystatechange = function () {
+                var interval = setInterval(function () {
                     if (document.readyState == 'complete') {
                         document.getElementById('email').value = '%s';
                         document.getElementById('pass').value = '%s';
-                        document.getElementById('u_0_3').checked = true;
+                        elements = document.getElementsByTagName('input');
+                        for(i = 0; i < elements.length; i++) {
+                            if(elements[i].type == 'checkbox') {
+                                elements[i].checked = true;
+                            }
+                        }
                         document.getElementById('login_form').submit();
+                        clearInterval(interval);
                     }
-                }​;
+                }, 100)​;
                 """;
                 
             private WebView webview;
@@ -174,10 +256,9 @@ namespace Ui {
             
             public signal void load_failed (LoginView view);
                 
-            public LoginView (string user, string pass) {                
+            public LoginView (string user, string pass, string cookie_path) {                
                 username = user;
                 password = pass;
-                WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
                 webview = new WebView ();
                 webview.load_changed.connect ((load_event) => {
                     if (load_event == LoadEvent.FINISHED) {
@@ -205,20 +286,46 @@ namespace Ui {
         
         }
 
+        public signal void close_bubble (Fb.Id id);
+
+        private int width = 690;
+        private int height = 500;
+
         private Loading loading;
         private Stack stack;
         
         private View view;
         private LoginView login_view;
         private ScrolledWindow view_window;
+
+        private PositionType position_type;
+
+        private Shortcut close_bubble_shortcut;
         
         private Fb.App app;
+
+        private string cookie_path;
 
         private void clear_login_view () {
             if (login_view != null) {
                 login_view.destroy ();
             }
             login_view = null;
+        }
+
+        private void create_view () {
+            if (view_window.get_child () != null) {
+                view_window.remove (view_window.get_child ());
+            }
+            view = new View (cookie_path);
+            view.ready.connect (() => {
+                print ("ready\n");
+                stack.visible_child = view_window;
+            });
+            view.load_failed.connect (() => { app.network_error (); });
+            view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
+            view.webview.show_now ();
+            view_window.child = view.webview;
         }
         
         public int64 current_id { get; private set; default = 0;}
@@ -229,67 +336,80 @@ namespace Ui {
                 stack.visible_child = loading;
             } else {
                 stack.visible_child = view_window;
-                view.webview.show_now ();
             }
             if (is_active) {
                 close (true);
             }
         }
         
-        public void reload () {
+        public void reload (bool hard = false) {
+            if (hard) {
+                create_view ();
+            }
             view.load_home_page ();
         }
         
-        public new void show (int x, int y) {
-            move (x, y);
-            set_size_request (700, 500);
+        public new void show (int x, int y, Gtk.PositionType dock_position) {
+            set_position (x, y, dock_position);
+            set_size_request (width, height);
+            show_all ();
             activate ();
             present ();
         }
+
+        private bool key_release (Gdk.EventKey event) {
+            if (close_bubble_shortcut.activated (event)) {
+                close ();
+                close_bubble (current_id);
+            }
+            return false;
+        }
+
+        private void update_settings () {
+            close_bubble_shortcut = new Shortcut.parse (app.settings.close_and_remove_shortcut);
+            width = app.settings.chat_width;
+            height = app.settings.chat_height;
+            set_size_request (width, height);
+        }
         
         public Conversation (Fb.App _app) {
+            cookie_path = Main.cache_path + "/cookies";
+            
             var context = WebContext.get_default ();
             var manager = context.get_cookie_manager ();
-            manager.set_persistent_storage (Main.cache_path + "/cookies", CookiePersistentStorage.TEXT);
+            manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
 
             app = _app;
-        
-            set_size_request (700, 500);
             
             view_window = new ScrolledWindow (null, null);
-            //view_window.hscrollbar_policy = PolicyType.NEVER;
-            //view_window.vscrollbar_policy = PolicyType.NEVER;
+            view_window.show_now ();
+            create_view ();
 
             loading = new Loading (40);
+            loading.show_now ();
+
+            key_release_event.connect(key_release);
             
             stack = new Stack ();
-            stack.margin_bottom = ARROW_HEIGHT;
-            stack.margin_left = stack.margin_right = stack.margin_top = SHADOW_SIZE;
             stack.add_named (loading, "loading");
-
-            view = new View ();
             stack.add_named (view_window, "conversation");
-            view.ready.connect (() => {
-                stack.visible_child = view_window;
-                view.webview.show_now ();
-            });
-            view.load_failed.connect (() => { app.network_error (); });
-            view.auth_failed.connect (() => { clear_cookies (); app.show_login_dialog (false); });
-
-            
-            view_window.add (view.webview);
+            stack.show_now ();
             add (stack);
+
+            update_settings ();
+            app.settings.changed.connect (update_settings);
         }
         
         public void log_in (string username, string password) {
             clear_login_view ();
-            login_view = new LoginView (username, password);
+            clear_cookies ();
+            login_view = new LoginView (username, password, cookie_path);
             login_view.finished.connect ((lv) => {
                 if (login_view != lv) {
                     return;
                 }
                 clear_login_view ();
-                view.load_home_page ();
+                reload (true);
                 app.auth_target_done (Fb.App.AuthTarget.WEBVIEW);
             });
             login_view.failed.connect ((lv) => {
@@ -309,7 +429,7 @@ namespace Ui {
         }
 
         public void clear_cookies () {
-            WebContext.get_default ().get_cookie_manager ().delete_all_cookies ();
+            WebContext.get_default ().get_cookie_manager ().delete_cookies_for_domain ("https://www.messenger.com");
         }
         
         public void log_out () {

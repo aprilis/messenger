@@ -14,10 +14,13 @@ namespace Ui {
         
         private string directory;
         private string exec;
+        private string open_chat_exec;
 
         private static const int ICON_SAVERS = 10;
         private ThreadPool<SaveTask?> icon_saver;
         private bool closed = false;
+
+        public static bool overwrite_all = false;
         
         private void icon_saver_func (owned SaveTask? task) {
             var thread = task.thread;
@@ -47,7 +50,7 @@ namespace Ui {
                 return;
             }
             var file = File.new_for_path (directory + "/" + thread.id.to_string () + ".desktop");
-            if (overwrite == false && file.query_exists ()) {
+            if (!overwrite && !overwrite_all && file.query_exists ()) {
                 return;
             }
 
@@ -55,7 +58,7 @@ namespace Ui {
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_NAME, thread.name);
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_COMMENT, "Start a conversation with " + thread.name);
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_TYPE, "Application");
-            kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_EXEC, exec + " --open-chat " + thread.id.to_string ());
+            kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_EXEC, open_chat_exec + " " + thread.id.to_string ());
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_ICON, icon_path (thread.id));
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_TERMINAL, "false");
             kf.set_value (KeyFileDesktop.GROUP, KeyFileDesktop.KEY_ACTIONS, "Reload;CloseAll;CloseAllOther");
@@ -96,9 +99,10 @@ namespace Ui {
             return file.get_uri ();
         }
         
-        public ConvData (string dir_path, string exe_path) {
+        public ConvData (string dir_path, string exe_path, string exe_open_chat) {
             directory = dir_path;
             exec = exe_path;
+            open_chat_exec = exe_open_chat;
             icon_saver = new ThreadPool<SaveTask?>.with_owned_data (icon_saver_func, ICON_SAVERS, false);
         }
 

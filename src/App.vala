@@ -3,6 +3,7 @@ using Gdk;
 using Gtk;
 using Gee;
 using Unity;
+using Utils;
 
 namespace Fb {
 
@@ -16,10 +17,12 @@ namespace Fb {
         
         private const string SESSION_FILE = "session";
         private const string CONFIRMED_FILE = "confirmed_users";
-        private const int THREADS_COUNT = 500;
         private const int RECONNECT_INTERVAL = 10*1000;
         private const int CHECK_AWAKE_INTERVAL = 4*1000;
+        private const int64 QUERY_CONTACTS_INTERVAL = 20LL*60*1000000;
         private const int CONVERSATION_START_INTERVAL = 1000000 / 2;
+        public const int THREADS_COUNT = 400;
+        public const int SMALL_THREADS_COUNT = 30;
         
         private string get_session_path () {
             return Main.cache_path + "/" + SESSION_FILE;
@@ -33,7 +36,7 @@ namespace Fb {
         
         private SocketClient socket_client;
         
-        private Ui.MainWindow window;
+        private Ui.MainWindowManager window_manager;
         
         private Api api;
         
@@ -43,7 +46,7 @@ namespace Fb {
         
         private AuthTarget auth_target = 0;
         
-        private Plank.DockPreferences dock_preferences;
+        public Plank.DockPreferences dock_preferences { get; private set; }
         private Plank.HideType plank_hide_type;
         private bool plank_settings_changed = false;
         
@@ -54,27 +57,36 @@ namespace Fb {
         private HashSet<string> confirmed_users = null;
 
         private int64 last_awake_check = 0;
+        private int64 last_query_contacts = 0;
         private int64 last_conversation_time = 0;
 
         private bool webview_auth_fail = false;
         private bool show_login_dialog_infobar = false;
 
         private Ui.LoginDialog login_dialog = null;
+
+        private HashMap<Id?, Notify.Notification> notifications;
+
+        private HashMap<Id?, int> hidden_unread_count;
+        private int hidden_unread_sum = 0;
+
+        private string plank_launcher_uri = null;
         
         public bool network_problem {
             get { return _network_problem; }
             private set {
+                if (value) {
+                    window_manager.current.network_error ();
+                }
                 if (_network_problem != value) {
                     _network_problem = value;
-                    window.current.network_error ();
                     if (value) {
                         reconnect ();
                         Timeout.add (RECONNECT_INTERVAL, reconnect);
                     } else {
-                        window.current.network_ok ();
-                        query_threads (THREADS_COUNT);
-                        query_contacts ();
-                        conversation.reload ();
+                        window_manager.current.network_ok ();
+                        query_threads (SMALL_THREADS_COUNT);
+                        conversation.reload (true);
                     }
                 }
             }
@@ -84,12 +96,10 @@ namespace Fb {
         
         public string user_name { get; private set; }
 
-        public Granite.Application application { get; set; }
-        
-        public signal void quit ();
-        public signal void send_notification (string? id, Notification not);
-        public signal void withdraw_notification (string? id);
-        
+        public static Granite.Application application { get; set; }
+
+        public Ui.Settings settings { get; private set; }
+                
         public static unowned App instance () {
             return _instance.once(() => { return new App (); });
         }
@@ -128,7 +138,7 @@ namespace Fb {
                 api.uid = int64.parse (obj.get_string_member ("uid"));
                 user_login = obj.get_string_member ("login");
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Load session error %d: %s\n", e.code, e.message);
                 return -1;
             }
             return 1;
@@ -144,7 +154,7 @@ namespace Fb {
                     confirmed_users.add (line);
                 }
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Load confirmed users error %d: %s\n", e.code, e.message);
             }
         }
         
@@ -154,46 +164,66 @@ namespace Fb {
                 var stream = new DataOutputStream (file.append_to (FileCreateFlags.PRIVATE));
                 stream.put_string (user + "\n");
             } catch (Error e) {
-                warning ("Error %d: %s\n", e.code, e.message);
+                warning ("Save confirmed users error %d: %s\n", e.code, e.message);
             }
         }
 
-        public void query_threads (int count) {
-            Idle.add (() => { api.threads_func (count); return false; });
+        public void query_threads (int count = THREADS_COUNT) {
+            api.threads_func (count);
         }
 
         public void query_thread (Fb.Id id) {
-            Idle.add (() => { api.thread_func (id); return false; });
+            api.thread_func (id);
         }
 
         public void query_contacts () {
-            Idle.add (() => { api.contacts_func (); return false; });
+            api.contacts_func ();
+            last_query_contacts = get_real_time ();
         }
 
         public void query_contact (Fb.Id id) {
-            Idle.add (() => { api.contact_func (id); return false; });
+            api.contact_func (id);
         }
 
         public void connect_api () {
-            Idle.add (() => { api.connect_func (false); return false; });
+            api.connect_func (false);
         }
 
         public void disconnect_api () {
-            Idle.add (() => { api.disconnect_func (); return false; });
+            api.disconnect_func ();
         }
         
         public void authenticate (string username, string password) {
-            Idle.add (() => { api.auth_func (username, password); return false; });
+            api.auth_func (username, password);
+        }
+
+        public void create_group_thread (GLib.SList<Id?> ids, string name) {
+            api.thread_create_func (ids, name);
+            window_manager.threads.show_toast ("Group thread is being created");
+        }
+
+        public void thread_created (int64 id) {
+            query_thread (id);
+            Timeout.add (1000, () => {
+                window_manager.threads.hide_toast ();
+                return false;
+            });
         }
 
         public bool check_awake () {
             var time = get_real_time ();
             if (last_awake_check != 0 && time - last_awake_check > 2 * 1000 * CHECK_AWAKE_INTERVAL) {
                 connect_api ();
-                query_threads (THREADS_COUNT);
-                conversation.reload ();
+                query_threads (SMALL_THREADS_COUNT);
+                //conversation.reload (true);
             }
             last_awake_check = time;
+            if (data != null && last_query_contacts != 0 &&
+                 time - last_query_contacts > QUERY_CONTACTS_INTERVAL) {
+                print ("query contacts\n");
+                query_contacts ();
+                last_query_contacts = time;
+            }
             return true;
         }
         
@@ -206,7 +236,7 @@ namespace Fb {
         }
         
         public void auth_error () {
-            window.current.auth_error ();
+            window_manager.current.auth_error ();
         }
         
         public void network_error () {
@@ -214,11 +244,10 @@ namespace Fb {
         }
         
         public void auth_needed () {
-            if (window.current == window.threads || window.current == window.password) {
-                window.set_screen ("password");
+            if (window_manager.current == window_manager.threads || window_manager.current == window_manager.password) {
+                window_manager.set_screen ("password");
                 conversation.close (true);
-                window.show_all ();
-                window.present ();
+                window_manager.show ();
             }
         }
         
@@ -273,6 +302,7 @@ namespace Fb {
                     auth_target_done (AuthTarget.WEBVIEW);
                     login_dialog.destroy ();
                     login_dialog = null;
+                    conversation.reload (true);
                 });
                 login_dialog.canceled.connect (() => { auth_error (); login_dialog = null; });
                 login_dialog.show_all ();
@@ -283,35 +313,42 @@ namespace Fb {
             }
         }
         
-        void auth_done () {
+        private void auth_done () {
             data = new Data (session, socket_client, this, api);
-            window.set_screen ("loading");
+            window_manager.set_screen ("loading");
             data.new_message.connect (message_notification);
             data.unread_count.connect (update_unread_count);
             data.new_thread.connect ((thread) => {
                 if (thread.id == api.uid) {
+                    print ("found me!\n");
                     user_name = thread.name == null ? "" : thread.name;
                     thread.name_updated.connect (() => {
                         user_name = thread.name;
                     });
+                    window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
                     thread.photo_updated.connect (() => {
-                        window.header.set_photo(thread.get_icon (window.header.PHOTO_SIZE, true));
+                        window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
                     });
                 }
+                thread.notify ["is-present"].connect ((s, p) => {
+                    var t = (Thread) s;
+                    update_presence (t.id, t.is_present);
+                });
+                update_presence (thread.id, thread.is_present);
             });
             
             query_contacts ();
-            query_threads (THREADS_COUNT);
             connect_api ();
         }
         
-        void connect_done () {
+        private void connect_done () {
             print ("connected!\n");
             network_problem = false;
             save_session ();
         }
-        
-        private void api_error (Error e) {
+
+        private void api_error (void *ptr) {
+            unowned Error e = (Error)ptr;
             Quark[] network_quarks = { Fb.Mqtt.error_quark (),
                                      ResolverError.quark (), Fb.http_error_quark () };
             warning ("Api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
@@ -324,8 +361,94 @@ namespace Fb {
             } else if (e.domain in network_quarks) {
                 network_error ();
             } else {
-                warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
-                window.current.other_error ();
+                var regex = new Regex ("\\((\\d+)\\)");
+                MatchInfo info;
+                var match = regex.match (e.message, 0, out info);
+                int error_code = -1;
+                if (match) {
+                    error_code = int.parse (info.fetch (1));
+                }
+                if (error_code == 406) {
+                    window_manager.current.twostep_verification ();
+                } else {
+                    warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
+                    window_manager.current.other_error ();
+                }
+            }
+        }
+
+        private void update_presence (Fb.Id id, bool present) {
+            if (!settings.show_available_users) {
+                return;
+            }
+            if (id == 0) {
+                var client = Plank.DBusClient.get_instance ();
+                
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
+                    var apps = client.get_persistent_applications ();
+                    foreach (var app in apps) {
+                        var f = File.new_for_uri (app);
+                        var name = f.get_basename ().split (".")[0];
+                        int64 tid;
+                        if (int64.try_parse (name, out tid) && f.get_path ().has_prefix (Main.data_path)) {
+                            var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (tid));
+                            if (!settings.show_available_users) {
+                                entry.progress_visible = false;
+                            }
+                            else {
+                                var thread = data.try_get_thread (tid);
+                                if (thread != null) {
+                                    entry.progress_visible = thread.is_present;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                });
+            } else if (settings.show_available_users) {
+                var client = Plank.DBusClient.get_instance ();
+                var uri = data.desktop_file_uri (id);
+                if (uri in client.get_persistent_applications ()) {
+                    var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (id));
+                    entry.progress = 1;
+                    entry.progress_visible = present;
+                }
+            }
+        }
+
+        private void update_hidden_unread (Fb.Id id, int count) {
+            int diff = 0;
+            if (hidden_unread_count [id] == 0 && count > 0) diff = 1;
+            else if (hidden_unread_count [id] > 0 && count == 0) diff = -1;
+            hidden_unread_count [id] = count;
+            hidden_unread_sum += diff;
+
+            if (diff != 0) {
+                bool on_plank = false;
+                var client = Plank.DBusClient.get_instance ();
+                foreach (var app in client.get_transient_applications ()) {
+                    if (app.has_suffix(Main.APP_LAUNCHER)) {
+                        on_plank = true;
+                        break;
+                    }
+                }
+                foreach (var app in client.get_persistent_applications ()) {
+                    if (app.has_suffix(Main.APP_LAUNCHER)) {
+                        on_plank = true;
+                        break;
+                    }
+                }
+                if (on_plank) {
+                    var entry = LauncherEntry.get_for_desktop_id (Main.APP_LAUNCHER);
+                    if (entry != null) {
+                        entry.count = hidden_unread_sum;
+                        entry.count_visible = hidden_unread_sum > 0;
+                    }
+                }
             }
         }
         
@@ -333,22 +456,41 @@ namespace Fb {
             var client = Plank.DBusClient.get_instance ();
             var uri = data.desktop_file_uri (id);
             client.add_item (uri);
+            Timeout.add (1000, () => {
+                var thread = data.try_get_thread (id);
+                if(thread != null) {
+                    update_presence (id, thread.is_present);
+                    update_unread_count(id, thread.unread);
+                }
+                return false;
+            });
         }
         
         private void message_notification (Thread thread, string message) {
             if (conversation.is_active && conversation.current_id == thread.id) {
                 return;
             }
-            add_to_plank (thread.id);
-            var not = new Notification ("New message from " + thread.name);
-            not.set_body (message);
-            try {
-                not.set_icon (Icon.new_for_string (data.icon_path (thread.id)));
-            } catch (Error e) {
-                warning ("Error %s\n", e.message);
+            if (settings.create_new_bubbles) {
+                add_to_plank (thread.id);
             }
-            not.set_default_action_and_target_value ("app.open-chat", new Variant.int64 (thread.id));
-            send_notification (thread.id.to_string (), not);
+            Notify.Notification not;
+            if (thread.id in notifications) {
+                not = notifications [thread.id];
+                not.update (thread.notification_text, message, null);
+            } else {
+                not = new Notify.Notification (thread.notification_text, message, null);
+                not.add_action ("default", "View", (n, a) => {
+                    print ("starting conversaion: %lld\n", thread.id);
+                    start_conversation (thread.id);
+                });
+                notifications.set (thread.id, not);
+            }
+            not.set_image_from_pixbuf (thread.photo);
+            try {
+                not.show ();
+            } catch (Error e) {
+                warning ("Notification error: %d %s\n", e.code, e.message);
+            }
         }
         
         private void update_unread_count (Id id, int count) {
@@ -362,7 +504,30 @@ namespace Fb {
                 var entry = LauncherEntry.get_for_desktop_file (data.desktop_file_uri (id));
                 entry.count = count;
                 entry.count_visible = count > 0;
+                update_hidden_unread (id, 0);
+            } else if (!settings.create_new_bubbles) {
+                update_hidden_unread (id, count);
             }
+        }
+
+        public string get_plank_launcher_uri () {
+            if (plank_launcher_uri != null) {
+                return plank_launcher_uri;
+            }
+            var client = Plank.DBusClient.get_instance ();
+            foreach (var app in client.get_transient_applications ()) {
+                if (app.has_suffix(Main.APP_LAUNCHER)) {
+                    plank_launcher_uri = app;
+                    break;
+                }
+            }
+            foreach (var app in client.get_persistent_applications ()) {
+                if (app.has_suffix(Main.APP_LAUNCHER)) {
+                    plank_launcher_uri = app;
+                    break;
+                }
+            }
+            return plank_launcher_uri;
         }
         
         public void show_login_dialog (bool show_infobar) {
@@ -376,20 +541,26 @@ namespace Fb {
                 return;
             }
             try {
-                window.set_screen ("welcome");
+                //window_manager.set_screen ("welcome");
                 remove_heads ();
                 conversation.log_out ();
                 data.delete_files ();
                 data.close ();
                 user_name = null;
                 data = null;
+                notifications.clear ();
                 disconnect_api ();
                 api.stoken = null;
                 api.token = null;
                 api.uid = 0;
                 save_session ();
-                window.header.clear_photo ();
+                window_manager.header.clear_photo ();
+                hidden_unread_sum = 0;
+                hidden_unread_count.clear ();
+                update_hidden_unread (0, 0);
                 print ("logged out\n");
+                quit ();
+
             } catch (Error e) {
                 warning ("%s\n", e.message);
             }
@@ -397,7 +568,7 @@ namespace Fb {
         
         public void log_in (string? username, string password) {
             if (username != null && !(username in confirmed_users)) {
-                var dialog = new MessageDialog (window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
+                var dialog = new MessageDialog (window_manager.window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
                     "Please note that this is NOT an official Facebook Messenger app. Use it at your own risk. Do you still want to continue?");
                 dialog.response.connect ((response_id) => {
                     if (response_id == ResponseType.YES) {
@@ -405,7 +576,7 @@ namespace Fb {
                         save_confirmed_user (username);
                         log_in (username, password);
                     } else {
-                        window.current.cowardly_user ();
+                        window_manager.current.cowardly_user ();
                     }
                     dialog.destroy ();
                 });
@@ -418,6 +589,7 @@ namespace Fb {
             } else {
                 user_login = username;
             }
+            Data.delete_files ();
             auth_target = AuthTarget.API | AuthTarget.WEBVIEW;
             webview_auth_fail = false;
             show_login_dialog_infobar = false;
@@ -426,6 +598,9 @@ namespace Fb {
         }
         
         public App () {
+            Data.init_paths ();
+            settings = new Ui.Settings (); 
+
             session = new Soup.Session ();
             session.use_thread_context = true;
             session.timeout = 10;
@@ -437,43 +612,37 @@ namespace Fb {
             api.auth.connect (() => { auth_target_done (AuthTarget.API); });
             api.connect.connect (connect_done);
             api.error.connect (api_error);
+            api.thread_create.connect (thread_created);
             
-            window = new Ui.MainWindow (this);
-            window.set_default_size (500, 600);
-            window.delete_event.connect (() => {
-                if (data == null) {
-                    quit ();
-                    return true;
-                } else {
-                    return window.hide_on_delete ();
-                }
+            window_manager = new Ui.MainWindowManager (this);
+            window_manager.window.show.connect (() => { if (network_problem) network_error (); });
+            
+            var menu = new GLib.Menu ();
+            var account_section = new GLib.Menu ();
+            menu.append_section ("Your account", account_section);
+            window_manager.append_menu_item (account_section, "Reconnect", () => {
+                data.close ();
+                data = null;
+                auth_done ();
             });
-            window.show.connect (() => { if (network_problem) network_error (); });
+            window_manager.append_menu_item (account_section, "Close all conversations", () => {
+                remove_heads (); 
+            });
+            window_manager.append_menu_item (account_section, "Log Out & Quit", log_out);
+            var app_section = new GLib.Menu ();
+            menu.append_section ("App", app_section);
+            window_manager.append_menu_item (app_section, "Preferences", () => {
+                var settings_window = new Ui.SettingsWindow (window_manager.window, settings);
+                settings_window.show_all ();
+            });
+            window_manager.append_menu_item (app_section, "About", () => {
+                application.show_about (window_manager.window);
+            });
+            window_manager.append_menu_item (app_section, "Quit", () => {
+                quit ();
+            });
             
-            var menu = new Gtk.Menu ();
-            var preferences_item = new Gtk.MenuItem.with_label ("Preferences");
-            var reconnect_item = new Gtk.MenuItem.with_label ("Reconnect");
-            var remove_item = new Gtk.MenuItem.with_label ("Close all conversations");
-            var logout_item = new Gtk.MenuItem.with_label ("Log Out");
-            var about_item = new Gtk.MenuItem.with_label ("About");
-            var quit_item = new Gtk.MenuItem.with_label ("Quit");
-            
-            preferences_item.sensitive = false;
-            reconnect_item.activate.connect (() => { data.close (); data = null; auth_done (); });
-            remove_item.activate.connect (() => { remove_heads (); });
-            logout_item.activate.connect (() => { log_out (); });
-            about_item.activate.connect (() => { application.show_about (window); });
-            quit_item.activate.connect (() => { quit (); });
-            
-            //menu.add (preferences_item);
-            menu.add (remove_item);
-            menu.add (reconnect_item);
-            menu.add (logout_item);
-            menu.add (new SeparatorMenuItem ());
-            menu.add (about_item);
-            menu.add (new SeparatorMenuItem ());
-            menu.add (quit_item);
-            window.header.set_menu (menu);
+            window_manager.header.set_menu (menu);
             
             conversation = new Ui.Conversation (this);
             conversation.hide.connect (() => {
@@ -482,7 +651,12 @@ namespace Fb {
                     plank_settings_changed = false;
                 }
             });
+            conversation.close_bubble.connect (remove_head);
             
+            notifications = new HashMap<Id?, Notify.Notification> (my_id_hash, my_id_equal);
+
+            hidden_unread_count = new HashMap<Id?, int> (my_id_hash, my_id_equal);
+
             confirmed_users = new HashSet<string> ();
             load_confirmed_users ();
             
@@ -490,15 +664,20 @@ namespace Fb {
             if (loaded == 1) {
                 auth_done ();
             } else {
-                window.set_screen ("welcome");
+                window_manager.set_screen ("welcome");
                 if (loaded == -1) {
                     api.rehash();
                 }
             }
-            
+
             dock_preferences = new Plank.DockPreferences ("dock1");
 
             Timeout.add (CHECK_AWAKE_INTERVAL, check_awake);
+
+            update_presence (0, false);
+            settings.notify ["show-available-users"].connect ((s, p) => {
+                update_presence (0, false);
+            });
         }
         
         public void start_conversation (Fb.Id id) {
@@ -513,10 +692,11 @@ namespace Fb {
             conversation.load_conversation (id);
             add_to_plank (id);
             data.check_unread_count (id);
-            if (!plank_settings_changed) {
+            if (!plank_settings_changed && dock_preferences.HideMode != Plank.HideType.NONE) {
                 plank_settings_changed = true;
                 plank_hide_type = dock_preferences.HideMode;
-                dock_preferences.HideMode = window.is_maximized ? Plank.HideType.NONE : Plank.HideType.INTELLIGENT;
+                dock_preferences.HideMode = window_manager.window.is_maximized ?
+                     Plank.HideType.NONE : Plank.HideType.INTELLIGENT;
             }
             Timeout.add (500, () => {
                 var client = Plank.DBusClient.get_instance ();
@@ -527,15 +707,42 @@ namespace Fb {
                     var ok = client.get_hover_position (uri, out x, out y, out position_type);
                     if (conversation.current_id == id && ok) {
                         print ("plank position: %s\n", position_type.to_string ());
-                        conversation.show(x, y);
+                        conversation.show(x, y, position_type);
                         data.read_all (id);
-                        withdraw_notification (id.to_string ());
+                        if (id in notifications) {
+                            notifications [id].close ();
+                        }
                     }
                 } catch (Error e) {
-                    warning ("Error %d: %s\n", e.code, e.message);
+                    warning ("Plank DBus error %d: %s\n", e.code, e.message);
                 }
                 return false;
             });
+        }
+        
+        public static void remove_head (Fb.Id removed_id) {
+            try {
+                var client = Plank.DBusClient.get_instance ();
+                
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
+                    var apps = client.get_persistent_applications ();
+                    foreach (var app in apps) {
+                        var f = File.new_for_uri (app);
+                        var name = f.get_basename ().split (".")[0];
+                        int64 id;
+                        if (int64.try_parse (name, out id) && id == removed_id && f.get_path ().has_prefix (Main.data_path)) {
+                            client.remove_item (app);
+                        }
+                    }
+                    return false;
+                });
+            } catch (Error e) {
+                warning ("Remove head error %s\n", e.message);
+            }
         }
         
         public static void remove_heads (Fb.Id except = 0) {
@@ -559,21 +766,24 @@ namespace Fb {
                     return false;
                 });
             } catch (Error e) {
-                warning ("Error %s\n", e.message);
+                warning ("Remove heads error %s\n", e.message);
             }
         }
         
         public void reload_conversation (Fb.Id id) {
-            conversation.reload ();
+            conversation.reload (true);
         }
         
         public void show_window () {
-            window.show_all ();
-            window.present ();
+            window_manager.show ();
         }
         
         public void run () {
             Gtk.main ();
+        }
+
+        public void quit () {
+            window_manager.window.destroy ();
         }
     
     }

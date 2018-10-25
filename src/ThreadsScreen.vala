@@ -1,13 +1,24 @@
 using Gtk;
 using Gdk;
+using Granite.Widgets;
 
 namespace Ui {
     
     public class ThreadsScreen : Screen {
         
         public SearchEntry search_entry { get; private set; }
+
+        public bool group_creator_active {
+            get {
+                return group_creator.active;
+            }
+        }
+
+        private Toast toast;
         
         private ThreadsViewer threads_viewer;
+
+        private GroupCreator group_creator;
         
         private InfoBar network_error_bar;
         
@@ -20,15 +31,20 @@ namespace Ui {
             });
                         
             threads_viewer = new ThreadsViewer ();
+            group_creator = new GroupCreator ();
             if (app.data != null) {
                 threads_viewer.set_data (app.data);
+                group_creator.set_data (app.data);
             }
             threads_viewer.thread_selected.connect (app.start_conversation);
+            group_creator.create_group.connect (app.create_group_thread);
             
             app.notify["data"].connect ((s, p) => {
-                threads_viewer.clear();
+                threads_viewer.clear ();
+                group_creator.clear ();
                 if (app.data != null) {
                     threads_viewer.set_data (app.data);   
+                    group_creator.set_data (app.data);
                 }
             });
             
@@ -39,11 +55,15 @@ namespace Ui {
             
             search_entry = new SearchEntry ();
             search_entry.placeholder_text = "Search for friends and groups...";
-            search_entry.margin_left = search_entry.margin_right = 10;
-            search_entry.margin_top = search_entry.margin_bottom = 5;
             search_entry.search_changed.connect (() => {
                 threads_viewer.search_query = search_entry.text;
             });
+
+            var search_bar = new Box (Orientation.HORIZONTAL, 5);
+            search_bar.margin_left = search_bar.margin_right = 10;
+            search_bar.margin_top = search_bar.margin_bottom = 5;
+            search_bar.pack_start (search_entry);
+            search_bar.pack_start (group_creator.widget, false, true);
             
             network_error_bar = Utils.create_infobar ("No connection", MessageType.ERROR, false);
             network_error_bar.add_button ("Retry", 1);
@@ -51,9 +71,15 @@ namespace Ui {
            
             var box = new Box(Orientation.VERTICAL, 0);
             box.pack_start (network_error_bar, false);
-            box.pack_start (search_entry, false, true);
+            box.pack_start (search_bar, false, true);
             box.pack_start (scrolled, true, true);
-            widget = box;
+
+            toast = new Toast ("toast");
+            var overlay = new Overlay ();
+            overlay.add_overlay (box);
+            overlay.add_overlay (toast);
+
+            widget = overlay;
         }
         
         public override void hide () {
@@ -70,6 +96,16 @@ namespace Ui {
         
         public override void auth_error () {
             change_screen ("password");
+        }
+
+        public void show_toast (string message) {
+            toast.title = message;
+            toast.send_notification ();
+            toast.show ();
+        }
+
+        public void hide_toast () {
+            toast.hide ();
         }
         
     }

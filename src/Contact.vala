@@ -45,11 +45,10 @@ namespace Fb {
         }
         
         private async void load_photo_from_disk () {
-            try {
-                photo = yield App.instance ().data.load_photo (id);
-            } catch (Error e) {
+            photo = yield App.instance ().data.load_photo (id);
+            if (photo == null) {
                 photo_csum = null;
-                warning ("Failed to load %s's photo: %s\n", name, e.message);
+                App.instance ().query_contact (id);
             }
         }
         

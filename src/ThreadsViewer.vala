@@ -17,6 +17,7 @@ namespace Ui {
             TEXT,
             UNREAD,
             UPDATE_TIME,
+            TIME_DESCRIPTION,
             COUNT
         }
         
@@ -27,6 +28,7 @@ namespace Ui {
             private TreePath path;
             private Fb.Thread thread;
             private Gtk.ListStore list;
+            private uint update_time_id = 0;
             
             private string limit_lines (string text) {
                 var lines = text.split("\n");
@@ -62,13 +64,30 @@ namespace Ui {
                 }
                 list.set (iter, Index.PHOTO, thread.get_icon (ICON_SIZE), -1);
             }
-            
+
             private void update_time () {
                 TreeIter iter;
                 if (!get_iter (out iter)) {
                     return;
                 }
-                list.set (iter, Index.UPDATE_TIME, thread.update_time, -1);
+                int64 next_update_time;
+                var time_description = Utils.get_time_description (thread.update_time / 1000,
+                    out next_update_time);
+                var time_markup = "<span foreground = \"gray\">" + time_description + "</span>";
+                if (thread.is_present) {
+                    time_markup += "\n<span font_desc = \"13.0\" foreground = \"#2DC814\">⚫</span>";
+                }
+                list.set (iter, Index.UPDATE_TIME, thread.update_time,
+                    Index.TIME_DESCRIPTION, time_markup, -1);
+                if (next_update_time != 0) {
+                    if (update_time_id != 0) {
+                        GLib.Source.remove (update_time_id);
+                    }
+                    update_time_id = Timeout.add (((uint)next_update_time + 1) * 1000, () => {
+                        update_time ();
+                        return false;
+                    });
+                }
             }
             
             private static string nullable_string (string? str) {
@@ -98,13 +117,17 @@ namespace Ui {
                     Index.PARTICIPANTS, thread.participants_list,
                     Index.TEXT, get_user_markup (),
                     Index.UNREAD, thread.unread > 0,
-                    Index.UPDATE_TIME, thread.update_time, -1);
+                    Index.UPDATE_TIME, thread.update_time,
+                    Index.TIME_DESCRIPTION, "",
+                    -1);
                 path = list.get_path (iter);
                 thread.photo_updated.connect (update_photo);
                 thread.name_updated.connect (update_name);
                 thread.notify["last-message"].connect ((s, p) => { update_name (); });
                 thread.notify["unread"].connect ((s, p) => { update_name (); });
                 thread.notify["update-time"].connect ((s, p) => { update_time (); });
+                thread.notify["is-present"].connect ((s, p) => { update_time (); });
+                update_time ();
             }
         }
         
@@ -119,19 +142,15 @@ namespace Ui {
         private Gtk.TreeModelFilter filtered;
         
         private string _search_query = "";
-        
-        private bool inactive = false;
-        
+                
         public Widget widget { get { return view; } }
         
         public string search_query { 
             get { return _search_query; }
             set {
                 _search_query = value;
-                inactive = true;
                 filtered.refilter ();
                 Timeout.add (100, () => {
-                    inactive = false;
                     view.scroll_to_point (0, 0);
                     return false;
                 });
@@ -139,7 +158,16 @@ namespace Ui {
         }
         
         private void add_item (Fb.Thread thread) {
+            var adjustment = view.get_vadjustment ();
+
             items.append (new ViewerItem (thread, list));
+
+            if (view.get_realized () && adjustment.value <= 10) {
+                Timeout.add (100, () => {
+                    view.scroll_to_point (0, 0);
+                    return false;
+                });
+            }
         }
         
         public void clear () {
@@ -152,8 +180,9 @@ namespace Ui {
         }
         
         public ThreadsViewer () {
-            list = new Gtk.ListStore (Index.COUNT, typeof (Fb.Id), typeof (Pixbuf), typeof (string), typeof (string),
-                                     typeof (string), typeof (string), typeof (bool), typeof(int64), typeof(string));
+            list = new Gtk.ListStore (Index.COUNT, typeof (Fb.Id), typeof (Pixbuf), typeof (string),
+                typeof (string), typeof (string), typeof (string), typeof (bool), typeof (int64),
+                typeof (string));
             sorted = new TreeModelSort.with_model (list);
             sorted.set_sort_column_id (Index.UPDATE_TIME, SortType.DESCENDING);
             filtered = new TreeModelFilter (sorted, null);
@@ -177,27 +206,38 @@ namespace Ui {
             view.can_focus = false;
             view.headers_visible = false;
             view.enable_grid_lines = TreeViewGridLines.HORIZONTAL;
+            view.name = "threads";
+            view.activate_on_single_click = true;
+            view.hover_selection = true;
+
             view.insert_column_with_attributes (-1, "Photo", new CellRendererPixbuf (), "pixbuf", Index.PHOTO);
             
             var name_renderer = new CellRendererText ();
             name_renderer.ellipsize = Pango.EllipsizeMode.END;
             name_renderer.ellipsize_set = true;
-            view.insert_column_with_attributes (-1, "Text", name_renderer, "markup", Index.TEXT);
-            
-            var selection = view.get_selection ();
-            selection.mode = SelectionMode.MULTIPLE;
-            selection.changed.connect(() => {
-                TreeModel model;
-                var selected = selection.get_selected_rows (out model);
-                if (!inactive && selected.length () != 0) {
-                    var path = selected.data;
-                    TreeIter iter;
-                    model.get_iter (out iter, path);
-                    Fb.Id id;
-                    model.get (iter, Index.ID, out id, -1);
+            var name_column = new TreeViewColumn.with_attributes ("Text", name_renderer,
+                 "markup", Index.TEXT);
+            name_column.expand = true;
+            view.append_column (name_column);
+
+            var time_renderer = new CellRendererText ();
+            time_renderer.alignment = Pango.Alignment.RIGHT;
+            time_renderer.align_set = true;
+            time_renderer.yalign = 0.32f;
+            time_renderer.xalign = 1;
+            time_renderer.xpad = 6;
+            time_renderer.set_fixed_height_from_font (2);
+            view.insert_column_with_attributes (-1, "Time", time_renderer, "markup",
+                Index.TIME_DESCRIPTION);
+
+            view.row_activated.connect ((path, column) => {
+                TreeIter iter;
+                filtered.get_iter (out iter, path);
+                Fb.Id id = 0;
+                filtered.get (iter, Index.ID, out id, -1);
+                if (id != 0) {
                     thread_selected (id);
                 }
-                selection.unselect_all ();
             });
         }
         

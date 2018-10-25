@@ -18,11 +18,12 @@ namespace Ui {
             picture.clear ();
         }
         
-        public void set_menu (Gtk.Menu menu) {
-            var app_menu = new Granite.Widgets.AppMenu (menu);
+        public void set_menu (GLib.Menu menu) {
+            var menu_button = new Gtk.MenuButton ();
             var image = new Gtk.Image.from_icon_name ("open-menu-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
-            app_menu.icon_widget = image;
-            pack_end (app_menu);
+            menu_button.image = image;
+            menu_button.menu_model = menu;
+            pack_end (menu_button);
         }
     
         public HeaderBar () {

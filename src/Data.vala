@@ -1,16 +1,9 @@
 using GLib;
 using Gee;
 using Gdk;
+using Utils;
 
 namespace Fb {
-
-    bool my_id_equal (Fb.Id? a, Fb.Id? b) {
-        return a == b;
-    }
-    
-    uint my_id_hash (Fb.Id? id) {
-        return (uint) id;
-    }
 
     public class Data : Object {
         
@@ -20,49 +13,16 @@ namespace Fb {
             int64 contact_id;
         }
 
-        private class DelayedOps : Object {
-
-            public delegate void Operation ();
-
-            private class OpWrapper {
-                private Operation op;
-
-                public OpWrapper (owned Operation o) {
-                    op = (owned)o;
-                }
-
-                public void run () {
-                    op ();
-                }
-            }
-
-            private GLib.List<OpWrapper> ops = new GLib.List<OpWrapper> ();
-            private bool released = false;
-
-            public void add (owned Operation op) {
-                if (released) {
-                    op ();
-                } else {
-                    ops.append (new OpWrapper ((owned)op));
-                }
-            }
-
-            public void release () {
-                if (!released) {
-                    released = true;
-                    foreach (var op in ops) {
-                        op.run ();
-                    }
-                    ops = null;
-                }
-            }
+        private struct LoadTask {
+            string path;
+            Promise<Pixbuf> promise;
         }
 
-        private string DATA_PATH;
-        private string CONTACTS_PATH;
-        private string THREADS_PATH;
-        private string PICTURES_PATH;
-        private string DESKTOP_PATH;
+        private static string DATA_PATH;
+        private static string CONTACTS_PATH;
+        private static string THREADS_PATH;
+        private static string PICTURES_PATH;
+        private static string DESKTOP_PATH;
         
         private const int64 UPDATE_THREAD_INTERVAL = 1000000; //one second
         private const int DOWNLOAD_LIMIT = 3;
@@ -84,6 +44,10 @@ namespace Fb {
         private Ui.ConvData conv_data;
                 
         private ThreadPool<DownloadTask?> photo_downloader;
+
+        private GLib.Queue<LoadTask?> load_queue;
+        private int opened_files = 0;
+        private const int OPENED_FILES_LIMIT = 100;
 
         private bool closed = false;
 
@@ -133,8 +97,11 @@ namespace Fb {
                     var thread = get_thread (id, group);
                     thread.load_from_json (node);
                 }
+                loading_finished ();
+                app.query_threads (app.SMALL_THREADS_COUNT);
             } catch (Error e) {
                 warning ("%s\n", e.message);
+                app.query_threads (app.THREADS_COUNT);
             }
             collective_updates.release ();
         }
@@ -183,17 +150,29 @@ namespace Fb {
         
         private void add_thread (Thread thread) {
             threads [thread.id] = thread;
-            new_thread (thread);
+            thread.do_when_ready (() => {
+                new_thread (thread);
+            });
         }
         
-        public void delete_files () {
+        public static void delete_files () {
             try {
                 var file = File.new_for_path (THREADS_PATH);
-                file.delete ();
+                if (file.query_exists ()) {
+                    file.delete ();
+                }
                 file = File.new_for_path (CONTACTS_PATH);
-                file.delete ();
+                if (file.query_exists ()) {
+                    file.delete ();
+                }
             } catch (Error e) {
                 warning ("%s\n", e.message);
+            }
+        }
+
+        public Fb.Id user_id {
+            get {
+                return api.uid;
             }
         }
         
@@ -221,6 +200,13 @@ namespace Fb {
             var thread = threads [id];
             return thread;
         }
+
+        public Thread? try_get_thread (Id id) {
+            if (!threads.has_key (id)) {
+                return null;
+            }
+            return threads [id];
+        }
         
         public void download_photo (string uri, int64 priority, Fb.Id id) {
             if (closed) {
@@ -235,11 +221,31 @@ namespace Fb {
             var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
             photo.save_to_stream (stream, "jpeg");
         }
+
+        private async bool update_load_queue () {
+            if (!load_queue.is_empty () && opened_files < OPENED_FILES_LIMIT) {
+                opened_files++;
+                var task = load_queue.pop_head ();
+                try {
+                    var file = File.new_for_path (task.path);
+                    var stream = yield file.read_async ();
+                    var photo = yield new Pixbuf.from_stream_async (stream, null);
+                    task.promise.set_value (photo);
+                } catch (Error e) {
+                    warning ("Error while loading photo: %d %s\n", e.code, e.message);
+                    task.promise.set_value (null);
+                }
+                opened_files--;
+                update_load_queue.begin();
+            }
+            return false;
+        }
         
         public async Pixbuf load_photo (Id id) throws Error {
-            var file = File.new_for_path (photo_path (id));
-            var stream = yield file.read_async ();
-            return yield new Pixbuf.from_stream_async (stream, null);
+            var promise = new Promise<Pixbuf> ();
+            load_queue.push_tail ({photo_path (id), promise});
+            update_load_queue.begin ();
+            return yield promise.future.wait_async ();
         }
 
         public bool parse_contact (ApiUser user, bool friends_only) {
@@ -286,6 +292,36 @@ namespace Fb {
                 parse_contacts (copy);
             });
         }
+
+        public void contacts_delta (void *added, void *removed) {
+            unowned SList<ApiUser?> users = (SList<ApiUser?>) added;
+            if (users != null) {
+                var copy = users.copy_deep ((user) => { return user.dup (true); });
+                copy.append (null);
+                collective_updates.add (() => {
+                    foreach (var contact in copy) {
+                        if (contact != null) {
+                            print ("contacts delta: added %lld\n", contact.uid);
+                        }
+                    }
+                    parse_contacts (copy);
+                });
+            }
+            unowned SList<string> removed_users = (SList<string>) removed;
+            if (removed_users != null) {
+                var copy_removed = removed_users.copy_deep ((id) => { return id.dup(); });
+                collective_updates.add (() => {
+                    foreach (string s in copy_removed) {
+                        print ("contacts delta: removed %s\n", s);
+                        contacts.unset (int64.parse (s));
+                    }
+        
+                    if (copy_removed.length () > 0) {
+                        save_contacts ();
+                    }
+                });
+            }
+        }
         
         public void contact_done (void *ptr) {
             unowned ApiUser user = (ApiUser) ptr;
@@ -295,20 +331,30 @@ namespace Fb {
             }
         }
         
-        private void update_thread (Fb.ApiThread thread) {
+        private bool update_thread (Fb.ApiThread thread) {
             if (thread.tid in null_contacts) {
-                return;
+                return false;
             }
             var th = get_thread (thread.tid, thread.is_group);
+            var result = th.update_time != thread.update_time;
             if (th.load_from_api (thread) && th.unread > 0 && th.mute_until == 0) {
-                new_message (th, th.last_message);
+                th.do_when_ready (() => { new_message (th, th.last_message); });
             }
-            unread_count (th.id, th.unread);
+            th.do_when_ready (() => { unread_count (th.id, th.unread); });
+            return result;
         }
         
         public void parse_threads (SList<ApiThread> threads) {
+            const int CHECK_LAST_THREADS = 10;
+            int i = 0, last_updated = -CHECK_LAST_THREADS, len = (int) threads.length ();
             foreach (var thread in threads) {
-                update_thread (thread);
+                if (update_thread (thread)) {
+                    last_updated = i;
+                }
+                i++;
+            }
+            if (len <= app.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
+                app.query_threads (app.THREADS_COUNT);
             }
             save_threads ();
             selective_updates.add (() => {
@@ -332,6 +378,14 @@ namespace Fb {
             update_thread (thread);
             save_threads ();
         }
+
+        public void update_presence (void *ptr) {
+            unowned SList<ApiPresence?> pres = (SList<ApiPresence?>) ptr;
+            foreach (unowned ApiPresence? p in pres) {
+                var contact = get_contact (p.uid);
+                contact.is_present = p.active;
+            }
+        }
         
         private void messages (void *ptr) {
             unowned SList<ApiMessage?> msgs = (SList<ApiMessage?>)ptr;
@@ -342,7 +396,9 @@ namespace Fb {
                 var time = get_monotonic_time () + UPDATE_THREAD_INTERVAL;
                 var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
-                    threads [msg.tid].update_request_time = time;
+                    if (msg.tid in threads) {
+                        threads [msg.tid].update_request_time = time;
+                    }
                     app.query_thread (msg.tid);
                 } else if (last_time < time) {
                     threads [msg.tid].update_request_time = time + UPDATE_THREAD_INTERVAL;
@@ -404,19 +460,21 @@ namespace Fb {
             }
         }
         
-        public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
+        public static void init_paths () {
             DATA_PATH = Main.data_path + "/data";
             CONTACTS_PATH = DATA_PATH + "/contacts";
             THREADS_PATH = DATA_PATH + "/threads";
             PICTURES_PATH = DATA_PATH + "/pictures";
             DESKTOP_PATH = DATA_PATH + "/desktop";
-        
+        }
+
+        public Data (Soup.Session ses, SocketClient cli, App ap, Api a) {
             session = ses;
             client = cli;
             app = ap;
             api = a;
             
-            conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME);
+            conv_data = new Ui.ConvData (DESKTOP_PATH, Main.APP_NAME, Main.OPEN_CHAT_NAME);
             new_thread.connect (conv_data.add_thread);
             
             contacts = new HashMap<Id?, Contact> (my_id_hash, my_id_equal);
@@ -433,10 +491,14 @@ namespace Fb {
             load_from_disk.begin ();
             
             api.contacts.connect (contacts_done);
+            api.contacts_delta.connect (contacts_delta);
             api.contact.connect (contact_done);
             api.threads.connect (threads_done);
             api.thread.connect (thread_done);
             api.messages.connect (messages);
+            api.presences.connect (update_presence);
+
+            load_queue = new GLib.Queue<LoadTask?> ();
 
             photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
                 DOWNLOAD_LIMIT, false);

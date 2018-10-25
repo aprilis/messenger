@@ -2,7 +2,7 @@ using GLib;
 using Gtk;
 using Granite.Widgets;
 
-public class Ui.PopOver : CompositedWindow {
+public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
 
     protected int arrow_offset { get; set; default = 0; }
     protected const int ARROW_WIDTH = 20;
@@ -18,17 +18,20 @@ public class Ui.PopOver : CompositedWindow {
     private Gtk.PositionType arrow_position = Gtk.PositionType.BOTTOM;    
     
     public Requisition get_size (Gtk.PositionType position) {
-        var req = get_requisition ();
+        var width = width_request, height = height_request;
         if (position == PositionType.TOP || position == PositionType.BOTTOM) {
-            req.height -= ARROW_HEIGHT;
+            height -= ARROW_HEIGHT;
         } else {
-            req.width -= ARROW_HEIGHT;
+            width -= ARROW_HEIGHT;
         }
-        return { req.width, req.height };
+        return { width, height };
     }
      
     private bool button_release (Gdk.EventButton event) {
-        close ();
+        if (event.x < 0 || event.y < 0 ||
+         event.x >= get_allocated_width () || event.y >= get_allocated_height ()) {
+             close();
+        }
         return false;
     }
     
@@ -146,9 +149,9 @@ public class Ui.PopOver : CompositedWindow {
         }
     }
     
-    public void activate () {
+    public override void show_all () {
         dont_close = true;
-        show_all ();
+        base.show_all ();
         FocusGrabber.grab (get_window (), false, true);
         Timeout.add (200, () => {
             dont_close = false;
@@ -156,7 +159,15 @@ public class Ui.PopOver : CompositedWindow {
         });
     }
     
-    public PopOver () {
+    public ApplicationPopOver (Gtk.Application application) {
+        Object (application: application);
+        app_paintable = true;
+        decorated = false;
+        resizable = false;
+        deletable = false;
+
+        set_visual (get_screen ().get_rgba_visual());
+
         type_hint = Gdk.WindowTypeHint.DOCK;
         skip_taskbar_hint = true;
         skip_pager_hint = true;
@@ -207,6 +218,10 @@ public class Ui.PopOver : CompositedWindow {
     }
     
     public void set_position (int x, int y, Gtk.PositionType arrow_pos) {
+        if (arrow_position != arrow_pos) {
+            arrow_position = arrow_pos;
+            update_child_margin ();
+        }
         var w = width_request, h = height_request;
         x -= w / 2;
         y -= h;

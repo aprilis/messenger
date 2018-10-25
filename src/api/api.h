@@ -102,14 +102,14 @@
  *
  */
 
-#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/38.0.0.22.155;FBBV/14477681]"
+#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/109.0.0.17.70;FBPN/com.facebook.orca;FBLC/en_US;FBBV/52182662]"
 
 /**
  * FB_API_AGENT:
  *
  * The HTTP User-Agent header.
  */
-#define FB_API_AGENT  "Facebook plugin / Purple / 0.9.3 " FB_ORCA_AGENT
+#define FB_API_AGENT  "Facebook plugin / Messenger app for elementary OS / 0.2.2 " FB_ORCA_AGENT
 
 /**
  * FB_API_MQTT_AGENT
@@ -167,7 +167,7 @@
  *
  * The URL for thread management requests.
  */
-#define FB_API_URL_THREADS  FB_API_GHOST "/me/threads"
+#define FB_API_URL_THREADS  FB_API_GHOST "/me/group_threads"
 
 /**
  * FB_API_URL_TOPIC:
@@ -201,10 +201,8 @@
  *   2: big_img_size
  *   3: huge_img_size
  *   4: small_img_size
- *   5: low_res_cover_size
- *   6: media_type
  */
-#define FB_API_QUERY_CONTACTS  10153856456271729
+#define FB_API_QUERY_CONTACTS  10154444360806729
 
 /**
  * FB_API_QUERY_CONTACTS_AFTER:
@@ -218,10 +216,23 @@
  *   3: big_img_size
  *   4: huge_img_size
  *   5: small_img_size
- *   6: low_res_cover_size
- *   7: media_type
  */
-#define FB_API_QUERY_CONTACTS_AFTER  10153856456281729
+#define FB_API_QUERY_CONTACTS_AFTER  10154444360816729
+
+/**
+ * FB_API_QUERY_CONTACTS_DELTA:
+ *
+ * The query hash for the `FetchContactsDeltaQuery`.
+ *
+ * Key mapping:
+ *   0: after
+ *   1: profile_types
+ *   2: limit
+ *   3: big_img_size
+ *   4: huge_img_size
+ *   5: small_img_size
+ */
+ #define FB_API_QUERY_CONTACTS_DELTA  10154444360801729
 
 /**
  * FB_API_QUERY_STICKER:
@@ -522,6 +533,7 @@ struct _FbApiPresence
  * @tid: The thread or user #FbId.
  * @topic: The topic.
  * @last_message: The last message
+ * @message_sender: The last message's author
  * @is_group: Is the thread a group thread
  * @unread: The number of unread messages
  * @mute_until: The time the thread is muted until, -1 if it's muted forever or 0 if not muted
@@ -534,6 +546,7 @@ struct _FbApiThread
 	FbId tid;
 	gchar *topic;
     gchar *last_message;
+	gchar *message_sender;
     gboolean is_group;
     gint unread;
 	gint64 mute_until;
@@ -760,12 +773,13 @@ fb_api_thread(FbApi *api, FbId tid);
  * fb_api_thread_create:
  * @api: The #FbApi.
  * @uids: (element-type Fb.Id): The #GSList of #FbId's.
+ * @name: The (optional) name of a new thread.
  *
  * Sends a thread creation request. In order to create a thread, there
  * must be at least two other users in @uids.
  */
 void
-fb_api_thread_create(FbApi *api, GSList *uids);
+fb_api_thread_create(FbApi *api, GSList *uids, const gchar *name);
 
 /**
  * fb_api_thread_invite:

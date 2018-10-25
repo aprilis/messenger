@@ -1,0 +1,30 @@
+v. 0.2.3
+
+- fixed problem with webpage not fitting into bubble
+- changed all http requests into asynchronous ones (it should prevent from freezing with low connection)
+- preventing chat bubbles from closing when switching keyboard layout
+- deprecated the "Messenger is not running..." dialog - now clicking on chat bubble always opens it
+- downloading photo when loading from disk fails
+
+v. 0.2.2
+
+- ensuring all data is deleted when logging out
+- fixed crash caused by having too many friends
+- fixed crash occuring after suspend
+- moved from GLib.Notification to libnotify
+- changed notification icons' shape into square
+- fixed problem with loading conversation getting stuck
+- fixed bug with bad-looking notifications about messages incoming from unknown person 
+
+v. 0.2.1
+
+- support for muted conversations
+- support for non-default Plank's positions
+- "close all conversations" works now when the app is not running
+- added 2-step verification info
+- showing message author in notification (in group threads)
+- updated Facebook API
+- fixed bugs:
+    - bubble going out of screen
+    - opening all conversations with no reason
+    - infinite reloading conversation

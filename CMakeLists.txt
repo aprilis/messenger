@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(messenger)
 
+link_directories(/usr/local/lib)
+
 # tell cmake where its modules can be found in our project directory
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake-modules/src)
 
@@ -33,10 +35,11 @@ vala_precompile(VALA_C messenger
     src/Conversation.vala
     src/FocusGrabber.vala
     src/ConvData.vala
+    src/ApplicationPopOver.vala
     src/PopOver.vala
     src/Main.vala
     src/HeaderBar.vala
-    src/MainWindow.vala
+    src/MainWindowManager.vala
     src/Loading.vala
     src/Screen.vala
     src/SignIn.vala
@@ -47,6 +50,12 @@ vala_precompile(VALA_C messenger
     src/LoadingScreen.vala
     src/Utils.vala
     src/LoginDialog.vala
+    src/Version.vala
+    src/GroupCreator.vala
+    src/FadeOutBin.vala
+    src/Shortcut.vala
+    src/Settings.vala
+    src/SettingsWindow.vala
 
 # tell what libraries to use when compiling
 PACKAGES
@@ -60,10 +69,14 @@ PACKAGES
     webkit2gtk-4.0
     granite
     unity
-    plank
+    libnotify
+    libbamf3
+    libwnck-3.0
     
 CUSTOM_VAPIS
     vapi/Fb.vapi
+    vapi/plank-internal.vapi
+    vapi/plank.vapi
     
 OPTIONS
     -g
@@ -71,7 +84,6 @@ OPTIONS
 
 # tell cmake what to call the executable we just made
 add_executable(${EXEC_NAME} ${VALA_C})
-
 target_link_libraries(${EXEC_NAME} PUBLIC api)
 target_include_directories(${EXEC_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
@@ -103,10 +115,19 @@ pkg_search_module(PLANK REQUIRED plank)
 target_compile_options(${EXEC_NAME} PUBLIC ${PLANK_CFLAGS})
 target_link_libraries(${EXEC_NAME} PUBLIC ${PLANK_LIBRARIES})
 
+pkg_search_module(LIBNOTIFY REQUIRED libnotify)
+target_compile_options(${EXEC_NAME} PUBLIC ${LIBNOTIFY_CFLAGS})
+target_link_libraries(${EXEC_NAME} PUBLIC ${LIBNOTIFY_LIBRARIES})
 
 # install the binaries we just made
 install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
 
+# install open chat script
+install (PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/script/messenger-open-chat DESTINATION bin)
+
 # install our .desktop file so the Applications menu will see it
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/com.github.aprilis.messenger.desktop DESTINATION ${DATADIR}/applications/)
+
+include(GSettings)
+add_schema("schemas/com.github.aprilis.messenger.gschema.xml")
 

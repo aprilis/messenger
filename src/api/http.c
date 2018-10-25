@@ -131,39 +131,10 @@ fb_http_error_chk(SoupMessage *res, GError **error)
 	return FALSE;
 }
 
-void
-fb_http_extract_data(SoupRequestHTTP *req, GAsyncResult *res, GError **err)
-{
-    SoupMessage *message = soup_request_http_get_message(req);
-    if(message->response_body->data)
-    {
-        g_object_unref(message);
-        return;
-    }
-
-    GInputStream *stream = soup_request_send_finish((SoupRequest*)req, res, err);
-    if(stream == NULL) {
-    	g_object_unref(message);
-    	return;
-    }
-    GDataInputStream *data = g_data_input_stream_new(stream);
-    gsize length;
-
-    char *input = g_data_input_stream_read_upto(data, "\0", 1,
-        &length, NULL, err);
-
-    g_object_unref(stream);
-    g_object_unref(data);
-
-    message->response_body->length = length;
-    message->response_body->data = input;
-    g_object_unref(message);
-}
-
 FbHttpParams *
 fb_http_params_new(void)
 {
-        return g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+	return g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 }
 
 FbHttpParams *

@@ -11,7 +11,12 @@ namespace Ui {
         private const string SUCCESS_URL = MESSENGER_URL + "/t/";
 
         private const string INIT_SCRIPT = """
-                document.getElementById('u_0_3').checked = true;
+                elements = document.getElementsByTagName('input');
+                for(i = 0; i < elements.length; i++) {
+                    if(elements[i].type == 'checkbox') {
+                        elements[i].checked = true;
+                    }
+                }
             """;
 
         private WebView webview;
