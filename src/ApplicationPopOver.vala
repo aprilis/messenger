@@ -222,7 +222,10 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
             arrow_position = arrow_pos;
             update_child_margin ();
         }
-        var w = width_request, h = height_request, cx = x + w / 2, cy = y + h / 2;
+        var w = width_request, h = height_request;
+        x -= w / 2;
+        y -= h;
+        var cx = x + w / 2, cy = y + h / 2;
         Gdk.Rectangle rect;
         screen.get_monitor_geometry (screen.get_monitor_at_point (cx, cy), out rect);
         var offset_x = 0.clamp (rect.x - x, rect.x + rect.width - x - w);

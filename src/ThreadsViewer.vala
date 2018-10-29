@@ -75,7 +75,7 @@ namespace Ui {
                     out next_update_time);
                 var time_markup = "<span foreground = \"gray\">" + time_description + "</span>";
                 if (thread.is_present) {
-                    time_markup += "\n<span font_desc = \"13.0\" foreground = \"#2DC814\">⚫</span>";
+                    time_markup += "\n<span font_desc = \"8.0\" foreground = \"#2DC814\">⬤ </span>";
                 }
                 list.set (iter, Index.UPDATE_TIME, thread.update_time,
                     Index.TIME_DESCRIPTION, time_markup, -1);

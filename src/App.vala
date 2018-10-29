@@ -702,10 +702,12 @@ namespace Fb {
                 var client = Plank.DBusClient.get_instance ();
                 var uri = data.desktop_file_uri (id);
                 try {
-                    var dock_position = dock_preferences.Position;
-                    var position = client.get_menu_position (uri, conversation.get_size (dock_position));
-                    if (conversation.current_id == id && position != null) {
-                        conversation.show(position[0], position[1], dock_position);
+                    int x, y;
+                    Gtk.PositionType position_type;
+                    var ok = client.get_hover_position (uri, out x, out y, out position_type);
+                    if (conversation.current_id == id && ok) {
+                        print ("plank position: %s\n", position_type.to_string ());
+                        conversation.show(x, y, position_type);
                         data.read_all (id);
                         if (id in notifications) {
                             notifications [id].close ();

@@ -6,7 +6,7 @@ namespace Ui {
     public class MainWindowManager {
 
         private const string STYLESHEET = """
-            GtkTreeView#threads row:selected {
+            #threads *:selected {
                 background: white;
             }
         """;
@@ -107,7 +107,6 @@ namespace Ui {
 
         public void show () {
             if (bubble) {
-                var dock_position = app.dock_preferences.Position;
                 var pop_over = (ApplicationPopOver) window;
                 int tries = 10;
                 Timeout.add (500, () => {
@@ -115,10 +114,14 @@ namespace Ui {
                         var client = Plank.DBusClient.get_instance ();
                         var uri = app.get_plank_launcher_uri ();
                         if (uri != null) {
-                            var position = client.get_menu_position (uri, pop_over.get_size (dock_position));
-                            pop_over.set_position (position[0], position[1], dock_position);
-                            window.show_all ();
-                            window.present ();
+                            Gtk.PositionType position_type;
+                            int x, y;
+                            var ok = client.get_hover_position (uri, out x, out y, out position_type);
+                            if(ok) {
+                                pop_over.set_position (x, y, position_type);
+                                window.show_all ();
+                                window.present ();
+                            } 
                         } else {
                             return tries-- > 0;
                         }

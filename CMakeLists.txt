@@ -69,11 +69,14 @@ PACKAGES
     webkit2gtk-4.0
     granite
     unity
-    plank
     libnotify
+    libbamf3
+    libwnck-3.0
     
 CUSTOM_VAPIS
     vapi/Fb.vapi
+    vapi/plank-internal.vapi
+    vapi/plank.vapi
     
 OPTIONS
     -g
