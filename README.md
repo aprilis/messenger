@@ -11,6 +11,8 @@ The best available desktop app for Facebook Messenger. Created for [elementary O
 
 ## Getting started
 
+If you are using elementaryOS 0.4 Loki, follow [these steps](https://github.com/aprilis/messenger/blob/loki/README.md). Otherwise:
+
 1. Download the repository and all necessary dependencies. Enter the terminal and type:
 
   ```
