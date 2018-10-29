@@ -6,7 +6,7 @@ namespace Ui {
     public class MainWindowManager {
 
         private const string STYLESHEET = """
-            GtkTreeView#threads row:selected {
+            #threads *:selected {
                 background: white;
             }
         """;
