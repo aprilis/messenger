@@ -7,7 +7,7 @@ namespace Ui {
 
         private const string STYLESHEET = """
             #threads *:selected {
-                background: white;
+                background: transparent;
             }
         """;
 
@@ -40,6 +40,12 @@ namespace Ui {
         public ApplicationWindow window { get; private set; }
 
         public bool bubble { get; private set; }
+        
+        private bool detect_dark_theme () {
+            var context = window.get_style_context ();
+            var col_bg = context.get_background_color (Gtk.StateFlags.NORMAL), col_fg = context.get_color (Gtk.StateFlags.NORMAL);
+            return col_bg.red + col_bg.green + col_bg.blue < col_fg.red + col_fg.green + col_fg.blue;
+        }
         
         private void set_current_screen (Screen screen) {
             if (current != null) {
@@ -75,9 +81,12 @@ namespace Ui {
                 window.set_size_request (settings.window_bubble_width, settings.window_bubble_height);
             } else {
                 window.set_default_size (settings.window_width, settings.window_height);
-                var col = new Gdk.RGBA ();
-                if (col.parse(settings.title_bar_color)) {
-                    Granite.Widgets.Utils.set_color_primary (window, col);
+                
+                if (!detect_dark_theme ()) {
+                    var col = new Gdk.RGBA ();   
+                    if (col.parse(settings.title_bar_color)) {
+                        Granite.Widgets.Utils.set_color_primary (window, col);
+                    }   
                 }
             }
         }

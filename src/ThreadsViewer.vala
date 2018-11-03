@@ -97,10 +97,10 @@ namespace Ui {
             private string get_user_markup () {
                 var weight = thread.unread > 0 ? "\"bold\"" : "\"normal\"";
                 return "<span font_desc = \"10.0\" weight = %s>%s</span>\n<span font_desc = \"9.0\"
-                        foreground = %s weight = %s>%s</span>".printf(
+                        %s weight = %s>%s</span>".printf(
                     weight,
                     Markup.escape_text(nullable_string(thread.name)),
-                    thread.unread > 0 ? "\"black\"" : "\"gray\"", weight, 
+                    thread.unread > 0 ? "" : "foreground = \"gray\"", weight, 
                     Markup.escape_text(limit_lines(nullable_string(thread.last_message))));
             }
             

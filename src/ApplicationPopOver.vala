@@ -205,11 +205,14 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
     
     //Code from Granite.Widgets.PopOver
     public override bool draw (Cairo.Context cr) {
+        var style_context = get_style_context ();
+    
         cr.new_path ();
         cr.append_path (main_buffer.context.copy_path ());
         cr.clip ();
-        cr.set_source_rgba (1, 1, 1, 1);
-        cr.paint ();
+        //cr.set_source_rgba (1, 1, 1, 1);
+        //cr.paint ();
+        style_context.render_background (cr, 0, 0, main_buffer.width, main_buffer.height);
         var ret = base.draw (cr);
         cr.reset_clip ();
         cr.set_source_surface (main_buffer.surface, 0, 0);
