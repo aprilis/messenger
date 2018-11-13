@@ -11,6 +11,7 @@ namespace Ui {
         
             private const string MESSENGER_URL = "https://www.messenger.com";
             private const string LOGIN_URL = MESSENGER_URL + "/login";
+            private const string CONVERSATION_URL = MESSENGER_URL + "/t";
             
             private const string STYLE_SHEET = """
                 div._1enh {
@@ -113,14 +114,16 @@ namespace Ui {
             }
 
             private bool handle_loading_finished () {
-                print ("handle_loading_finished - loading_finished = %s\n", loading_finished.to_string ());
-                print ("uri: %s\n", webview.get_uri ());
                 if (loading_finished) {
                     return false;
                 }
-                webview.run_javascript (MONITOR_COMPOSER, null);
+                
+                var uri = webview.get_uri ();
+                if (uri.has_prefix (CONVERSATION_URL)) {
+                    webview.run_javascript (MONITOR_COMPOSER, null);   
+                }
                 loading_finished = true;
-                if (webview.get_uri ().has_prefix (LOGIN_URL)) {
+                if (uri.has_prefix (LOGIN_URL)) {
                     last_id = 0;
                     auth_failed ();
                     return false;
@@ -149,9 +152,6 @@ namespace Ui {
                 webview.user_content_manager.add_style_sheet (style_sheet);
 
                 webview.load_changed.connect ((load_event) => {
-                    print ("load changed: %s\n", load_event.to_string ());
-                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
-                        webview.is_loading.to_string ());
                     if (load_event == LoadEvent.FINISHED) {
                         //handle_loading_finished ();
                     }
@@ -169,8 +169,6 @@ namespace Ui {
                     }
                 });
                 webview.notify ["is-loading"].connect ((s, p) => {
-                    print ("load progress: %lf, is-loading: %s\n", webview.estimated_load_progress,
-                        webview.is_loading.to_string ());
                     if (!webview.is_loading) {
                         handle_loading_finished ();
                     }
@@ -240,7 +238,7 @@ namespace Ui {
                                 elements[i].checked = true;
                             }
                         }
-                        document.getElementById('login_form').submit();
+                        document.getElementById('loginbutton').click();
                         clearInterval(interval);
                     }
                 }, 100)​;
@@ -260,9 +258,11 @@ namespace Ui {
                 username = user;
                 password = pass;
                 webview = new WebView ();
+                webview.get_settings ().enable_write_console_messages_to_stdout = true;
                 webview.load_changed.connect ((load_event) => {
                     if (load_event == LoadEvent.FINISHED) {
                         var uri = webview.get_uri ();
+                        print ("login uri: %s\n", uri);
                         if (uri.has_prefix (FAIL_URL)) {
                             username = "";
                             password = "";

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(messenger)
 
 link_directories(/usr/local/lib)
+link_directories(${CMAKE_SOURCE_DIR}/cef/lib)
 
 # tell cmake where its modules can be found in our project directory
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake-modules/src)
@@ -13,6 +14,7 @@ set (EXEC_NAME "messenger")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/api)
 
+set(ENV{PKG_CONFIG_PATH}  "${CMAKE_SOURCE_DIR}/cef/pkg-config")
 find_package(PkgConfig REQUIRED)
 
 # make sure we have vala
@@ -72,11 +74,15 @@ PACKAGES
     libnotify
     libbamf3
     libwnck-3.0
-    
+    gdk-x11-3.0
+
 CUSTOM_VAPIS
     vapi/Fb.vapi
     vapi/plank-internal.vapi
     vapi/plank.vapi
+    vapi/valacef.vapi
+    vapi/valacef_api.vapi
+    vapi/valacefgtk.vapi
     
 OPTIONS
     -g
@@ -118,6 +124,14 @@ target_link_libraries(${EXEC_NAME} PUBLIC ${PLANK_LIBRARIES})
 pkg_search_module(LIBNOTIFY REQUIRED libnotify)
 target_compile_options(${EXEC_NAME} PUBLIC ${LIBNOTIFY_CFLAGS})
 target_link_libraries(${EXEC_NAME} PUBLIC ${LIBNOTIFY_LIBRARIES})
+
+pkg_search_module(VALACEF REQUIRED valacef)
+target_compile_options(${EXEC_NAME} PUBLIC ${VALACEF_CFLAGS})
+target_link_libraries(${EXEC_NAME} PUBLIC ${VALACEF_LDFLAGS})
+
+pkg_search_module(VALACEFGTK REQUIRED valacefgtk)
+target_compile_options(${EXEC_NAME} PUBLIC ${VALACEFGTK_CFLAGS})
+target_link_libraries(${EXEC_NAME} PUBLIC ${VALACEFGTK_LDFLAGS})
 
 # install the binaries we just made
 install (TARGETS ${EXEC_NAME} RUNTIME DESTINATION bin)
