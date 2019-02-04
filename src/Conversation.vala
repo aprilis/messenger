@@ -58,6 +58,16 @@ namespace Ui {
                 }, 3000);
             """;
 
+            private const string MUTE_CALL_SOUND = """
+                document.addEventListener('DOMNodeInserted', e => {
+                    var sound_path = 'https://static.xx.fbcdn.net/rsrc.php/yh/r/taJw7SpZVz2.mp3';
+                    var elem = e.target;
+                    if(elem.getAttribute && elem.getAttribute('src') == sound_path) {
+                        elem.muted = true;
+                    }
+                }, false);
+            """;
+
             private int64 last_id;
             private bool user_changed = false;
             private bool loading_finished = true;
@@ -121,6 +131,7 @@ namespace Ui {
                 var uri = webview.get_uri ();
                 if (uri.has_prefix (CONVERSATION_URL)) {
                     webview.run_javascript (MONITOR_COMPOSER, null);   
+                    webview.run_javascript (MUTE_CALL_SOUND, null);   
                 }
                 loading_finished = true;
                 if (uri.has_prefix (LOGIN_URL)) {
@@ -146,6 +157,7 @@ namespace Ui {
                 var manager = context.get_cookie_manager ();
                 manager.set_persistent_storage (cookie_path, CookiePersistentStorage.TEXT);
                 webview = new WebView.with_context (context);
+                //webview.get_settings ().enable_write_console_messages_to_stdout = true;
                 
                 var style_sheet = new UserStyleSheet (STYLE_SHEET, UserContentInjectedFrames.TOP_FRAME,
                                                          UserStyleLevel.AUTHOR, null, null);
