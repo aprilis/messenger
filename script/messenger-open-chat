@@ -1,2 +1,0 @@
-#!/bin/bash
-(messenger --open-chat $1) &

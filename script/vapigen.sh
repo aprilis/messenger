@@ -1,16 +1,16 @@
 #!/bin/bash
 
-SRC=${PWD}/${1}/src/api
-DEST=${PWD}/${1}/vapi
-LIB=${PWD}/${1}/build/src/api
-DOC=${DEST}/doc
+SRC=$1/subprojects/libapi/api
+DEST=$1/vapi
+LIB=$1/build/subprojects/libapi
+DOC=$DEST/doc
 
 g-ir-scanner ${SRC}/http.[ch] ${SRC}/util.[ch] ${SRC}/marshal.[ch] ${SRC}/mqtt.[ch] \
              ${SRC}/json.[ch] ${SRC}/thrift.[ch] ${SRC}/api.[ch] ${SRC}/internal.h ${SRC}/id.h \
             --no-libtool \
             -o Fb.gir \
             --library-path=$LIB \
-            --library=api_so \
+            --library=com.github.aprilis.messenger.api \
             -lz \
             `pkg-config --libs gobject-2.0` \
             `pkg-config --libs glib-2.0` \

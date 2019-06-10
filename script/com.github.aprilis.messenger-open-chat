@@ -1,0 +1,2 @@
+#!/bin/bash
+(com.github.aprilis.messenger --open-chat $1) &

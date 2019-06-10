@@ -137,8 +137,6 @@ namespace Fb {
 	public class MqttMessage : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public MqttMessage (Fb.MqttMessageType type, Fb.MqttMessageFlags flags);
-		[CCode (has_construct_function = false)]
-		public MqttMessage.bytes (GLib.ByteArray bytes);
 		[CCode (cname = "fb_mqtt_message_bytes")]
 		public unowned GLib.ByteArray bytes_func ();
 		public bool read (void* data, uint size);
@@ -148,6 +146,8 @@ namespace Fb {
 		public bool read_str (string value);
 		public bool read_u16 (uint16 value);
 		public void reset ();
+		[CCode (has_construct_function = false)]
+		public MqttMessage.with_bytes (GLib.ByteArray bytes);
 		public void write (void* data, uint size);
 		public void write_byte (uint8 value);
 		public void write_mid (uint16 value);

@@ -4,8 +4,8 @@ using Gtk;
 public class Main : Granite.Application {
 
     public const string APP_ID = "com.github.aprilis.messenger";
-    public const string APP_NAME = "messenger";
-    public const string OPEN_CHAT_NAME = "messenger-open-chat";
+    public const string APP_NAME = "com.github.aprilis.messenger";
+    public const string OPEN_CHAT_NAME = "com.github.aprilis.messenger-open-chat";
     public const string APP_LAUNCHER = APP_ID + ".desktop";
     
     private bool is_fake;

@@ -3,11 +3,11 @@ Name=Messenger
 GenericName=Unofficial Facebook Messenger's app
 Comment=Chat with your friends
 Categories=GTK;Network;
-Exec=messenger --activate
+Exec=com.github.aprilis.messenger --activate
 Icon=internet-chat
 Terminal=false
 Type=Application
-X-GNOME-Gettext-Domain=messenger
+X-GNOME-Gettext-Domain=com.github.aprilis.messenger
 X-GNOME-UsesNotifications=true
 StartupNotify=true
 Keywords=Facebook;Messenger;Chat;
@@ -16,4 +16,4 @@ Actions=CloseAll;
 
 [Desktop Action CloseAll]
 Name=Close all conversations
-Exec=messenger --close-all
+Exec=com.github.aprilis.messenger --close-all

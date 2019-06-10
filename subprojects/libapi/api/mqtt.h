@@ -456,7 +456,7 @@ FbMqttMessage *
 fb_mqtt_message_new(FbMqttMessageType type, FbMqttMessageFlags flags);
 
 /**
- * fb_mqtt_message_new_bytes:
+ * fb_mqtt_message_new_with_bytes:
  * @bytes: The #GByteArray.
  *
  * Creates a new #FbMqttMessage from a #GByteArray. The returned
@@ -466,7 +466,7 @@ fb_mqtt_message_new(FbMqttMessageType type, FbMqttMessageFlags flags);
  * Returns: The new #FbMqttMessage.
  */
 FbMqttMessage *
-fb_mqtt_message_new_bytes(GByteArray *bytes);
+fb_mqtt_message_new_with_bytes(GByteArray *bytes);
 
 /**
  * fb_mqtt_message_reset:

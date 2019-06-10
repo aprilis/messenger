@@ -405,7 +405,7 @@ fb_mqtt_cb_read(GIOChannel *channel, GIOCondition cond, gpointer data)
 	}
 
 	if (priv->remz < 1) {
-		msg = fb_mqtt_message_new_bytes(priv->rbuf);
+		msg = fb_mqtt_message_new_with_bytes(priv->rbuf);
 		priv->remz = 0;
 
 		if (G_UNLIKELY(msg == NULL)) {
@@ -808,7 +808,7 @@ fb_mqtt_message_new(FbMqttMessageType type, FbMqttMessageFlags flags)
 }
 
 FbMqttMessage *
-fb_mqtt_message_new_bytes(GByteArray *bytes)
+fb_mqtt_message_new_with_bytes(GByteArray *bytes)
 {
 	FbMqttMessage *msg;
 	FbMqttMessagePrivate *priv;
