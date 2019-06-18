@@ -89,5 +89,13 @@
       </description>
     </key>
 
+    <key name="close-bubbles-on-quit" type="b">
+      <default>true</default>
+      <summary>close-bubbles-on-quit</summary>
+      <description>
+        Close all chat bubbles when you quit the app (or shutdown the computer)
+      </description>
+    </key>
+
   </schema>
 </schemalist>

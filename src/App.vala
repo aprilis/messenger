@@ -783,6 +783,9 @@ namespace Fb {
         }
 
         public void quit () {
+            if (settings.close_bubbles_on_quit) {
+                remove_heads ();
+            }
             window_manager.window.destroy ();
         }
     

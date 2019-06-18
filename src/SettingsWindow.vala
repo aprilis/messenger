@@ -72,6 +72,11 @@ namespace Ui {
             var window_bubble_switch = create_switch (settings, "main-window-bubble");
             grid.attach (window_bubble_label, 0, 4, 1, 1);
             grid.attach (window_bubble_switch, 1, 4, 1, 1);
+
+            var close_bubbles_label = create_label ("Close bubbles on quit");
+            var close_bubbles_switch = create_switch (settings, "close-bubbles-on-quit");
+            grid.attach (close_bubbles_label, 0, 5, 1, 1);
+            grid.attach (close_bubbles_switch, 1, 5, 1, 1);
                     
             grid.margin_bottom = 40;
 

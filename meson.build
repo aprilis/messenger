@@ -60,6 +60,7 @@ executable(
         dependency('libnotify'),
         libapi_dep,
         valac.find_library('Fb', dirs: [vapi_dir]),
+        valac.find_library('posix')
     ],
     install: true
 )

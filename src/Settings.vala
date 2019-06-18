@@ -17,6 +17,7 @@ namespace Ui {
         public int window_height { get; set; }
         public bool main_window_bubble { get; set; }
         public bool show_available_users { get; set; }
+        public bool close_bubbles_on_quit { get; set; }
 
         public Settings () {
             base ("com.github.aprilis.messenger");

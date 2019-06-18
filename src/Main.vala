@@ -1,6 +1,12 @@
 using GLib;
 using Gtk;
 
+private void signal_handler (int signum) {
+    Posix.signal (signum, signal_handler);
+    print ("Received signal %s\n", Posix.strsignal (signum));
+    Fb.App.instance ().quit ();
+}
+
 public class Main : Granite.Application {
 
     public const string APP_ID = "com.github.aprilis.messenger";
@@ -91,6 +97,8 @@ public class Main : Granite.Application {
         make_dir (cache_path);
 
         Fb.App.instance ();
+
+        Posix.signal (Posix.Signal.TERM, signal_handler);
     }
 
     public override int command_line (ApplicationCommandLine command_line) {
