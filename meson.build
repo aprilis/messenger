@@ -69,6 +69,7 @@ install_data(
     'data' / meson.project_name() + '.desktop',
     install_dir: join_paths(get_option('datadir'), 'applications')
 )
+
 install_data (
     'schemas' / meson.project_name () + '.gschema.xml',
     install_dir: join_paths (get_option ('datadir'), 'glib-2.0', 'schemas'),
@@ -77,3 +78,5 @@ install_data (
     'script' / meson.project_name () + '-open-chat',
     install_dir: get_option ('bindir'),
 )
+
+meson.add_install_script('script/post_install.py')
