@@ -32,7 +32,8 @@ src = [
     'src/FadeOutBin.vala',
     'src/Shortcut.vala',
     'src/Settings.vala',
-    'src/SettingsWindow.vala'
+    'src/SettingsWindow.vala',
+    'src/DBus.vala'
 ]
 
 libapi = subproject('libapi')

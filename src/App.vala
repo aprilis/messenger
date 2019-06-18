@@ -14,6 +14,8 @@ namespace Fb {
             API,
             WEBVIEW
         }
+
+        private delegate void PlankOperation (Plank.DBusClient client);
         
         private const string SESSION_FILE = "session";
         private const string CONFIRMED_FILE = "confirmed_users";
@@ -719,55 +721,54 @@ namespace Fb {
                 return false;
             });
         }
-        
-        public static void remove_head (Fb.Id removed_id) {
+
+        private static void plank_operation (PlankOperation op) {
             try {
                 var client = Plank.DBusClient.get_instance ();
-                
-                int tries = 10;
-                Timeout.add (50, () => {
-                    if (!client.is_connected) {
-                        return tries-- > 0;
-                    }
-                    var apps = client.get_persistent_applications ();
-                    foreach (var app in apps) {
-                        var f = File.new_for_uri (app);
-                        var name = f.get_basename ().split (".")[0];
-                        int64 id;
-                        if (int64.try_parse (name, out id) && id == removed_id && f.get_path ().has_prefix (Main.data_path)) {
-                            client.remove_item (app);
+
+                if (client.is_connected) {
+                    op (client);
+                } else {
+                    int tries = 10;
+                    Timeout.add (50, () => {
+                        if (!client.is_connected) {
+                            return tries-- > 0;
                         }
-                    }
-                    return false;
-                });
+                        op (client);
+                        return false;
+                    });
+                }
             } catch (Error e) {
-                warning ("Remove head error %s\n", e.message);
+                warning ("Plank operation error %s\n", e.message);
             }
         }
         
+        public static void remove_head (Fb.Id removed_id) {
+            plank_operation ((client) => {
+                var apps = client.get_persistent_applications ();
+                foreach (var app in apps) {
+                    var f = File.new_for_uri (app);
+                    var name = f.get_basename ().split (".")[0];
+                    int64 id;
+                    if (int64.try_parse (name, out id) && id == removed_id && f.get_path ().has_prefix (Main.data_path)) {
+                        client.remove_item (app);
+                    }
+                }
+            });
+        }
+        
         public static void remove_heads (Fb.Id except = 0) {
-            try {
-                var client = Plank.DBusClient.get_instance ();
-                
-                int tries = 10;
-                Timeout.add (50, () => {
-                    if (!client.is_connected) {
-                        return tries-- > 0;
+            plank_operation ((client) => {
+                var apps = client.get_persistent_applications ();
+                foreach (var app in apps) {
+                    var f = File.new_for_uri (app);
+                    var name = f.get_basename ().split (".")[0];
+                    int64 id;
+                    if (int64.try_parse (name, out id) && id != except && f.get_path ().has_prefix (Main.data_path)) {
+                        client.remove_item (app);
                     }
-                    var apps = client.get_persistent_applications ();
-                    foreach (var app in apps) {
-                        var f = File.new_for_uri (app);
-                        var name = f.get_basename ().split (".")[0];
-                        int64 id;
-                        if (int64.try_parse (name, out id) && id != except && f.get_path ().has_prefix (Main.data_path)) {
-                            client.remove_item (app);
-                        }
-                    }
-                    return false;
-                });
-            } catch (Error e) {
-                warning ("Remove heads error %s\n", e.message);
-            }
+                }
+            });
         }
         
         public void reload_conversation (Fb.Id id) {

@@ -15,6 +15,8 @@ public class Main : Granite.Application {
     public const string APP_LAUNCHER = APP_ID + ".desktop";
     
     private bool is_fake;
+
+    private LoginManager login;
     
     private Main (bool fake) {
         Object (application_id: APP_ID,
@@ -99,6 +101,15 @@ public class Main : Granite.Application {
         Fb.App.instance ();
 
         Posix.signal (Posix.Signal.TERM, signal_handler);
+
+        try {
+            login = get_login_manager ();
+            login.prepare_for_shutdown.connect ((active) => {
+                Fb.App.instance ().quit ();
+            });
+        } catch (Error e) {
+            warning ("DBus connect error: %s", e.message);
+        }
     }
 
     public override int command_line (ApplicationCommandLine command_line) {
