@@ -17,17 +17,17 @@ If you are using elementaryOS 0.4 Loki, follow [these steps](https://github.com/
 
   ```
   git clone https://github.com/aprilis/messenger
-  sudo apt install elementary-sdk libwebkit2gtk-4.0-dev libunity-dev libsoup2.4-dev libnotify-dev libplank-dev libbamf3-dev libwnck-3-dev intltool cmake
+  sudo apt install elementary-sdk libwebkit2gtk-4.0-dev libunity-dev libsoup2.4-dev libnotify-dev libplank-dev libbamf3-dev libwnck-3-dev intltool meson
   ```
 
 2. Build the app.
 
   ```
-  mkdir build
+  meson build
   cd build
-  cmake ..
-  make
-  sudo make install
+  ninja
+  ninja install
+  sudo ldconfig
   ```
 
 ## Updates
@@ -37,7 +37,7 @@ As this app isn't stable yet, updates may occur quite often. To download and ins
   ```
   git pull
   cd build
-  sudo make install
+  ninja install
   ```
 
 Now you have to restart the app. To do this, open the main window, click the gear icon and select 'Quit'. Now open the main window again - your app is up-to-date!
