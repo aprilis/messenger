@@ -4,7 +4,7 @@
     <id>com.github.aprilis.messenger.desktop</id>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0+</project_license>
-    <name>Screencast</name>
+    <name>Messenger</name>
     <summary>Unofficial Facebook Messenger App</summary>
     <description>
         <p>The best available desktop app for Facebook Messenger. Created for elementary OS. Inspired by this mockup. Many thanks to purple facebook's authors for creating API to communicate with Messenger service.</p>
