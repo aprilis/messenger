@@ -7,7 +7,7 @@ The best available desktop app for Facebook Messenger. Created for [elementary O
 3. Simple, beautiful interface
 4. No useless, Snapchat-like features :)
 
-![alt text](https://raw.githubusercontent.com/aprilis/messenger/master/screenshot.png)
+![alt text](https://raw.githubusercontent.com/aprilis/messenger/master/data/screenshot.png)
 
 ## Getting started
 
