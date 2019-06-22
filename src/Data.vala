@@ -98,10 +98,10 @@ namespace Fb {
                     thread.load_from_json (node);
                 }
                 loading_finished ();
-                app.query_threads (app.SMALL_THREADS_COUNT);
+                app.query_threads (Fb.App.SMALL_THREADS_COUNT);
             } catch (Error e) {
                 warning ("%s\n", e.message);
-                app.query_threads (app.THREADS_COUNT);
+                app.query_threads (Fb.App.THREADS_COUNT);
             }
             collective_updates.release ();
         }
