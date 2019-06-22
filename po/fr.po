@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.aprilis.messenger\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-22 17:11+0200\n"
+"POT-Creation-Date: 2019-06-22 17:36+0200\n"
 "PO-Revision-Date: 2019-06-22 17:11+0200\n"
 "Last-Translator: NathanBnm\n"
 "Language-Team: none\n"
@@ -22,8 +22,9 @@ msgid ""
 "Please note that this is NOT an official Facebook Messenger app. Use it at "
 "your own risk. Do you still want to continue?"
 msgstr ""
-"Veuillez noter qu'il ne s'agit PAS d'une application officielle de Facebook Messenger. C'est à vos risques et périls. "
-"Voulez vous tout de même continuer ?"
+"Veuillez noter qu'il ne s'agit PAS d'une application officielle de Facebook "
+"Messenger. C'est à vos risques et périls. Voulez vous tout de même "
+"continuer ?"
 
 #: src/App.vala:624
 msgid "Your account"
@@ -91,6 +92,10 @@ msgstr "Nouveau message dans %s"
 msgid "New message from %s to %s"
 msgstr "Nouveau message de %s dans %s"
 
+#: src/Loading.vala:21
+msgid "Loading..."
+msgstr "Chargement..."
+
 #: src/LoadingScreen.vala:10
 msgid "Loading"
 msgstr "Chargement"
@@ -111,7 +116,8 @@ msgstr "Messenger - Authentication"
 msgid ""
 "Application password detected. Please log in with you real password here"
 msgstr ""
-"Mot de passe d'application détecté. Veuillez vous connecter avec votre vrai mot de passe ici"
+"Mot de passe d'application détecté. Veuillez vous connecter avec votre vrai "
+"mot de passe ici"
 
 #: src/MainWindowManager.vala:159
 msgid "Facebook Messenger"
@@ -119,7 +125,35 @@ msgstr "Facebook Messenger"
 
 #: src/PasswordScreen.vala:40
 msgid "Re-enter password"
-msgstr "Retapez le mot de passe"
+msgstr "Entrez à nouveau le mot de passe"
+
+#: src/PasswordScreen.vala:44
+msgid "You must re-enter your password"
+msgstr "Vous devez entrer à nouveau votre mot de passe"
+
+#: src/PasswordScreen.vala:52
+msgid "Log out"
+msgstr "Se déconnecter"
+
+#: src/PasswordScreen.vala:59
+msgid "Done"
+msgstr "Valider"
+
+#: src/PasswordScreen.vala:65 src/SignIn.vala:61
+msgid "Password"
+msgstr "Mot de passe"
+
+#: src/PasswordScreen.vala:70 src/SignIn.vala:86
+msgid "Connection failed"
+msgstr "Échec de la connexion"
+
+#: src/PasswordScreen.vala:71 src/SignIn.vala:87
+msgid "Wrong username or password"
+msgstr "Identifiant ou mot de passe incorrect"
+
+#: src/PasswordScreen.vala:72 src/SignIn.vala:88
+msgid "Other error"
+msgstr "Autre erreur"
 
 #: src/SettingsWindow.vala:41
 msgid "Close"
@@ -127,7 +161,7 @@ msgstr "Fermer"
 
 #: src/SettingsWindow.vala:59
 msgid "Close & forget shortcut:"
-msgstr "Fermer et oublier le raccourci :"
+msgstr "Raccourci pour fermer et oublier :"
 
 #: src/SettingsWindow.vala:66
 msgid "Automatically add bubbles:"
@@ -139,7 +173,7 @@ msgstr "Fenêtre principale dans une bulle (redémarrage nécessaire) :"
 
 #: src/SettingsWindow.vala:76
 msgid "Close bubbles on quit"
-msgstr "Fermer les bulles lors de la fermeture de l'application"
+msgstr "Fermer les bulles lors de la fermeture"
 
 #: src/SettingsWindow.vala:99
 msgid "Press some keys!"
@@ -157,25 +191,9 @@ msgstr "Entrez votre identifiant et mot de passe"
 msgid "Email or phone number"
 msgstr "E-mail ou numéro de téléphone"
 
-#: src/SignIn.vala:61
-msgid "Password"
-msgstr "Mot de passe"
-
 #: src/SignIn.vala:75
 msgid "Back"
 msgstr "Retour"
-
-#: src/SignIn.vala:86
-msgid "Connection failed"
-msgstr "Échec de la connexion"
-
-#: src/SignIn.vala:87
-msgid "Wrong username or password"
-msgstr "Identifiant ou mot de passe incorrect"
-
-#: src/SignIn.vala:88
-msgid "Other error"
-msgstr "Autre erreur"
 
 #: src/SignIn.vala:89
 msgid ""
@@ -183,7 +201,8 @@ msgid ""
 "You need an app password to log in\n"
 msgstr ""
 "Utilisez-vous l'identification à deux facteurs ?\n"
-"Vous avez besoin d'un mot de passe d'application pour pouvoir vous connecter\n"
+"Vous avez besoin d'un mot de passe d'application pour pouvoir vous "
+"connecter\n"
 
 #: src/SignIn.vala:91
 msgid "Generate password"
@@ -226,7 +245,7 @@ msgstr "Connectez-vous à Facebook pour commencer."
 
 #: src/Welcome.vala:11
 msgid "Login to existing account"
-msgstr "Se connecter à un compt existant"
+msgstr "Se connecter à un compte existant"
 
 #: src/Welcome.vala:12
 msgid "Create a new account"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.aprilis.messenger\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-22 17:11+0200\n"
+"POT-Creation-Date: 2019-06-22 17:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -89,6 +89,10 @@ msgstr ""
 msgid "New message from %s to %s"
 msgstr ""
 
+#: src/Loading.vala:21
+msgid "Loading..."
+msgstr ""
+
 #: src/LoadingScreen.vala:10
 msgid "Loading"
 msgstr ""
@@ -116,6 +120,34 @@ msgstr ""
 
 #: src/PasswordScreen.vala:40
 msgid "Re-enter password"
+msgstr ""
+
+#: src/PasswordScreen.vala:44
+msgid "You must re-enter your password"
+msgstr ""
+
+#: src/PasswordScreen.vala:52
+msgid "Log out"
+msgstr ""
+
+#: src/PasswordScreen.vala:59
+msgid "Done"
+msgstr ""
+
+#: src/PasswordScreen.vala:65 src/SignIn.vala:61
+msgid "Password"
+msgstr ""
+
+#: src/PasswordScreen.vala:70 src/SignIn.vala:86
+msgid "Connection failed"
+msgstr ""
+
+#: src/PasswordScreen.vala:71 src/SignIn.vala:87
+msgid "Wrong username or password"
+msgstr ""
+
+#: src/PasswordScreen.vala:72 src/SignIn.vala:88
+msgid "Other error"
 msgstr ""
 
 #: src/SettingsWindow.vala:41
@@ -154,24 +186,8 @@ msgstr ""
 msgid "Email or phone number"
 msgstr ""
 
-#: src/SignIn.vala:61
-msgid "Password"
-msgstr ""
-
 #: src/SignIn.vala:75
 msgid "Back"
-msgstr ""
-
-#: src/SignIn.vala:86
-msgid "Connection failed"
-msgstr ""
-
-#: src/SignIn.vala:87
-msgid "Wrong username or password"
-msgstr ""
-
-#: src/SignIn.vala:88
-msgid "Other error"
 msgstr ""
 
 #: src/SignIn.vala:89
