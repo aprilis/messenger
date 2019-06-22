@@ -16,7 +16,7 @@ namespace Ui {
         private bool dont_hide = false;
         
         public SignUp () {
-            title = "Sign Up";
+            title = _("Sign Up");
             name = "sign_up";
         
             view = null;

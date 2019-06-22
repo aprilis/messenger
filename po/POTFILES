@@ -1,0 +1,14 @@
+src/App.vala
+src/GroupCreator.vala
+src/GroupThread.vala
+src/LoadingScreen.vala
+src/LoginDialog.vala
+src/MainWindowManager.vala
+src/PasswordScreen.vala
+src/SettingsWindow.vala
+src/SignIn.vala
+src/SignUp.vala
+src/SingleThread.vala
+src/ThreadsScreen.vala
+src/Utils.vala
+src/Welcome.vala

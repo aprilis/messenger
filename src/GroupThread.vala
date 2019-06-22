@@ -216,9 +216,9 @@ namespace Fb {
         public override string notification_text {
             owned get {
                 if (message_sender == null) {
-                    return "New message to " + _name;
+                    return _("New message to %s").printf(_name);
                 } else {
-                    return "New message from " + message_sender + " to " + _name;
+                    return _("New message from %s to %s").printf(message_sender, _name);
                 }
             }
         }

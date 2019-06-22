@@ -253,7 +253,7 @@ namespace Ui {
             search_faded.show ();
 
             var search_entry = new SearchEntry ();
-            search_entry.placeholder_text = "Search for friends...";
+            search_entry.placeholder_text = _("Search for friends...");
             search_entry.search_changed.connect (() => {
                 search_query = search_entry.text;
             });
@@ -304,7 +304,7 @@ namespace Ui {
             group_faded.add (group_window);
             group_faded.show ();
 
-            var placeholder = new Label ("Select friends to make a new group");
+            var placeholder = new Label (_("Select friends to make a new group"));
             placeholder.wrap = true;
             placeholder.wrap_mode = Pango.WrapMode.WORD;
             placeholder.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
@@ -312,10 +312,10 @@ namespace Ui {
             placeholder.show ();
 
             name_entry = new Gtk.Entry ();
-            name_entry.placeholder_text = "Group name (optional)";
+            name_entry.placeholder_text = _("Group name (optional)");
             name_entry.show ();
 
-            create_button = new Button.with_label ("Create!");
+            create_button = new Button.with_label (_("Create!"));
             create_button.sensitive = false;
             create_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             create_button.show ();
@@ -332,7 +332,7 @@ namespace Ui {
                 create_group (ids, name_entry.text);
                 popover.hide ();
             });
-            create_button.tooltip_text = "You have to select at least 2 users";
+            create_button.tooltip_text = _("You have to select at least 2 users");
 
             var bottom_box = new Box (Orientation.HORIZONTAL, 5);
             bottom_box.pack_start (name_entry, true, true);
@@ -378,7 +378,7 @@ namespace Ui {
             var image = new Gtk.Image.from_icon_name ("system-users-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
             button.image = image;
             button.popover = popover;
-            button.tooltip_text = "Create a new group thread";
+            button.tooltip_text = _("Create a new group thread");
         }
 
     }

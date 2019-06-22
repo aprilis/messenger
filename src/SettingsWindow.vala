@@ -30,7 +30,7 @@ namespace Ui {
             border_width = 10;
             deletable = false;
             resizable = false;
-            title = "Preferences";
+            title = _("Preferences");
             transient_for = parent;
             destroy_with_parent = true;
             modal = true;
@@ -38,7 +38,7 @@ namespace Ui {
 
             this.settings = settings;
 
-            var close = add_button ("Close", Gtk.ResponseType.CLOSE);
+            var close = add_button (_("Close"), Gtk.ResponseType.CLOSE);
             response.connect ((id) => { destroy(); });
             destroy.connect (() => {
                 if (parent != null) {
@@ -50,30 +50,30 @@ namespace Ui {
             grid.row_spacing = 6;
             grid.column_spacing = 20;
 
-            var header = new Gtk.Label ("Preferences");
+            var header = new Gtk.Label (_("Preferences"));
             header.get_style_context ().add_class ("h4");
             header.halign = Gtk.Align.CENTER;
             header.valign = Gtk.Align.START;
             grid.attach (header, 0, 0, 2, 2);
 
-            var close_and_remove_label = create_label ("Close & forget shortcut:");
+            var close_and_remove_label = create_label (_("Close & forget shortcut:"));
             var close_and_remove_shortcut = new ShotcutButton (settings.close_and_remove_shortcut);
             settings.schema.bind ("close-and-remove-shortcut", close_and_remove_shortcut, "shortcut", 
                 SettingsBindFlags.DEFAULT);
             grid.attach (close_and_remove_label, 0, 2, 1, 1);
             grid.attach (close_and_remove_shortcut, 1, 2, 1, 1);
 
-            var create_new_bubbles_label = create_label ("Automatically add bubbles:");
+            var create_new_bubbles_label = create_label (_("Automatically add bubbles:"));
             var create_new_bubbles_switch = create_switch (settings, "create-new-bubbles");
             grid.attach (create_new_bubbles_label, 0, 3, 1, 1);
             grid.attach (create_new_bubbles_switch, 1, 3, 1, 1);
 
-            var window_bubble_label = create_label ("Main window in a bubble (restart required):");
+            var window_bubble_label = create_label (_("Main window in a bubble (restart required):"));
             var window_bubble_switch = create_switch (settings, "main-window-bubble");
             grid.attach (window_bubble_label, 0, 4, 1, 1);
             grid.attach (window_bubble_switch, 1, 4, 1, 1);
 
-            var close_bubbles_label = create_label ("Close bubbles on quit");
+            var close_bubbles_label = create_label (_("Close bubbles on quit"));
             var close_bubbles_switch = create_switch (settings, "close-bubbles-on-quit");
             grid.attach (close_bubbles_label, 0, 5, 1, 1);
             grid.attach (close_bubbles_switch, 1, 5, 1, 1);
@@ -96,7 +96,7 @@ namespace Ui {
             set {
                 _listen = value;
                 if (value) {
-                    label = "Press some keys!";
+                    label = _("Press some keys!");
                 }
                 else {
                     label = new Shortcut.parse (shortcut).to_readable ();

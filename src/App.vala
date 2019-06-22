@@ -571,7 +571,7 @@ namespace Fb {
         public void log_in (string? username, string password) {
             if (username != null && !(username in confirmed_users)) {
                 var dialog = new MessageDialog (window_manager.window, DialogFlags.MODAL, MessageType.WARNING, ButtonsType.YES_NO,
-                    "Please note that this is NOT an official Facebook Messenger app. Use it at your own risk. Do you still want to continue?");
+                    _("Please note that this is NOT an official Facebook Messenger app. Use it at your own risk. Do you still want to continue?"));
                 dialog.response.connect ((response_id) => {
                     if (response_id == ResponseType.YES) {
                         confirmed_users.add (username);
@@ -621,26 +621,26 @@ namespace Fb {
             
             var menu = new GLib.Menu ();
             var account_section = new GLib.Menu ();
-            menu.append_section ("Your account", account_section);
-            window_manager.append_menu_item (account_section, "Reconnect", () => {
+            menu.append_section (_("Your account"), account_section);
+            window_manager.append_menu_item (account_section, _("Reconnect"), () => {
                 data.close ();
                 data = null;
                 auth_done ();
             });
-            window_manager.append_menu_item (account_section, "Close all conversations", () => {
+            window_manager.append_menu_item (account_section, _("Close all conversations"), () => {
                 remove_heads (); 
             });
-            window_manager.append_menu_item (account_section, "Log Out & Quit", log_out);
+            window_manager.append_menu_item (account_section, _("Log Out & Quit"), log_out);
             var app_section = new GLib.Menu ();
-            menu.append_section ("App", app_section);
-            window_manager.append_menu_item (app_section, "Preferences", () => {
+            menu.append_section (_("App"), app_section);
+            window_manager.append_menu_item (app_section, _("Preferences"), () => {
                 var settings_window = new Ui.SettingsWindow (window_manager.window, settings);
                 settings_window.show_all ();
             });
-            window_manager.append_menu_item (app_section, "About", () => {
+            window_manager.append_menu_item (app_section, _("About"), () => {
                 application.show_about (window_manager.window);
             });
-            window_manager.append_menu_item (app_section, "Quit", () => {
+            window_manager.append_menu_item (app_section, _("Quit"), () => {
                 quit ();
             });
             
