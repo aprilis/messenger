@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2019 Jarosław Kwiecień <kwiecienjaro@gmail.com> -->
+<component type="desktop">
+    <id>com.github.aprilis.messenger.desktop</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0+</project_license>
+    <name>Messenger</name>
+    <summary>Unofficial Facebook Messenger App</summary>
+    <description>
+        <p>The best available desktop app for Facebook Messenger. Created for elementary OS. Inspired by this mockup. Many thanks to purple facebook's authors for creating API to communicate with Messenger service.</p>
+        <ul>
+            <li>Native notifications of incoming messages (including notification badges)</li>
+            <li>Easy access to your conversations via chat bubbles</li>
+            <li>Simple, beautiful interface</li>
+            <li>No useless, Snapchat-like features :)</li>
+        </ul>
+    </description>
+    <categories>
+        <category>Network</category>
+    </categories>
+    <developer_name>Aprilis</developer_name>
+    <url type="homepage">https://github.com/aprilis/messenger</url>
+    <url type="bugtracker">https://github.com/aprilis/messenger/issues</url>
+    <url type="help">https://github.com/aprilis/messenger/issues</url>
+    <update_contact>kwiecienjaro@gmail.com</update_contact>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://raw.githubusercontent.com/aprilis/messenger/master/data/screenshot.png</image>
+        </screenshot>
+    </screenshots>
+    <releases>
+
+    </releases>
+    <content_rating type="oars-1.1">
+        <content_attribute id="violence-cartoon">none</content_attribute>
+        <content_attribute id="violence-fantasy">none</content_attribute>
+        <content_attribute id="violence-realistic">none</content_attribute>
+        <content_attribute id="violence-bloodshed">none</content_attribute>
+        <content_attribute id="violence-sexual">none</content_attribute>
+        <content_attribute id="violence-desecration">none</content_attribute>
+        <content_attribute id="violence-slavery">none</content_attribute>
+        <content_attribute id="violence-worship">none</content_attribute>
+        <content_attribute id="drugs-alcohol">none</content_attribute>
+        <content_attribute id="drugs-narcotics">none</content_attribute>
+        <content_attribute id="drugs-tobacco">none</content_attribute>
+        <content_attribute id="sex-nudity">none</content_attribute>
+        <content_attribute id="sex-themes">none</content_attribute>
+        <content_attribute id="sex-homosexuality">none</content_attribute>
+        <content_attribute id="sex-prostitution">none</content_attribute>
+        <content_attribute id="sex-adultery">none</content_attribute>
+        <content_attribute id="sex-appearance">none</content_attribute>
+        <content_attribute id="language-profanity">none</content_attribute>
+        <content_attribute id="language-humor">none</content_attribute>
+        <content_attribute id="language-discrimination">none</content_attribute>
+        <content_attribute id="social-chat">intense</content_attribute>
+        <content_attribute id="social-info">none</content_attribute>
+        <content_attribute id="social-audio">intense</content_attribute>
+        <content_attribute id="social-location">none</content_attribute>
+        <content_attribute id="social-contacts">intense</content_attribute>
+        <content_attribute id="money-purchasing">none</content_attribute>
+        <content_attribute id="money-gambling">none</content_attribute>
+    </content_rating>
+</component>

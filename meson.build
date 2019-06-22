@@ -1,52 +1,25 @@
-# project name and programming language
-project('com.github.aprilis.messenger', 'vala', 'c')
+project('com.github.aprilis.messenger', 'vala', 'c', version: '0.2.3')
 
-src = [
-    'src/App.vala',
-    'src/Data.vala',
-    'src/Contact.vala',
-    'src/Thread.vala',
-    'src/SingleThread.vala',
-    'src/GroupThread.vala',
-    'src/ThreadsViewer.vala',
-    'src/Conversation.vala',
-    'src/FocusGrabber.vala',
-    'src/ConvData.vala',
-    'src/ApplicationPopOver.vala',
-    'src/PopOver.vala',
-    'src/Main.vala',
-    'src/HeaderBar.vala',
-    'src/MainWindowManager.vala',
-    'src/Loading.vala',
-    'src/Screen.vala',
-    'src/SignIn.vala',
-    'src/SignUp.vala',
-    'src/Welcome.vala',
-    'src/ThreadsScreen.vala',
-    'src/PasswordScreen.vala',
-    'src/LoadingScreen.vala',
-    'src/Utils.vala',
-    'src/LoginDialog.vala',
-    'src/Version.vala',
-    'src/GroupCreator.vala',
-    'src/FadeOutBin.vala',
-    'src/Shortcut.vala',
-    'src/Settings.vala',
-    'src/SettingsWindow.vala',
-    'src/DBus.vala'
-]
+i18n = import('i18n')
+
+add_project_arguments(
+    '-DGETTEXT_PACKAGE="@0@"'.format(meson.project_name()),
+    language: 'c'
+)
 
 libapi = subproject('libapi')
 libapi_dep = libapi.get_variable('libapi_dep')
 
 valac = meson.get_compiler('vala')
-vapi_dir = meson.current_source_dir() / 'vapi'
+vapi_dir = join_paths(meson.current_source_dir(), 'vapi')
+
 add_project_arguments(['--vapidir', vapi_dir], language: 'vala')
 
-# Create a new executable, list the files we want to compile, list the dependencies we need, and install
+subdir('src')
+
 executable(
     meson.project_name(),
-    src,
+    sources,
     dependencies: [
         dependency('gtk+-3.0'),
         dependency('libsoup-2.4'),
@@ -66,19 +39,7 @@ executable(
     install: true
 )
 
-#Install our .desktop file so the Applications Menu will see it
-install_data(
-    'data' / meson.project_name() + '.desktop',
-    install_dir: join_paths(get_option('datadir'), 'applications')
-)
+subdir('data')
+subdir('po')
 
-install_data (
-    'schemas' / meson.project_name () + '.gschema.xml',
-    install_dir: join_paths (get_option ('datadir'), 'glib-2.0', 'schemas'),
-)
-install_data (
-    'script' / meson.project_name () + '-open-chat',
-    install_dir: get_option ('bindir'),
-)
-
-meson.add_install_script('script/post_install.py')
+meson.add_install_script('meson/post_install.py')
