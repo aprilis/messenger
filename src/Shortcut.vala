@@ -10,7 +10,7 @@ namespace Ui
 		private Gdk.ModifierType  modifiers;
 		private uint              accel_key;
 		
-		private static const string SEPARATOR = " · ";
+		private const string SEPARATOR = " · ";
 		
 		// constructors
 		public Shortcut (uint key = 0, Gdk.ModifierType mod = (Gdk.ModifierType) 0)

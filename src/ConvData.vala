@@ -10,13 +10,13 @@ namespace Ui {
             Fb.Thread thread;
         }
 
-        private static const int ICON_SIZE = 128;
+        private const int ICON_SIZE = 128;
         
         private string directory;
         private string exec;
         private string open_chat_exec;
 
-        private static const int ICON_SAVERS = 10;
+        private const int ICON_SAVERS = 10;
         private ThreadPool<SaveTask?> icon_saver;
         private bool closed = false;
 
