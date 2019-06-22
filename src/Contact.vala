@@ -45,10 +45,14 @@ namespace Fb {
         }
         
         private async void load_photo_from_disk () {
-            photo = yield App.instance ().data.load_photo (id);
-            if (photo == null) {
-                photo_csum = null;
-                App.instance ().query_contact (id);
+            try {
+                photo = yield App.instance ().data.load_photo (id);
+                if (photo == null) {
+                    photo_csum = null;
+                    App.instance ().query_contact (id);
+                }                
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
             }
         }
         

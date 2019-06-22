@@ -24,8 +24,11 @@ namespace Version {
         } catch (Error e) {
             old_version = "";
         }
-        file.replace_contents (new_version.data, null, false, FileCreateFlags.NONE, null);
-
+        try {
+            file.replace_contents (new_version.data, null, false, FileCreateFlags.NONE, null);
+        } catch (Error e) {
+            warning ("GLib error: %s\n", e.message);
+        }
         if(compare_version(old_version, "0.2.3") == -1) {
             Ui.ConvData.overwrite_all = true;
         }
