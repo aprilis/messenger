@@ -1,232 +1,237 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# French translations for com.github.aprilis.messenger package.
+# Copyright (C) 2019 THE com.github.aprilis.messenger'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the com.github.aprilis.messenger package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# NathanBnm, 2019.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: com.github.aprilis.messenger\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-22 17:11+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2019-06-22 17:11+0200\n"
+"Last-Translator: NathanBnm\n"
+"Language-Team: none\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: src/App.vala:574
 msgid ""
 "Please note that this is NOT an official Facebook Messenger app. Use it at "
 "your own risk. Do you still want to continue?"
 msgstr ""
+"Veuillez noter qu'il ne s'agit PAS d'une application officielle de Facebook Messenger. C'est à vos risques et périls. "
+"Voulez vous tout de même continuer ?"
 
 #: src/App.vala:624
 msgid "Your account"
-msgstr ""
+msgstr "Votre compte"
 
 #: src/App.vala:625
 msgid "Reconnect"
-msgstr ""
+msgstr "Se reconnecter"
 
 #: src/App.vala:630
 msgid "Close all conversations"
-msgstr ""
+msgstr "Fermer toutes les conversations"
 
 #: src/App.vala:633
 msgid "Log Out & Quit"
-msgstr ""
+msgstr "Se déconnecter et quitter"
 
 #: src/App.vala:635
 msgid "App"
-msgstr ""
+msgstr "Application"
 
 #: src/App.vala:636 src/SettingsWindow.vala:33 src/SettingsWindow.vala:53
 msgid "Preferences"
-msgstr ""
+msgstr "Préférences"
 
 #: src/App.vala:640
 msgid "About"
-msgstr ""
+msgstr "À propos"
 
 #: src/App.vala:643
 msgid "Quit"
-msgstr ""
+msgstr "Quitter"
 
 #: src/GroupCreator.vala:256
 msgid "Search for friends..."
-msgstr ""
+msgstr "Rechercher des amis..."
 
 #: src/GroupCreator.vala:307
 msgid "Select friends to make a new group"
-msgstr ""
+msgstr "Sélectionnez des amis pour créer un nouveau groupe"
 
 #: src/GroupCreator.vala:315
 msgid "Group name (optional)"
-msgstr ""
+msgstr "Nom du groupe (facultatif)"
 
 #: src/GroupCreator.vala:318
 msgid "Create!"
-msgstr ""
+msgstr "Créer !"
 
 #: src/GroupCreator.vala:335
 msgid "You have to select at least 2 users"
-msgstr ""
+msgstr "Vous devez sélectionner au moins 2 utilisateurs"
 
 #: src/GroupCreator.vala:381
 msgid "Create a new group thread"
-msgstr ""
+msgstr "Créer une nouuvelle discussion de groupe"
 
 #: src/GroupThread.vala:219
 #, c-format
 msgid "New message to %s"
-msgstr ""
+msgstr "Nouveau message dans %s"
 
 #: src/GroupThread.vala:221
 #, c-format
 msgid "New message from %s to %s"
-msgstr ""
+msgstr "Nouveau message de %s dans %s"
 
 #: src/LoadingScreen.vala:10
 msgid "Loading"
-msgstr ""
+msgstr "Chargement"
 
 #: src/LoadingScreen.vala:13 src/ThreadsScreen.vala:68
 msgid "No connection"
-msgstr ""
+msgstr "Pas de connexion"
 
 #: src/LoadingScreen.vala:14 src/ThreadsScreen.vala:69
 msgid "Retry"
-msgstr ""
+msgstr "Réessayer"
 
 #: src/LoginDialog.vala:31
 msgid "Messenger - Authentication"
-msgstr ""
+msgstr "Messenger - Authentication"
 
 #: src/LoginDialog.vala:56
 msgid ""
 "Application password detected. Please log in with you real password here"
 msgstr ""
+"Mot de passe d'application détecté. Veuillez vous connecter avec votre vrai mot de passe ici"
 
 #: src/MainWindowManager.vala:159
 msgid "Facebook Messenger"
-msgstr ""
+msgstr "Facebook Messenger"
 
 #: src/PasswordScreen.vala:40
 msgid "Re-enter password"
-msgstr ""
+msgstr "Retapez le mot de passe"
 
 #: src/SettingsWindow.vala:41
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 #: src/SettingsWindow.vala:59
 msgid "Close & forget shortcut:"
-msgstr ""
+msgstr "Fermer et oublier le raccourci :"
 
 #: src/SettingsWindow.vala:66
 msgid "Automatically add bubbles:"
-msgstr ""
+msgstr "Ajouter automatiquement les bulles de discussion :"
 
 #: src/SettingsWindow.vala:71
 msgid "Main window in a bubble (restart required):"
-msgstr ""
+msgstr "Fenêtre principale dans une bulle (redémarrage nécessaire) :"
 
 #: src/SettingsWindow.vala:76
 msgid "Close bubbles on quit"
-msgstr ""
+msgstr "Fermer les bulles lors de la fermeture de l'application"
 
 #: src/SettingsWindow.vala:99
 msgid "Press some keys!"
-msgstr ""
+msgstr "Appuyez sur une touche !"
 
 #: src/SignIn.vala:44 src/SignIn.vala:68 src/Welcome.vala:11
 msgid "Sign In"
-msgstr ""
+msgstr "Connexion"
 
 #: src/SignIn.vala:48
 msgid "Enter your login and password"
-msgstr ""
+msgstr "Entrez votre identifiant et mot de passe"
 
 #: src/SignIn.vala:57
 msgid "Email or phone number"
-msgstr ""
+msgstr "E-mail ou numéro de téléphone"
 
 #: src/SignIn.vala:61
 msgid "Password"
-msgstr ""
+msgstr "Mot de passe"
 
 #: src/SignIn.vala:75
 msgid "Back"
-msgstr ""
+msgstr "Retour"
 
 #: src/SignIn.vala:86
 msgid "Connection failed"
-msgstr ""
+msgstr "Échec de la connexion"
 
 #: src/SignIn.vala:87
 msgid "Wrong username or password"
-msgstr ""
+msgstr "Identifiant ou mot de passe incorrect"
 
 #: src/SignIn.vala:88
 msgid "Other error"
-msgstr ""
+msgstr "Autre erreur"
 
 #: src/SignIn.vala:89
 msgid ""
 "Do you use 2-step authentication?\n"
 "You need an app password to log in\n"
 msgstr ""
+"Utilisez-vous l'identification à deux facteurs ?\n"
+"Vous avez besoin d'un mot de passe d'application pour pouvoir vous connecter\n"
 
 #: src/SignIn.vala:91
 msgid "Generate password"
-msgstr ""
+msgstr "Générer le mot de passe"
 
 #: src/SignUp.vala:19 src/Welcome.vala:12
 msgid "Sign Up"
-msgstr ""
+msgstr "Inscription"
 
 #: src/SingleThread.vala:82
 #, c-format
 msgid "New message from %s"
-msgstr ""
+msgstr "Nouveau message de %s"
 
 #: src/ThreadsScreen.vala:57
 msgid "Search for friends and groups..."
-msgstr ""
+msgstr "Rechercher des amis et groupes..."
 
 #: src/Utils.vala:115
 msgid "now"
-msgstr ""
+msgstr "maintenant"
 
 #: src/Utils.vala:118
 #, c-format
 msgid "%s min"
-msgstr ""
+msgstr "%s min"
 
 #: src/Utils.vala:131
 #, c-format
 msgid "%s hrs"
-msgstr ""
+msgstr "%s h"
 
 #: src/Welcome.vala:10
 msgid "Messenger"
-msgstr ""
+msgstr "Messenger"
 
 #: src/Welcome.vala:10
 msgid "Sign in with Facebook to get started."
-msgstr ""
+msgstr "Connectez-vous à Facebook pour commencer."
 
 #: src/Welcome.vala:11
 msgid "Login to existing account"
-msgstr ""
+msgstr "Se connecter à un compt existant"
 
 #: src/Welcome.vala:12
 msgid "Create a new account"
-msgstr ""
+msgstr "Créer un nouveau compte"
 
 #: src/Welcome.vala:15
 msgid "Welcome"
-msgstr ""
+msgstr "Bienvenue"
