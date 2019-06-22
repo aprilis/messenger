@@ -149,8 +149,8 @@ namespace Ui {
             app = _app;
             bubble = app.settings.main_window_bubble;
             
-            window = bubble ? new ApplicationPopOver (app.application)
-             : new Gtk.ApplicationWindow (app.application);
+            window = bubble ? new ApplicationPopOver (Fb.App.application)
+             : new Gtk.ApplicationWindow (Fb.App.application);
 
             var box = new Box (Orientation.VERTICAL, 0);
             window.add (box);

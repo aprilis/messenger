@@ -353,8 +353,8 @@ namespace Fb {
                 }
                 i++;
             }
-            if (len <= app.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
-                app.query_threads (app.THREADS_COUNT);
+            if (len <= Fb.App.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
+                app.query_threads (Fb.App.THREADS_COUNT);
             }
             save_threads ();
             selective_updates.add (() => {

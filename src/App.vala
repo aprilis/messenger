@@ -546,7 +546,7 @@ namespace Fb {
                 //window_manager.set_screen ("welcome");
                 remove_heads ();
                 conversation.log_out ();
-                data.delete_files ();
+                Fb.Data.delete_files ();
                 data.close ();
                 user_name = null;
                 data = null;
