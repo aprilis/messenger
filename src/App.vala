@@ -98,7 +98,7 @@ namespace Fb {
         
         public string user_name { get; private set; }
 
-        public static Granite.Application application { get; set; }
+        public static Gtk.Application application { get; set; }
 
         public Ui.Settings settings { get; private set; }
                 
@@ -640,9 +640,6 @@ namespace Fb {
             window_manager.append_menu_item (app_section, _("Preferences"), () => {
                 var settings_window = new Ui.SettingsWindow (window_manager.window, settings);
                 settings_window.show_all ();
-            });
-            window_manager.append_menu_item (app_section, _("About"), () => {
-                application.show_about (window_manager.window);
             });
             window_manager.append_menu_item (app_section, _("Quit"), () => {
                 quit ();

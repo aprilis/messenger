@@ -7,7 +7,7 @@ private void signal_handler (int signum) {
     Fb.App.instance ().quit ();
 }
 
-public class Main : Granite.Application {
+public class Main : Gtk.Application {
 
     public const string APP_ID = "com.github.aprilis.messenger";
     public const string APP_NAME = "com.github.aprilis.messenger";
@@ -25,16 +25,12 @@ public class Main : Granite.Application {
         
         inactivity_timeout = 500;
         is_fake = fake;
-        app_launcher = APP_LAUNCHER;
-        build_version = "0.2.3";
-        program_name = "Messenger";
-        exec_name = APP_NAME;
         startup.connect (_startup);
 
         data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
         cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
 
-        Version.update_version (build_version, data_path);
+        Version.update_version ("0.2.3", data_path);
         
         var open_chat = new SimpleAction ("open-chat", VariantType.INT64);
         open_chat.activate.connect ((id) => {
