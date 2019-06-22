@@ -499,9 +499,11 @@ namespace Fb {
             api.presences.connect (update_presence);
 
             load_queue = new GLib.Queue<LoadTask?> ();
-
-            photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
-                DOWNLOAD_LIMIT, false);
+            try {
+                photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func, DOWNLOAD_LIMIT, false);
+            } catch (Error e) {
+                warning ("Error: %s", e.message);
+            }
             photo_downloader.set_sort_function ((task1, task2) => {
                 if (task1.priority < task2.priority) {
                     return 1;
