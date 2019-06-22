@@ -8,12 +8,5 @@ interface LoginManager : Object {
 }
 
 LoginManager get_login_manager () {
-    var proxy_sync = null;
-    try {
-        proxy_sync = Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1");
-    } catch (Error e) {
-        warning ("GLib error: %s\n", e.message);
-
-    }
-    return proxy_sync;
+    return Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1");
 }
