@@ -91,7 +91,11 @@ namespace Ui {
             twostep_bar.add_button (_("Generate password"), 1);
             twostep_bar.response.connect ((id) => {
                 if (id == 1) {
-                    AppInfo.launch_default_for_uri (APP_PASS_URL, null);
+                    try {
+                        AppInfo.launch_default_for_uri (APP_PASS_URL, null);
+                    } catch (Error e) {
+                        warning ("Glib error: %s", e.message);
+                    }
                     twostep_bar.visible = false;
                 }
             });

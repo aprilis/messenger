@@ -27,8 +27,12 @@ namespace Ui {
             var file = File.new_for_path (icon_path (thread.id));
             var icon = thread.get_icon (ICON_SIZE);
             if (icon != null) {
-                var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
-                icon.save_to_stream (stream, "png", null);
+                try {
+                    var stream = file.replace (null, true, FileCreateFlags.PRIVATE);
+                    icon.save_to_stream (stream, "png", null);
+                } catch (Error e) {
+                    warning ("Glib error: %s", e.message);
+                }
             }
         }
 
@@ -75,11 +79,19 @@ namespace Ui {
         }
         
         public void add_thread (Fb.Thread thread) {
-            save_icon (thread);
+            try {
+                save_icon (thread);
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
+            }
             save_desktop_file.begin (thread);
             
             thread.photo_changed.connect (() => {
-                save_icon (thread, true);
+                try {
+                    save_icon (thread, true);
+                } catch (Error e) {
+                    warning ("Glib error: %s", e.message);
+                }
             });
             thread.name_changed.connect (() => {
                 save_desktop_file.begin (thread, true);
@@ -103,7 +115,11 @@ namespace Ui {
             directory = dir_path;
             exec = exe_path;
             open_chat_exec = exe_open_chat;
-            icon_saver = new ThreadPool<SaveTask?>.with_owned_data (icon_saver_func, ICON_SAVERS, false);
+            try {
+                icon_saver = new ThreadPool<SaveTask?>.with_owned_data (icon_saver_func, ICON_SAVERS, false);
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
+            }
         }
 
         public void close () {

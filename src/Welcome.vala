@@ -20,7 +20,12 @@ namespace Ui {
                     change_screen ("sign_in");
                 } else if (index == 1) {
                     //change_screen ("sign_up");
-                    AppInfo.launch_default_for_uri (SIGNUP_URL, null);
+                    try {
+                        AppInfo.launch_default_for_uri (SIGNUP_URL, null);
+                    } catch (Error e) {
+                        warning ("Glib error: %s", e.message);
+                    }
+                    
                 }
             });
             
