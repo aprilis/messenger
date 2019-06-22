@@ -253,7 +253,7 @@ namespace Fb {
                 null_contacts.add (user.uid);
                 return false;
             }
-            if (friends_only && !user.is_friend && !(user.uid in contacts)) {
+            if (friends_only && !user.is_friend && !contacts.has_key (user.uid)) {
                 return false;
             }
             var contact = get_contact (user.uid, false);
@@ -394,9 +394,9 @@ namespace Fb {
                     msg.tid = msg.uid;
                 }
                 var time = get_monotonic_time () + UPDATE_THREAD_INTERVAL;
-                var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
+                var last_time = threads.has_key (msg.tid) ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
-                    if (msg.tid in threads) {
+                    if (threads.has_key (msg.tid)) {
                         threads [msg.tid].update_request_time = time;
                     }
                     app.query_thread (msg.tid);
@@ -430,7 +430,7 @@ namespace Fb {
         }
         
         public void check_unread_count (Fb.Id id) {
-            if (!(id in threads)) {
+            if (!threads.has_key (id)) {
                 app.query_thread (id);
             } else {
                 unread_count (id, threads [id].unread);
@@ -438,11 +438,11 @@ namespace Fb {
         }
         
         public void read_all (Fb.Id id) {
-            if (id in threads) {
+            if (threads.has_key (id)) {
                 threads [id].unread = 0;
                 unread_count (id, 0);
             }
-            api.read (id, id in threads ? threads [id].is_group : true);
+            api.read (id, threads.has_key (id) ? threads [id].is_group : true);
         }
 
         private void photo_downloader_func (owned DownloadTask? task) {
