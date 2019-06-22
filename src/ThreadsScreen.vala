@@ -60,7 +60,7 @@ namespace Ui {
             });
 
             var search_bar = new Box (Orientation.HORIZONTAL, 5);
-            search_bar.margin_left = search_bar.margin_right = 10;
+            search_bar.margin_start = search_bar.margin_end = 10;
             search_bar.margin_top = search_bar.margin_bottom = 5;
             search_bar.pack_start (search_entry);
             search_bar.pack_start (group_creator.widget, false, true);

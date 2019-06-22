@@ -351,7 +351,7 @@ namespace Ui {
             separator.show ();
 
             var box = new Box (Orientation.VERTICAL, 10);
-            box.margin_left = box.margin_right = box.margin_top = box.margin_bottom = 10;
+            box.margin_start = box.margin_end = box.margin_top = box.margin_bottom = 10;
             box.pack_start (search_entry, false, false);
             box.pack_start (search_faded);
             box.pack_start (separator, false, false);

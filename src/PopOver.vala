@@ -54,13 +54,13 @@ public class Ui.PopOver : CompositedWindow {
         if(child == null) {
             return;
         }
-        child.margin_left = child.margin_right = child.margin_top = child.margin_bottom = SHADOW_SIZE;
+        child.margin_start = child.margin_end = child.margin_top = child.margin_bottom = SHADOW_SIZE;
         switch (arrow_position) {
             case PositionType.LEFT:
-                child.margin_left = ARROW_HEIGHT;
+                child.margin_start = ARROW_HEIGHT;
                 break;
             case PositionType.RIGHT:
-                child.margin_right = ARROW_HEIGHT;
+                child.margin_end = ARROW_HEIGHT;
                 break;
             case PositionType.TOP:
                 child.margin_top = ARROW_HEIGHT;

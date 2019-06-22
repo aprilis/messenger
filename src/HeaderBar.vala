@@ -30,8 +30,8 @@ namespace Ui {
             show_close_button = true;
             
             picture = new Gtk.Image ();
-            picture.margin_left = 40;
-            picture.margin_right = 10;
+            picture.margin_start = 40;
+            picture.margin_end = 10;
             pack_start (picture);
         }
     }
