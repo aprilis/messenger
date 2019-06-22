@@ -7,12 +7,12 @@ namespace Ui {
         private const string SIGNUP_URL = "https://www.facebook.com/signup";    
         
         public Welcome () {
-            var welcome = new Granite.Widgets.Welcome ("Messenger", "Sign in with Facebook to get started.");
-            welcome.append ("document-export", "Sign In", "Login to existing account");
-            welcome.append ("contact-new", "Sign Up", "Create a new account");
+            var welcome = new Granite.Widgets.Welcome (_("Messenger"), _("Sign in with Facebook to get started."));
+            welcome.append ("document-export", _("Sign In"), _("Login to existing account"));
+            welcome.append ("contact-new", _("Sign Up"), _("Create a new account"));
             widget = welcome;
             
-            title = "Welcome";
+            title = _("Welcome");
             name = "welcome";
             
             welcome.activated.connect ((index) => {
