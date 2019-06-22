@@ -57,7 +57,7 @@ namespace Ui {
             grid.attach (header, 0, 0, 2, 2);
 
             var close_and_remove_label = create_label (_("Close & forget shortcut:"));
-            var close_and_remove_shortcut = new ShotcutButton (settings.close_and_remove_shortcut);
+            var close_and_remove_shortcut = new ShortcutButton (settings.close_and_remove_shortcut);
             settings.schema.bind ("close-and-remove-shortcut", close_and_remove_shortcut, "shortcut", 
                 SettingsBindFlags.DEFAULT);
             grid.attach (close_and_remove_label, 0, 2, 1, 1);
@@ -86,7 +86,7 @@ namespace Ui {
         }
     }
 
-    public class ShotcutButton : Button {
+    public class ShortcutButton : Button {
 
         private string _shortcut;
         private bool _listen = false;
@@ -112,7 +112,7 @@ namespace Ui {
             }
         }
 
-        public ShotcutButton (string initial) {
+        public ShortcutButton (string initial) {
             width_request = 128;
             shortcut = initial;
             get_style_context ().add_class ("flat");
