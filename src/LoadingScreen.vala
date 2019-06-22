@@ -7,11 +7,11 @@ namespace Ui {
         private InfoBar network_error_bar;
 
         public LoadingScreen (Fb.App app) {
-            title = "Loading";
+            title = _("Loading");
             name = "loading";
 
-            network_error_bar = Utils.create_infobar ("No connection", MessageType.ERROR, false);
-            network_error_bar.add_button ("Retry", 1);
+            network_error_bar = Utils.create_infobar (_("No connection"), MessageType.ERROR, false);
+            network_error_bar.add_button (_("Retry"), 1);
             network_error_bar.response.connect ((id) => { if (id == 1) app.reconnect (); });
 
             var box = new Box (Orientation.VERTICAL, 0);

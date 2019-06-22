@@ -41,11 +41,11 @@ namespace Ui {
         }
     
         public SignIn () {
-            title = "Sign In";
+            title = _("Sign In");
             name = "sign_in";
         
             var icon = new Image.from_icon_name ("user-info", IconSize.DIALOG);
-            var label = new Label ("Enter your login and password");
+            var label = new Label (_("Enter your login and password"));
             label.justify = Gtk.Justification.CENTER;
             label.hexpand = true;
             label.wrap = true;
@@ -54,25 +54,25 @@ namespace Ui {
             label.get_style_context ().add_class ("h2");
         
             login = new Entry ();
-            login.placeholder_text = "Email or phone number";
+            login.placeholder_text = _("Email or phone number");
             login.has_frame = true;
             
             password = new Entry ();
-            password.placeholder_text = "Password";
+            password.placeholder_text = _("Password");
             password.visibility = false;
             password.caps_lock_warning = true;
             
             login.activate.connect (emit_log_in);
             password.activate.connect (emit_log_in);
             
-            sign_in_button = new Button.with_label ("Sign In");
+            sign_in_button = new Button.with_label (_("Sign In"));
             var style_ctx = sign_in_button.get_style_context ();
             style_ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             style_ctx.add_class ("h3");
             sign_in_button.clicked.connect (emit_log_in);
             sign_in_button.height_request = 30;
             
-            back_button = new Button.with_label ("Back");
+            back_button = new Button.with_label (_("Back"));
             back_button.clicked.connect (() => {
                 change_screen ("welcome");
             });
@@ -83,12 +83,12 @@ namespace Ui {
             button_box.pack_start (back_button);
             button_box.pack_start (sign_in_button);
             
-            network_error_bar = Utils.create_infobar ("Connection failed", MessageType.ERROR, true);
-            auth_error_bar = Utils.create_infobar ("Wrong username or password", MessageType.ERROR, true);
-            other_error_bar = Utils.create_infobar ("Other error", MessageType.ERROR, true);
-            twostep_bar = Utils.create_infobar ("Do you use 2-step authentication?\nYou need an app password to log in\n",
+            network_error_bar = Utils.create_infobar (_("Connection failed"), MessageType.ERROR, true);
+            auth_error_bar = Utils.create_infobar (_("Wrong username or password"), MessageType.ERROR, true);
+            other_error_bar = Utils.create_infobar (_("Other error"), MessageType.ERROR, true);
+            twostep_bar = Utils.create_infobar (_("Do you use 2-step authentication?\nYou need an app password to log in\n"),
                 MessageType.INFO, true);
-            twostep_bar.add_button ("Generate password", 1);
+            twostep_bar.add_button (_("Generate password"), 1);
             twostep_bar.response.connect ((id) => {
                 if (id == 1) {
                     AppInfo.launch_default_for_uri (APP_PASS_URL, null);

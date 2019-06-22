@@ -54,7 +54,7 @@ namespace Ui {
             scrolled.add (threads_viewer.widget);
             
             search_entry = new SearchEntry ();
-            search_entry.placeholder_text = "Search for friends and groups...";
+            search_entry.placeholder_text = _("Search for friends and groups...");
             search_entry.search_changed.connect (() => {
                 threads_viewer.search_query = search_entry.text;
             });
@@ -65,8 +65,8 @@ namespace Ui {
             search_bar.pack_start (search_entry);
             search_bar.pack_start (group_creator.widget, false, true);
             
-            network_error_bar = Utils.create_infobar ("No connection", MessageType.ERROR, false);
-            network_error_bar.add_button ("Retry", 1);
+            network_error_bar = Utils.create_infobar (_("No connection"), MessageType.ERROR, false);
+            network_error_bar.add_button (_("Retry"), 1);
             network_error_bar.response.connect ((id) => { if (id == 1) app.reconnect (); });
            
             var box = new Box(Orientation.VERTICAL, 0);

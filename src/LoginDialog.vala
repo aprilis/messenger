@@ -28,7 +28,7 @@ namespace Ui {
 
         public LoginDialog (bool show_infobar) {
 
-            title = "Messenger - authentication";
+            title = _("Messenger - Authentication");
             set_size_request(800, 600);
             webview = new WebView ();
 
@@ -53,7 +53,7 @@ namespace Ui {
             var box = new Box (Orientation.VERTICAL, 0);
 
             if (show_infobar) {
-                var infobar = Utils.create_infobar("Application password detected. Please log in with you real password here",
+                var infobar = Utils.create_infobar(_("Application password detected. Please log in with you real password here"),
                                                 MessageType.INFO, true);
                 infobar.show ();
                 box.pack_start (infobar, false, false);

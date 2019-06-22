@@ -79,7 +79,7 @@ namespace Fb {
 
         public override string notification_text {
             owned get {
-                return "New message from " + name;
+                return _("New message from %s").printf(name);
             }
         }
                

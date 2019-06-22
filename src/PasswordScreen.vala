@@ -37,7 +37,7 @@ namespace Ui {
         }
     
         public PasswordScreen () {
-            title = "Re-enter password";
+            title = _("Re-enter password");
             name = "password";
             
             var icon = new Image.from_icon_name ("dialog-password", IconSize.DIALOG);

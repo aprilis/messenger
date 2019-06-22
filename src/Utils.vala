@@ -112,10 +112,10 @@ namespace Utils {
         var diff = now - time;
         if (diff < 60) {
             next_update_time = 60 - (diff % 60);
-            return "now";
+            return _("now");
         } else if (diff < 60*60) {
             next_update_time = 60 - (diff % 60);
-            return (diff / 60).to_string () + " min";
+            return _("%s min").printf((diff / 60).to_string ());
         } else {
             var date1 = new Date ();
             date1.set_time_t ((time_t)time);
@@ -128,7 +128,7 @@ namespace Utils {
                 date2.add_days (1);
                 date2.to_time (out next_day);
                 next_update_time = 60*60 - (diff % (60*60));
-                return (diff / (60*60)).to_string () + " hrs";
+                return _("%s hrs").printf((diff / (60*60)).to_string ());
             } else if (days < 7) {
                 Time next_day;
                 date2.add_days (1);
