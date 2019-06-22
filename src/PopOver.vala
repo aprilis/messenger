@@ -38,11 +38,13 @@ public class Ui.PopOver : CompositedWindow {
         }
         return false;
     }
-    
+
+    /*
     private bool focus_out (Gdk.EventFocus event) {
         close ();
         return false;
     }
+    */
 
     private bool window_state (Gdk.EventWindowState event) {
         close ();

@@ -310,7 +310,7 @@ namespace Ui {
         private LoginView login_view;
         private ScrolledWindow view_window;
 
-        private PositionType position_type;
+        //private PositionType position_type;
 
         private Shortcut close_bubble_shortcut;
         

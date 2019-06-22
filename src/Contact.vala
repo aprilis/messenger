@@ -39,7 +39,7 @@ namespace Fb {
         }
 
         public void photo_downloaded (Pixbuf downloaded) {
-            var data = App.instance ().data;
+            //var data = App.instance ().data;
             photo = downloaded;
             photo_changed ();
         }

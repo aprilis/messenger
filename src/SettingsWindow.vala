@@ -38,7 +38,7 @@ namespace Ui {
 
             this.settings = settings;
 
-            var close = add_button (_("Close"), Gtk.ResponseType.CLOSE);
+            //var close = add_button (_("Close"), Gtk.ResponseType.CLOSE);
             response.connect ((id) => { destroy(); });
             destroy.connect (() => {
                 if (parent != null) {

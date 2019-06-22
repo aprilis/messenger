@@ -8,7 +8,7 @@ namespace Ui {
     
         private Image picture;
         
-        private ToggleButton search_button;
+        //private ToggleButton search_button;
         
         public void set_photo (Pixbuf photo) {
             picture.pixbuf = photo;
