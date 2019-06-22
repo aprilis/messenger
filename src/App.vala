@@ -711,7 +711,7 @@ namespace Fb {
                         print ("plank position: %s\n", position_type.to_string ());
                         conversation.show(x, y, position_type);
                         data.read_all (id);
-                        if (id in notifications) {
+                        if (notifications.has_key (id)) {
                             notifications [id].close ();
                         }
                     }
