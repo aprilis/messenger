@@ -1,6 +1,6 @@
 Source: com.github.aprilis.messenger
 Section: x11
-Priority: extra
+Priority: optional
 Maintainer: Jarosław Kwiecień <kwiecienjaro@gmail.com> 
 Build-Depends: debhelper,
                gettext,
@@ -11,11 +11,21 @@ Build-Depends: debhelper,
                libnotify-dev,
                libplank-dev,
                libbamf3-dev,
+               libwnck-3-dev,
+               intltool,
                meson,
                valac
 Standards-Version: 4.1.1
 
 Package: com.github.aprilis.messenger
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends:    libgranite5,
+            libwebkit2gtk-4.0-37,
+            libunity9,
+            libsoup2.4-1,
+            libnotify4,
+            libplank1,
+            libbamf3-2,
+            libwnck-3-0
+
 Description: Unofficial Facebook Messenger App

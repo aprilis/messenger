@@ -1,6 +1,6 @@
 Format: http://dep.debian.net/deps/dep5
-Upstream-Name: com.github.artemanufrij.screencast
-Source: https://github.com/artemanufrij/screencast
+Upstream-Name: com.github.aprilis.messenger
+Source: https://github.com/aprilis/messenger
 
 Files: *
 Copyright: Jarosław Kwiecień
