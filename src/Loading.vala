@@ -18,7 +18,7 @@ namespace Ui {
             set { _text = value; update_markup (); }
         }
 
-        public Loading (int spinner_size, Granite.TextStyle style = Granite.TextStyle.H2, string txt = "loading...") {
+        public Loading (int spinner_size, Granite.TextStyle style = Granite.TextStyle.H2, string txt = _("Loading...")) {
 
             Object(orientation: Orientation.VERTICAL, spacing: 10);
             

@@ -1,6 +1,7 @@
 src/App.vala
 src/GroupCreator.vala
 src/GroupThread.vala
+src/Loading.vala
 src/LoadingScreen.vala
 src/LoginDialog.vala
 src/MainWindowManager.vala
