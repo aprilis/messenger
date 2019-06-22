@@ -22,18 +22,11 @@ public class Main : Granite.Application {
         Object (application_id: APP_ID,
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE);
         Fb.App.application = this;
+        
         inactivity_timeout = 500;
         is_fake = fake;
-        app_icon = "internet-chat";
         app_launcher = APP_LAUNCHER;
-        about_authors = { "Jarosław Kwiecień <kwiecienjaro@gmail.com>" };
-        about_license_type = License.GPL_3_0;
-        app_copyright = "2017";
-        app_years = "2017";
         build_version = "0.2.3";
-        //bug_url = "https://github.com/aprilis/messenger/issues";
-        help_url = "https://github.com/aprilis/messenger/wiki";
-        main_url = "https://github.com/aprilis/messenger";
         program_name = "Messenger";
         exec_name = APP_NAME;
         startup.connect (_startup);
