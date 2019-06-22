@@ -41,7 +41,7 @@ namespace Ui {
             name = "password";
             
             var icon = new Image.from_icon_name ("dialog-password", IconSize.DIALOG);
-            var label = new Label ("You must re-enter your password");
+            var label = new Label (_("You must re-enter your password"));
             label.justify = Gtk.Justification.CENTER;
             label.hexpand = true;
             label.wrap = true;
@@ -49,27 +49,27 @@ namespace Ui {
             label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
             label.get_style_context ().add_class ("h2");
             
-            log_out_button = new Button.with_label ("Log out");
+            log_out_button = new Button.with_label (_("Log out"));
             var style_ctx = log_out_button.get_style_context ();
             style_ctx.add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
             style_ctx.add_class ("h3");
             log_out_button.height_request = 30;
             log_out_button.clicked.connect (() => { log_out(); });
             
-            done_button = new Button.with_label ("Done");
+            done_button = new Button.with_label (_("Done"));
             done_button.get_style_context ().add_class ("h3");
             done_button.height_request = 30;
             done_button.clicked.connect (emit_done);
             
             password = new Entry ();
-            password.placeholder_text = "Password";
+            password.placeholder_text = _("Password");
             password.visibility = false;
             password.caps_lock_warning = true;
             password.activate.connect (emit_done);
 
-            network_error_bar = Utils.create_infobar ("Connection failed", MessageType.ERROR, true);
-            auth_error_bar = Utils.create_infobar ("Wrong username or password", MessageType.ERROR, true);
-            other_error_bar = Utils.create_infobar ("Other error", MessageType.ERROR, true);
+            network_error_bar = Utils.create_infobar (_("Connection failed"), MessageType.ERROR, true);
+            auth_error_bar = Utils.create_infobar (_("Wrong username or password"), MessageType.ERROR, true);
+            other_error_bar = Utils.create_infobar (_("Other error"), MessageType.ERROR, true);
             
             var button_box = new Box (Orientation.HORIZONTAL, 5);
             button_box.pack_start (log_out_button);
