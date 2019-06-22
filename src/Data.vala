@@ -213,7 +213,11 @@ namespace Fb {
                 return;
             }
             DownloadTask task = { priority, uri, id };
-            photo_downloader.add (task);
+            try {
+                photo_downloader.add (task);
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
+            }
         }
         
         public void save_photo (Pixbuf photo, Id id) throws Error {
@@ -499,9 +503,11 @@ namespace Fb {
             api.presences.connect (update_presence);
 
             load_queue = new GLib.Queue<LoadTask?> ();
-
-            photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
-                DOWNLOAD_LIMIT, false);
+            try {
+                photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func, DOWNLOAD_LIMIT, false);
+            } catch (Error e) {
+                warning ("Error: %s", e.message);
+            }
             photo_downloader.set_sort_function ((task1, task2) => {
                 if (task1.priority < task2.priority) {
                     return 1;

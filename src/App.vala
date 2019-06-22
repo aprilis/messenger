@@ -363,18 +363,22 @@ namespace Fb {
             } else if (e.domain in network_quarks) {
                 network_error ();
             } else {
-                var regex = new Regex ("\\((\\d+)\\)");
-                MatchInfo info;
-                var match = regex.match (e.message, 0, out info);
-                int error_code = -1;
-                if (match) {
-                    error_code = int.parse (info.fetch (1));
-                }
-                if (error_code == 406) {
-                    window_manager.current.twostep_verification ();
-                } else {
-                    warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
-                    window_manager.current.other_error ();
+                try {
+                    var regex = new Regex ("\\((\\d+)\\)");
+                    MatchInfo info;
+                    var match = regex.match (e.message, 0, out info);
+                    int error_code = -1;
+                    if (match) {
+                        error_code = int.parse (info.fetch (1));
+                    }
+                    if (error_code == 406) {
+                        window_manager.current.twostep_verification ();
+                    } else {
+                        warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
+                        window_manager.current.other_error ();
+                    }
+                } catch (Error e) {
+                    warning ("Regex error: %s", e.message);
                 }
             }
         }
