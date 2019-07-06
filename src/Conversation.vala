@@ -18,6 +18,9 @@ namespace Ui {
                     max-width: 1px;
                     min-width: 1px;
                 }
+                div._7q1s {
+                    display: none;
+                }
                 div._1q5- {
                     border-left: none;
                 }
