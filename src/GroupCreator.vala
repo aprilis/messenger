@@ -51,7 +51,7 @@ namespace Ui {
                                 Index.IS_FRIEND, contact.is_friend, -1);
             }
 
-            private Pixbuf get_photo () {
+            private Pixbuf? get_photo () {
                 if (contact.photo == null) {
                     return null;
                 }

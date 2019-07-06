@@ -546,30 +546,24 @@ namespace Fb {
             if (data == null) {
                 return;
             }
-            try {
-                //window_manager.set_screen ("welcome");
-                remove_heads ();
-                conversation.log_out ();
-                Fb.Data.delete_files ();
-                data.close ();
-                user_name = null;
-                data = null;
-                notifications.clear ();
-                disconnect_api ();
-                api.stoken = null;
-                api.token = null;
-                api.uid = 0;
-                save_session ();
-                window_manager.header.clear_photo ();
-                hidden_unread_sum = 0;
-                hidden_unread_count.clear ();
-                update_hidden_unread (0, 0);
-                print ("logged out\n");
-                quit ();
-
-            } catch (Error e) {
-                warning ("%s\n", e.message);
-            }
+            remove_heads ();
+            conversation.log_out ();
+            Fb.Data.delete_files ();
+            data.close ();
+            user_name = null;
+            data = null;
+            notifications.clear ();
+            disconnect_api ();
+            api.stoken = null;
+            api.token = null;
+            api.uid = 0;
+            save_session ();
+            window_manager.header.clear_photo ();
+            hidden_unread_sum = 0;
+            hidden_unread_count.clear ();
+            update_hidden_unread (0, 0);
+            print ("logged out\n");
+            quit ();
         }
         
         public void log_in (string? username, string password) {
@@ -724,23 +718,19 @@ namespace Fb {
         }
 
         private static void plank_operation (PlankOperation op) {
-            try {
-                var client = Plank.DBusClient.get_instance ();
+            var client = Plank.DBusClient.get_instance ();
 
-                if (client.is_connected) {
+            if (client.is_connected) {
+                op (client);
+            } else {
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
                     op (client);
-                } else {
-                    int tries = 10;
-                    Timeout.add (50, () => {
-                        if (!client.is_connected) {
-                            return tries-- > 0;
-                        }
-                        op (client);
-                        return false;
-                    });
-                }
-            } catch (Error e) {
-                warning ("Plank operation error %s\n", e.message);
+                    return false;
+                });
             }
         }
         

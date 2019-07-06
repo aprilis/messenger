@@ -17,7 +17,7 @@ public class Ui.PopOver : CompositedWindow {
 
     private Gtk.PositionType arrow_position = Gtk.PositionType.BOTTOM;    
     
-    public Requisition get_size (Gtk.PositionType position) {
+    public new Requisition get_size (Gtk.PositionType position) {
         var req = get_requisition ();
         if (position == PositionType.TOP || position == PositionType.BOTTOM) {
             req.height -= ARROW_HEIGHT;
@@ -141,7 +141,7 @@ public class Ui.PopOver : CompositedWindow {
         }
     }
     
-    public void activate () {
+    public new void activate () {
         dont_close = true;
         show_all ();
         FocusGrabber.grab (get_window (), false, true);
@@ -201,7 +201,7 @@ public class Ui.PopOver : CompositedWindow {
         return ret;
     }
     
-    public void set_position (int x, int y, Gtk.PositionType arrow_pos) {
+    public new void set_position (int x, int y, Gtk.PositionType arrow_pos) {
         var w = width_request, h = height_request;
         x -= w / 2;
         y -= h;

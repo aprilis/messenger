@@ -92,14 +92,10 @@ public class Main : Gtk.Application {
 
         Posix.signal (Posix.Signal.TERM, signal_handler);
 
-        try {
-            login = get_login_manager ();
-            login.prepare_for_shutdown.connect ((active) => {
-                Fb.App.instance ().quit ();
-            });
-        } catch (Error e) {
-            warning ("DBus connect error: %s", e.message);
-        }
+        login = get_login_manager ();
+        login.prepare_for_shutdown.connect ((active) => {
+            Fb.App.instance ().quit ();
+        });
     }
 
     public override int command_line (ApplicationCommandLine command_line) {

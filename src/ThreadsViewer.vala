@@ -158,7 +158,7 @@ namespace Ui {
         }
         
         private void add_item (Fb.Thread thread) {
-            var adjustment = view.get_vadjustment ();
+            var adjustment = view.vadjustment;
 
             items.append (new ViewerItem (thread, list));
 

@@ -598,7 +598,6 @@ static void
 fb_mqtt_cb_open_error(GError *err,
                       gpointer data)
 {
-	const gchar *str;
 	FbMqtt *mqtt = data;
 	FbMqttPrivate *priv = mqtt->priv;
 
@@ -687,15 +686,9 @@ fb_mqtt_connected(FbMqtt *mqtt, gboolean error)
 void
 fb_mqtt_disconnect(FbMqtt *mqtt)
 {
-	FbMqttMessage *msg;
-
 	if (G_UNLIKELY(!fb_mqtt_connected(mqtt, FALSE))) {
 		return;
 	}
-
-	/*msg = fb_mqtt_message_new(FB_MQTT_MESSAGE_TYPE_DISCONNECT, 0);
-	fb_mqtt_write(mqtt, msg);
-	g_object_unref(msg);*/
 	fb_mqtt_close(mqtt);
 }
 

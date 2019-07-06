@@ -117,9 +117,9 @@ namespace Utils {
             next_update_time = 60 - (diff % 60);
             return _("%s min").printf((diff / 60).to_string ());
         } else {
-            var date1 = new Date ();
+            var date1 = Date ();
             date1.set_time_t ((time_t)time);
-            var date2 = new Date ();
+            var date2 = Date();
             date2.set_time_t ((time_t)now);
             var tm = Time.local ((time_t)time);
             int days = date1.days_between (date2);

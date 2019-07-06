@@ -29,17 +29,13 @@ namespace Fb {
             if (download_photo_request != null) {
                 var req = download_photo_request;
                 download_photo_request = null;
-                try {
-                    var data = App.instance ().data;
-                    data.download_photo (req, priority, id);
-                } catch (Error e) {
-                    warning ("Error: %s\n", e.message);
-                }
+
+                var data = App.instance ().data;
+                data.download_photo (req, priority, id);
             }
         }
 
         public void photo_downloaded (Pixbuf downloaded) {
-            //var data = App.instance ().data;
             photo = downloaded;
             photo_changed ();
         }
