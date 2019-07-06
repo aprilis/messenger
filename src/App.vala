@@ -98,7 +98,7 @@ namespace Fb {
         
         public string user_name { get; private set; }
 
-        public static Granite.Application application { get; set; }
+        public static Gtk.Application application { get; set; }
 
         public Ui.Settings settings { get; private set; }
                 
@@ -327,9 +327,9 @@ namespace Fb {
                     thread.name_updated.connect (() => {
                         user_name = thread.name;
                     });
-                    window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
+                    window_manager.header.set_photo (thread.get_icon (Ui.HeaderBar.PHOTO_SIZE, true));
                     thread.photo_updated.connect (() => {
-                        window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
+                        window_manager.header.set_photo (thread.get_icon (Ui.HeaderBar.PHOTO_SIZE, true));
                     });
                 }
                 thread.notify ["is-present"].connect ((s, p) => {
@@ -363,18 +363,22 @@ namespace Fb {
             } else if (e.domain in network_quarks) {
                 network_error ();
             } else {
-                var regex = new Regex ("\\((\\d+)\\)");
-                MatchInfo info;
-                var match = regex.match (e.message, 0, out info);
-                int error_code = -1;
-                if (match) {
-                    error_code = int.parse (info.fetch (1));
-                }
-                if (error_code == 406) {
-                    window_manager.current.twostep_verification ();
-                } else {
-                    warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
-                    window_manager.current.other_error ();
+                try {
+                    var regex = new Regex ("\\((\\d+)\\)");
+                    MatchInfo info;
+                    var match = regex.match (e.message, 0, out info);
+                    int error_code = -1;
+                    if (match) {
+                        error_code = int.parse (info.fetch (1));
+                    }
+                    if (error_code == 406) {
+                        window_manager.current.twostep_verification ();
+                    } else {
+                        warning ("Unexpected api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
+                        window_manager.current.other_error ();
+                    }
+                } catch (Error e) {
+                    warning ("Regex error: %s", e.message);
                 }
             }
         }
@@ -476,7 +480,7 @@ namespace Fb {
                 add_to_plank (thread.id);
             }
             Notify.Notification not;
-            if (thread.id in notifications) {
+            if (notifications.has_key (thread.id)) {
                 not = notifications [thread.id];
                 not.update (thread.notification_text, message, null);
             } else {
@@ -542,30 +546,24 @@ namespace Fb {
             if (data == null) {
                 return;
             }
-            try {
-                //window_manager.set_screen ("welcome");
-                remove_heads ();
-                conversation.log_out ();
-                data.delete_files ();
-                data.close ();
-                user_name = null;
-                data = null;
-                notifications.clear ();
-                disconnect_api ();
-                api.stoken = null;
-                api.token = null;
-                api.uid = 0;
-                save_session ();
-                window_manager.header.clear_photo ();
-                hidden_unread_sum = 0;
-                hidden_unread_count.clear ();
-                update_hidden_unread (0, 0);
-                print ("logged out\n");
-                quit ();
-
-            } catch (Error e) {
-                warning ("%s\n", e.message);
-            }
+            remove_heads ();
+            conversation.log_out ();
+            Fb.Data.delete_files ();
+            data.close ();
+            user_name = null;
+            data = null;
+            notifications.clear ();
+            disconnect_api ();
+            api.stoken = null;
+            api.token = null;
+            api.uid = 0;
+            save_session ();
+            window_manager.header.clear_photo ();
+            hidden_unread_sum = 0;
+            hidden_unread_count.clear ();
+            update_hidden_unread (0, 0);
+            print ("logged out\n");
+            quit ();
         }
         
         public void log_in (string? username, string password) {
@@ -636,9 +634,6 @@ namespace Fb {
             window_manager.append_menu_item (app_section, _("Preferences"), () => {
                 var settings_window = new Ui.SettingsWindow (window_manager.window, settings);
                 settings_window.show_all ();
-            });
-            window_manager.append_menu_item (app_section, _("About"), () => {
-                application.show_about (window_manager.window);
             });
             window_manager.append_menu_item (app_section, _("Quit"), () => {
                 quit ();
@@ -711,7 +706,7 @@ namespace Fb {
                         print ("plank position: %s\n", position_type.to_string ());
                         conversation.show(x, y, position_type);
                         data.read_all (id);
-                        if (id in notifications) {
+                        if (notifications.has_key (id)) {
                             notifications [id].close ();
                         }
                     }
@@ -723,23 +718,19 @@ namespace Fb {
         }
 
         private static void plank_operation (PlankOperation op) {
-            try {
-                var client = Plank.DBusClient.get_instance ();
+            var client = Plank.DBusClient.get_instance ();
 
-                if (client.is_connected) {
+            if (client.is_connected) {
+                op (client);
+            } else {
+                int tries = 10;
+                Timeout.add (50, () => {
+                    if (!client.is_connected) {
+                        return tries-- > 0;
+                    }
                     op (client);
-                } else {
-                    int tries = 10;
-                    Timeout.add (50, () => {
-                        if (!client.is_connected) {
-                            return tries-- > 0;
-                        }
-                        op (client);
-                        return false;
-                    });
-                }
-            } catch (Error e) {
-                warning ("Plank operation error %s\n", e.message);
+                    return false;
+                });
             }
         }
         

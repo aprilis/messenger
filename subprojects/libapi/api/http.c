@@ -385,7 +385,7 @@ fb_http_urlcmp(const gchar *url1, const gchar *url2, gboolean protocol)
 	SoupURI *purl1;
 	SoupURI *purl2;
 
-	static const const gchar * (*funcs[]) (SoupURI *url) = {
+	static const gchar * (*funcs[]) (SoupURI *url) = {
 		/* Always first so it can be skipped */
 		soup_uri_get_scheme,
 

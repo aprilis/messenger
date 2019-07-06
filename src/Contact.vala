@@ -29,26 +29,26 @@ namespace Fb {
             if (download_photo_request != null) {
                 var req = download_photo_request;
                 download_photo_request = null;
-                try {
-                    var data = App.instance ().data;
-                    data.download_photo (req, priority, id);
-                } catch (Error e) {
-                    warning ("Error: %s\n", e.message);
-                }
+
+                var data = App.instance ().data;
+                data.download_photo (req, priority, id);
             }
         }
 
         public void photo_downloaded (Pixbuf downloaded) {
-            var data = App.instance ().data;
             photo = downloaded;
             photo_changed ();
         }
         
         private async void load_photo_from_disk () {
-            photo = yield App.instance ().data.load_photo (id);
-            if (photo == null) {
-                photo_csum = null;
-                App.instance ().query_contact (id);
+            try {
+                photo = yield App.instance ().data.load_photo (id);
+                if (photo == null) {
+                    photo_csum = null;
+                    App.instance ().query_contact (id);
+                }                
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
             }
         }
         
@@ -84,7 +84,7 @@ namespace Fb {
             id = object.get_int_member("id");
             is_friend = object.get_boolean_member("is_friend");
             photo_csum = object.get_string_member("photo_csum");
-            load_photo_from_disk ();
+            load_photo_from_disk.begin ();
             is_loaded = true;
         }
         

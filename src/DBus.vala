@@ -7,6 +7,11 @@ interface LoginManager : Object {
     public abstract bool preparing_for_shutdown { get; }
 }
 
-LoginManager get_login_manager () {
-    return Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1");
+LoginManager? get_login_manager () {
+    try {
+        return Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.login1", "/org/freedesktop/login1");
+    } catch (IOError err) {
+        warning ("DBus error: %s\n", err.message);
+        return null;
+    }
 }

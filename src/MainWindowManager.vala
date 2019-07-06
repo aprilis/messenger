@@ -83,7 +83,7 @@ namespace Ui {
                 window.set_default_size (settings.window_width, settings.window_height);
                 
                 if (!detect_dark_theme ()) {
-                    var col = new Gdk.RGBA ();   
+                    var col = Gdk.RGBA ();   
                     if (col.parse(settings.title_bar_color)) {
                         Granite.Widgets.Utils.set_color_primary (window, col);
                     }   
@@ -119,24 +119,21 @@ namespace Ui {
                 var pop_over = (ApplicationPopOver) window;
                 int tries = 10;
                 Timeout.add (500, () => {
-                    try {
-                        var client = Plank.DBusClient.get_instance ();
-                        var uri = app.get_plank_launcher_uri ();
-                        if (uri != null) {
-                            Gtk.PositionType position_type;
-                            int x, y;
-                            var ok = client.get_hover_position (uri, out x, out y, out position_type);
-                            if(ok) {
-                                pop_over.set_position (x, y, position_type);
-                                window.show_all ();
-                                window.present ();
-                            } 
-                        } else {
-                            return tries-- > 0;
-                        }
-                    } catch (Error e) {
-                        warning ("Plank DBus error %d: %s\n", e.code, e.message);
+                    var client = Plank.DBusClient.get_instance ();
+                    var uri = app.get_plank_launcher_uri ();
+                    if (uri != null) {
+                        Gtk.PositionType position_type;
+                        int x, y;
+                        var ok = client.get_hover_position (uri, out x, out y, out position_type);
+                        if(ok) {
+                            pop_over.set_position (x, y, position_type);
+                            window.show_all ();
+                            window.present ();
+                        } 
+                    } else {
+                        return tries-- > 0;
                     }
+                    
                     return false;
                 });
             } else {
@@ -149,8 +146,8 @@ namespace Ui {
             app = _app;
             bubble = app.settings.main_window_bubble;
             
-            window = bubble ? new ApplicationPopOver (app.application)
-             : new Gtk.ApplicationWindow (app.application);
+            window = bubble ? new ApplicationPopOver (Fb.App.application)
+             : new Gtk.ApplicationWindow (Fb.App.application);
 
             var box = new Box (Orientation.VERTICAL, 0);
             window.add (box);

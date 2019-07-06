@@ -7,9 +7,7 @@ namespace Ui {
         public const int PHOTO_SIZE = 32;
     
         private Image picture;
-        
-        private ToggleButton search_button;
-        
+                
         public void set_photo (Pixbuf photo) {
             picture.pixbuf = photo;
         }
@@ -30,8 +28,8 @@ namespace Ui {
             show_close_button = true;
             
             picture = new Gtk.Image ();
-            picture.margin_left = 40;
-            picture.margin_right = 10;
+            picture.margin_start = 40;
+            picture.margin_end = 10;
             pack_start (picture);
         }
     }

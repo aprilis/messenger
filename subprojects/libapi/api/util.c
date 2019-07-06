@@ -51,20 +51,9 @@ fb_util_debug(GLogLevelFlags level, const gchar *format, ...)
 void
 fb_util_vdebug(GLogLevelFlags level, const gchar *format, va_list ap)
 {
-	gboolean unsafe;
-	gboolean verbose;
 	gchar *str;
 
 	g_return_if_fail(format != NULL);
-
-	unsafe = (level & FB_UTIL_DEBUG_FLAG_UNSAFE) != 0;
-	verbose = (level & FB_UTIL_DEBUG_FLAG_VERBOSE) != 0;
-
-    /*if ((unsafe && !purple_debug_is_unsafe()) ||
-	    (verbose && !purple_debug_is_verbose()))
-	{
-		return;
-    }*/
 
 	/* Ensure all local flags are removed */
 	level &= ~FB_UTIL_DEBUG_FLAG_ALL;

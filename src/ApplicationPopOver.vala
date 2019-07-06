@@ -17,7 +17,7 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
 
     private Gtk.PositionType arrow_position = Gtk.PositionType.BOTTOM;    
     
-    public Requisition get_size (Gtk.PositionType position) {
+    public new Requisition get_size (Gtk.PositionType position) {
         var width = width_request, height = height_request;
         if (position == PositionType.TOP || position == PositionType.BOTTOM) {
             height -= ARROW_HEIGHT;
@@ -42,10 +42,12 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
         return false;
     }
     
+    /*
     private bool focus_out (Gdk.EventFocus event) {
         close ();
         return false;
     }
+    */
 
     private bool window_state (Gdk.EventWindowState event) {
         close ();
@@ -57,13 +59,13 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
         if(child == null) {
             return;
         }
-        child.margin_left = child.margin_right = child.margin_top = child.margin_bottom = SHADOW_SIZE;
+        child.margin_start = child.margin_end = child.margin_top = child.margin_bottom = SHADOW_SIZE;
         switch (arrow_position) {
             case PositionType.LEFT:
-                child.margin_left = ARROW_HEIGHT;
+                child.margin_start = ARROW_HEIGHT;
                 break;
             case PositionType.RIGHT:
-                child.margin_right = ARROW_HEIGHT;
+                child.margin_end = ARROW_HEIGHT;
                 break;
             case PositionType.TOP:
                 child.margin_top = ARROW_HEIGHT;
@@ -220,7 +222,7 @@ public class Ui.ApplicationPopOver : Gtk.ApplicationWindow {
         return ret;
     }
     
-    public void set_position (int x, int y, Gtk.PositionType arrow_pos) {
+    public new void set_position (int x, int y, Gtk.PositionType arrow_pos) {
         if (arrow_position != arrow_pos) {
             arrow_position = arrow_pos;
             update_child_margin ();

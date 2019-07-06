@@ -2437,14 +2437,12 @@ fb_api_cb_contacts(GObject *source, GAsyncResult *res,
     FbApiCbData *cb_data = data;
     FbApi *api = cb_data->api;
     FbApiPrivate *priv = api->priv;
-    FbHttpParams *prms;
     FbJsonValues *values;
     gboolean complete;
     gboolean is_delta;
     GError *err = NULL;
     GList *l;    
     GSList *users = NULL;
-    guint count = 0;
     JsonNode *root;
     JsonNode *croot;
 	JsonNode *node;
@@ -3639,8 +3637,8 @@ fb_api_thread_get_type (void)
     
     if(!type_id)
         type_id = g_boxed_type_register_static("FbApiThread",
-                                                fb_api_thread_dup_deep,
-                                                fb_api_thread_free);
+                                                (GBoxedCopyFunc)fb_api_thread_dup_deep,
+                                                (GBoxedFreeFunc)fb_api_thread_free);
     return type_id;
 }
 
@@ -3736,8 +3734,8 @@ fb_api_user_get_type (void)
     
     if(!type_id)
         type_id = g_boxed_type_register_static("FbApiUser",
-                                                fb_api_user_dup_deep,
-                                                fb_api_user_free);
+                                                (GBoxedCopyFunc)fb_api_user_dup_deep,
+                                                (GBoxedFreeFunc)fb_api_user_free);
     return type_id;
 }
 

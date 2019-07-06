@@ -26,7 +26,7 @@ namespace Ui {
         protected override void verify (string key) {
             switch (key) {
                 case "title-bar-color":
-                    var col = new Gdk.RGBA ();
+                    var col = Gdk.RGBA ();
                     if (!col.parse (title_bar_color)) {
                         title_bar_color = "white";
                     }

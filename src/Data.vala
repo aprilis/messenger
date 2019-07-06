@@ -98,10 +98,10 @@ namespace Fb {
                     thread.load_from_json (node);
                 }
                 loading_finished ();
-                app.query_threads (app.SMALL_THREADS_COUNT);
+                app.query_threads (Fb.App.SMALL_THREADS_COUNT);
             } catch (Error e) {
                 warning ("%s\n", e.message);
-                app.query_threads (app.THREADS_COUNT);
+                app.query_threads (Fb.App.THREADS_COUNT);
             }
             collective_updates.release ();
         }
@@ -213,7 +213,11 @@ namespace Fb {
                 return;
             }
             DownloadTask task = { priority, uri, id };
-            photo_downloader.add (task);
+            try {
+                photo_downloader.add (task);
+            } catch (Error e) {
+                warning ("Glib error: %s", e.message);
+            }
         }
         
         public void save_photo (Pixbuf photo, Id id) throws Error {
@@ -253,7 +257,7 @@ namespace Fb {
                 null_contacts.add (user.uid);
                 return false;
             }
-            if (friends_only && !user.is_friend && !(user.uid in contacts)) {
+            if (friends_only && !user.is_friend && !contacts.has_key (user.uid)) {
                 return false;
             }
             var contact = get_contact (user.uid, false);
@@ -272,7 +276,7 @@ namespace Fb {
             foreach (var user in users) {
                 if (user == null) {
                     selective_updates.release ();
-                    save_contacts ();
+                    save_contacts.begin ();
                 } else if (parse_contact (user, friends_only)) {
                     any = true;
                 }
@@ -317,7 +321,7 @@ namespace Fb {
                     }
         
                     if (copy_removed.length () > 0) {
-                        save_contacts ();
+                        save_contacts.begin ();
                     }
                 });
             }
@@ -327,7 +331,7 @@ namespace Fb {
             unowned ApiUser user = (ApiUser) ptr;
             if (parse_contact (user, false)) {
                 contacts[user.uid].download_photo (1);
-                save_contacts ();
+                save_contacts.begin ();
             }
         }
         
@@ -353,10 +357,10 @@ namespace Fb {
                 }
                 i++;
             }
-            if (len <= app.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
-                app.query_threads (app.THREADS_COUNT);
+            if (len <= Fb.App.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
+                app.query_threads (Fb.App.THREADS_COUNT);
             }
-            save_threads ();
+            save_threads.begin ();
             selective_updates.add (() => {
                 foreach (var contact in contacts.values) {
                     contact.download_photo (1);
@@ -376,7 +380,7 @@ namespace Fb {
         public void thread_done (void *ptr) {
             unowned Fb.ApiThread? thread = (Fb.ApiThread?)ptr;
             update_thread (thread);
-            save_threads ();
+            save_threads.begin ();
         }
 
         public void update_presence (void *ptr) {
@@ -394,9 +398,9 @@ namespace Fb {
                     msg.tid = msg.uid;
                 }
                 var time = get_monotonic_time () + UPDATE_THREAD_INTERVAL;
-                var last_time = msg.tid in threads ? threads [msg.tid].update_request_time : 0;
+                var last_time = threads.has_key (msg.tid) ? threads [msg.tid].update_request_time : 0;
                 if (last_time + UPDATE_THREAD_INTERVAL < time) {
-                    if (msg.tid in threads) {
+                    if (threads.has_key (msg.tid)) {
                         threads [msg.tid].update_request_time = time;
                     }
                     app.query_thread (msg.tid);
@@ -430,7 +434,7 @@ namespace Fb {
         }
         
         public void check_unread_count (Fb.Id id) {
-            if (!(id in threads)) {
+            if (!threads.has_key (id)) {
                 app.query_thread (id);
             } else {
                 unread_count (id, threads [id].unread);
@@ -438,11 +442,11 @@ namespace Fb {
         }
         
         public void read_all (Fb.Id id) {
-            if (id in threads) {
+            if (threads.has_key (id)) {
                 threads [id].unread = 0;
                 unread_count (id, 0);
             }
-            api.read (id, id in threads ? threads [id].is_group : true);
+            api.read (id, threads.has_key (id) ? threads [id].is_group : true);
         }
 
         private void photo_downloader_func (owned DownloadTask? task) {
@@ -499,9 +503,11 @@ namespace Fb {
             api.presences.connect (update_presence);
 
             load_queue = new GLib.Queue<LoadTask?> ();
-
-            photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func,
-                DOWNLOAD_LIMIT, false);
+            try {
+                photo_downloader = new ThreadPool<DownloadTask?>.with_owned_data (photo_downloader_func, DOWNLOAD_LIMIT, false);
+            } catch (Error e) {
+                warning ("Error: %s", e.message);
+            }
             photo_downloader.set_sort_function ((task1, task2) => {
                 if (task1.priority < task2.priority) {
                     return 1;

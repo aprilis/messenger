@@ -7,12 +7,13 @@ private void signal_handler (int signum) {
     Fb.App.instance ().quit ();
 }
 
-public class Main : Granite.Application {
+public class Main : Gtk.Application {
 
     public const string APP_ID = "com.github.aprilis.messenger";
     public const string APP_NAME = "com.github.aprilis.messenger";
     public const string OPEN_CHAT_NAME = "com.github.aprilis.messenger-open-chat";
     public const string APP_LAUNCHER = APP_ID + ".desktop";
+    public const string VERSION = "0.2.3";
     
     private bool is_fake;
 
@@ -22,26 +23,15 @@ public class Main : Granite.Application {
         Object (application_id: APP_ID,
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE);
         Fb.App.application = this;
+        
         inactivity_timeout = 500;
         is_fake = fake;
-        app_icon = "internet-chat";
-        app_launcher = APP_LAUNCHER;
-        about_authors = { "Jarosław Kwiecień <kwiecienjaro@gmail.com>" };
-        about_license_type = License.GPL_3_0;
-        app_copyright = "2017";
-        app_years = "2017";
-        build_version = "0.2.3";
-        //bug_url = "https://github.com/aprilis/messenger/issues";
-        help_url = "https://github.com/aprilis/messenger/wiki";
-        main_url = "https://github.com/aprilis/messenger";
-        program_name = "Messenger";
-        exec_name = APP_NAME;
         startup.connect (_startup);
 
         data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
         cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
 
-        Version.update_version (build_version, data_path);
+        Version.update_version (VERSION, data_path);
         
         var open_chat = new SimpleAction ("open-chat", VariantType.INT64);
         open_chat.activate.connect ((id) => {
@@ -102,14 +92,10 @@ public class Main : Granite.Application {
 
         Posix.signal (Posix.Signal.TERM, signal_handler);
 
-        try {
-            login = get_login_manager ();
-            login.prepare_for_shutdown.connect ((active) => {
-                Fb.App.instance ().quit ();
-            });
-        } catch (Error e) {
-            warning ("DBus connect error: %s", e.message);
-        }
+        login = get_login_manager ();
+        login.prepare_for_shutdown.connect ((active) => {
+            Fb.App.instance ().quit ();
+        });
     }
 
     public override int command_line (ApplicationCommandLine command_line) {
