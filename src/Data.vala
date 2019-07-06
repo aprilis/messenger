@@ -237,7 +237,7 @@ namespace Fb {
                     task.promise.set_value (photo);
                 } catch (Error e) {
                     warning ("Error while loading photo: %d %s\n", e.code, e.message);
-                    //task.promise.set_value (null);
+                    task.promise.set_value (null);
                 }
                 opened_files--;
                 update_load_queue.begin();

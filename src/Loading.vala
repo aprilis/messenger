@@ -18,7 +18,8 @@ namespace Ui {
             set { _text = value; update_markup (); }
         }
 
-        public Loading (int spinner_size, string txt = "Loading...") {
+        public Loading (int spinner_size, string txt = _("Loading..."),
+             string style_class = Granite.STYLE_CLASS_H2_LABEL) {
 
             Object(orientation: Orientation.VERTICAL, spacing: 10);
             
@@ -28,7 +29,7 @@ namespace Ui {
             spinner.start ();
             
             label = new Label ("");
-            label.get_style_context ().add_class (Granite.STYLE_CLASS_H2_LABEL);
+            label.get_style_context ().add_class (style_class);
             text = txt;
             
             var box = new Box (Orientation.VERTICAL, 10);

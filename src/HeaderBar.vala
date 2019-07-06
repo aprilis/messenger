@@ -7,9 +7,7 @@ namespace Ui {
         public const int PHOTO_SIZE = 32;
     
         private Image picture;
-        
-        //private ToggleButton search_button;
-        
+                
         public void set_photo (Pixbuf photo) {
             picture.pixbuf = photo;
         }

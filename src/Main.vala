@@ -13,6 +13,7 @@ public class Main : Gtk.Application {
     public const string APP_NAME = "com.github.aprilis.messenger";
     public const string OPEN_CHAT_NAME = "com.github.aprilis.messenger-open-chat";
     public const string APP_LAUNCHER = APP_ID + ".desktop";
+    public const string VERSION = "0.2.3";
     
     private bool is_fake;
 
@@ -30,7 +31,7 @@ public class Main : Gtk.Application {
         data_path = Environment.get_user_data_dir () + "/" + APP_NAME;
         cache_path = Environment.get_user_cache_dir () + "/" + APP_NAME;
 
-        Version.update_version ("0.2.3", data_path);
+        Version.update_version (VERSION, data_path);
         
         var open_chat = new SimpleAction ("open-chat", VariantType.INT64);
         open_chat.activate.connect ((id) => {
