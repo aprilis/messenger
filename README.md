@@ -17,6 +17,7 @@ If you are using elementaryOS 0.4 Loki, follow [these steps](https://github.com/
 
   ```
   git clone https://github.com/aprilis/messenger
+  cd messenger
   sudo apt install elementary-sdk libwebkit2gtk-4.0-dev libunity-dev libsoup2.4-dev libnotify-dev libplank-dev libbamf3-dev libwnck-3-dev intltool meson
   ```
 
