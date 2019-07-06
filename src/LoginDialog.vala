@@ -41,7 +41,7 @@ namespace Ui {
                         finished ();
                     } else if (uri.has_prefix (LOGIN_URL)) {
                         Timeout.add (500, () => {
-                            webview.run_javascript (INIT_SCRIPT, null);
+                            webview.run_javascript.begin (INIT_SCRIPT, null);
                             return false;
                         });
                     }

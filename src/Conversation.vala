@@ -95,7 +95,7 @@ namespace Ui {
                 user_changed = true;
                 script_running = true;
                 print ("running script\n");
-                webview.run_javascript (CHANGE_USER_SCRIPT.printf (last_id), null);
+                webview.run_javascript.begin (CHANGE_USER_SCRIPT.printf (last_id), null);
                 Timeout.add (1000, () => {
                     if (script_running) {
                         load_conversation (last_id);
@@ -130,8 +130,8 @@ namespace Ui {
                 
                 var uri = webview.get_uri ();
                 if (uri.has_prefix (CONVERSATION_URL)) {
-                    webview.run_javascript (MONITOR_COMPOSER, null);   
-                    webview.run_javascript (MUTE_CALL_SOUND, null);   
+                    webview.run_javascript.begin (MONITOR_COMPOSER, null);   
+                    webview.run_javascript.begin (MUTE_CALL_SOUND, null);   
                 }
                 loading_finished = true;
                 if (uri.has_prefix (LOGIN_URL)) {
@@ -172,7 +172,7 @@ namespace Ui {
                     if ("__success__" in webview.title) {
                         script_running = false;
                         ready ();
-                        webview.run_javascript ("document.title = 'Messenger';", null);
+                        webview.run_javascript.begin ("document.title = 'Messenger';", null);
                     } else if ("__fail__" in webview.title && last_id != 0) {
                         load_conversation (last_id);
                     } else if ("__reload__" in webview.title) {
@@ -280,7 +280,7 @@ namespace Ui {
                             password = "";
                             failed (this);
                         } else if (uri.has_prefix (LOGIN_URL)) {
-                            webview.run_javascript (LOGIN_SCRIPT.printf(username, password).to_ascii (), null);
+                            webview.run_javascript.begin (LOGIN_SCRIPT.printf(username, password).to_ascii (), null);
                         } else {
                             username = "";
                             password = "";

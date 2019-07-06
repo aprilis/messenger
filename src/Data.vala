@@ -237,7 +237,7 @@ namespace Fb {
                     task.promise.set_value (photo);
                 } catch (Error e) {
                     warning ("Error while loading photo: %d %s\n", e.code, e.message);
-                    task.promise.set_value (null);
+                    //task.promise.set_value (null);
                 }
                 opened_files--;
                 update_load_queue.begin();
@@ -276,7 +276,7 @@ namespace Fb {
             foreach (var user in users) {
                 if (user == null) {
                     selective_updates.release ();
-                    save_contacts ();
+                    save_contacts.begin ();
                 } else if (parse_contact (user, friends_only)) {
                     any = true;
                 }
@@ -321,7 +321,7 @@ namespace Fb {
                     }
         
                     if (copy_removed.length () > 0) {
-                        save_contacts ();
+                        save_contacts.begin ();
                     }
                 });
             }
@@ -331,7 +331,7 @@ namespace Fb {
             unowned ApiUser user = (ApiUser) ptr;
             if (parse_contact (user, false)) {
                 contacts[user.uid].download_photo (1);
-                save_contacts ();
+                save_contacts.begin ();
             }
         }
         
@@ -360,7 +360,7 @@ namespace Fb {
             if (len <= Fb.App.SMALL_THREADS_COUNT && last_updated >= len - CHECK_LAST_THREADS) {
                 app.query_threads (Fb.App.THREADS_COUNT);
             }
-            save_threads ();
+            save_threads.begin ();
             selective_updates.add (() => {
                 foreach (var contact in contacts.values) {
                     contact.download_photo (1);
@@ -380,7 +380,7 @@ namespace Fb {
         public void thread_done (void *ptr) {
             unowned Fb.ApiThread? thread = (Fb.ApiThread?)ptr;
             update_thread (thread);
-            save_threads ();
+            save_threads.begin ();
         }
 
         public void update_presence (void *ptr) {

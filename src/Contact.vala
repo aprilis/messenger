@@ -88,7 +88,7 @@ namespace Fb {
             id = object.get_int_member("id");
             is_friend = object.get_boolean_member("is_friend");
             photo_csum = object.get_string_member("photo_csum");
-            load_photo_from_disk ();
+            load_photo_from_disk.begin ();
             is_loaded = true;
         }
         
