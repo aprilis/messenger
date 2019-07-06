@@ -18,6 +18,14 @@ namespace Ui {
                     max-width: 1px;
                     min-width: 1px;
                 }
+                /* Left sidebar */
+                div._7q1s {
+                    display: none;
+                }
+                /* Cookie consent */
+                div._730v {
+                    display: none;
+                }
                 div._1q5- {
                     border-left: none;
                 }
