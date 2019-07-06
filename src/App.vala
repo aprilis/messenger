@@ -327,9 +327,9 @@ namespace Fb {
                     thread.name_updated.connect (() => {
                         user_name = thread.name;
                     });
-                    window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
+                    window_manager.header.set_photo (thread.get_icon (Ui.HeaderBar.PHOTO_SIZE, true));
                     thread.photo_updated.connect (() => {
-                        window_manager.header.set_photo (thread.get_icon (window_manager.header.PHOTO_SIZE, true));
+                        window_manager.header.set_photo (thread.get_icon (Ui.HeaderBar.PHOTO_SIZE, true));
                     });
                 }
                 thread.notify ["is-present"].connect ((s, p) => {
@@ -480,7 +480,7 @@ namespace Fb {
                 add_to_plank (thread.id);
             }
             Notify.Notification not;
-            if (thread.id in notifications) {
+            if (notifications.has_key (thread.id)) {
                 not = notifications [thread.id];
                 not.update (thread.notification_text, message, null);
             } else {
