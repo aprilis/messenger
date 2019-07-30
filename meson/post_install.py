@@ -10,5 +10,5 @@ datadir = path.join(prefix, 'share')
 if not environ.get('DESTDIR'):
     print('Compiling gsettings schemas…')
     subprocess.call(['glib-compile-schemas', schemadir])
-    print('Updating icon cache…')
-    subprocess.call(['gtk-update-icon-cache', '-qtf', path.join(datadir, 'icons', 'hicolor')])
+    #print('Updating icon cache…')
+    #subprocess.call(['gtk-update-icon-cache', '-qtf', path.join(datadir, 'icons', 'hicolor')])
