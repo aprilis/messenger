@@ -43,12 +43,9 @@ namespace Ui {
             private const string CHANGE_USER_SCRIPT = """
                 try {
                     document.title = 'loading';
-                    id = '%lld';
-                    element = document.getElementById('row_header_id_user:' + id);
-                    if (element == null) {
-                        element = document.getElementById('row_header_id_thread:' + id);
-                    }
-                    link = element.getElementsByTagName('a')[0];
+                    const id = '%lld';
+                    const selector = `[data-testid='row_header_id_user:${id}'] a, [data-testid='row_header_id_thread:${id} a']`;
+                    const link = document.querySelector(selector);
                     link.click();
                     document.title = '__success__';
                 } catch(err) {
