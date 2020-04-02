@@ -44,7 +44,7 @@ namespace Ui {
                 try {
                     document.title = 'loading';
                     const id = '%lld';
-                    const selector = `[data-testid='row_header_id_user:${id}'] a, [data-testid='row_header_id_thread:${id}'] a`;
+                    const selector = `[data-testid='row_header_id_user:${id}'] a, [data-testid='row_header_id_thread:${id}'] a, [data-href='https://www.messenger.com/t/${id}']`;
                     const link = document.querySelector(selector);
                     link.click();
                     document.title = '__success__';
