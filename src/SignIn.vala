@@ -5,7 +5,7 @@ namespace Ui {
     
     public class SignIn : Screen {
 
-        private const string APP_PASS_URL = "https://www.facebook.com/settings?tab=security&section=two_fac_auth&view";
+        private const string APP_PASS_URL = "https://www.facebook.com/settings?tab=security";
 
         private Entry login;
         
