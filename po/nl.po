@@ -1,0 +1,253 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the com.github.aprilis.messenger package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: com.github.aprilis.messenger\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-06-22 17:36+0200\n"
+"PO-Revision-Date: 2020-09-28 14:31+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.1\n"
+"Last-Translator: Heimen Stoffels <vistausss@outlook.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl\n"
+
+#: src/App.vala:574
+msgid ""
+"Please note that this is NOT an official Facebook Messenger app. Use it at "
+"your own risk. Do you still want to continue?"
+msgstr ""
+"Let op: dit is GEEN officiële Facebook Messenger-toepassing - gebruik is "
+"op eigen risico! Weet je zeker dat je wilt doorgaan?"
+
+#: src/App.vala:624
+msgid "Your account"
+msgstr "Mijn account"
+
+#: src/App.vala:625
+msgid "Reconnect"
+msgstr "Herverbinden"
+
+#: src/App.vala:630
+msgid "Close all conversations"
+msgstr "Alle gesprekken sluiten"
+
+#: src/App.vala:633
+msgid "Log Out & Quit"
+msgstr "Uitloggen en afsluiten"
+
+#: src/App.vala:635
+msgid "App"
+msgstr "Toepassing"
+
+#: src/App.vala:636 src/SettingsWindow.vala:33 src/SettingsWindow.vala:53
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: src/App.vala:640
+msgid "About"
+msgstr "Over"
+
+#: src/App.vala:643
+msgid "Quit"
+msgstr "Afsluiten"
+
+#: src/GroupCreator.vala:256
+msgid "Search for friends..."
+msgstr "Zoeken naar vrienden..."
+
+#: src/GroupCreator.vala:307
+msgid "Select friends to make a new group"
+msgstr "Selecteer vrienden om een groep samen te stellen"
+
+#: src/GroupCreator.vala:315
+msgid "Group name (optional)"
+msgstr "Groepsnaam (optioneel)"
+
+#: src/GroupCreator.vala:318
+msgid "Create!"
+msgstr "Maken!"
+
+#: src/GroupCreator.vala:335
+msgid "You have to select at least 2 users"
+msgstr "Selecteer minimaal 2 gebruikers"
+
+#: src/GroupCreator.vala:381
+msgid "Create a new group thread"
+msgstr "Maak een nieuw groepsgesprek"
+
+#: src/GroupThread.vala:219
+#, c-format
+msgid "New message to %s"
+msgstr "Nieuw bericht aan %s"
+
+#: src/GroupThread.vala:221
+#, c-format
+msgid "New message from %s to %s"
+msgstr "Nieuw bericht van %s aan %s"
+
+#: src/Loading.vala:21
+msgid "Loading..."
+msgstr "Bezig met laden..."
+
+#: src/LoadingScreen.vala:10
+msgid "Loading"
+msgstr "Bezig met laden"
+
+#: src/LoadingScreen.vala:13 src/ThreadsScreen.vala:68
+msgid "No connection"
+msgstr "Geen verbinding"
+
+#: src/LoadingScreen.vala:14 src/ThreadsScreen.vala:69
+msgid "Retry"
+msgstr "Opnieuw proberen"
+
+#: src/LoginDialog.vala:31
+msgid "Messenger - Authentication"
+msgstr "Messenger - Authenticatie"
+
+#: src/LoginDialog.vala:56
+msgid ""
+"Application password detected. Please log in with you real password here"
+msgstr "Toepassingswachtwoord gedetecteerd - log in met je echte wachtwoord."
+
+#: src/MainWindowManager.vala:159
+msgid "Facebook Messenger"
+msgstr "Facebook Messenger"
+
+#: src/PasswordScreen.vala:40
+msgid "Re-enter password"
+msgstr "Voer je wachtwoord opnieuw in"
+
+#: src/PasswordScreen.vala:44
+msgid "You must re-enter your password"
+msgstr "Voer je wachtwoord opnieuw in"
+
+#: src/PasswordScreen.vala:52
+msgid "Log out"
+msgstr "Uitloggen"
+
+#: src/PasswordScreen.vala:59
+msgid "Done"
+msgstr "Klaar"
+
+#: src/PasswordScreen.vala:65 src/SignIn.vala:61
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: src/PasswordScreen.vala:70 src/SignIn.vala:86
+msgid "Connection failed"
+msgstr "Verbinding mislukt"
+
+#: src/PasswordScreen.vala:71 src/SignIn.vala:87
+msgid "Wrong username or password"
+msgstr "Onjuiste gebruikersnaam/wachtwoord"
+
+#: src/PasswordScreen.vala:72 src/SignIn.vala:88
+msgid "Other error"
+msgstr "Ander soort fout"
+
+#: src/SettingsWindow.vala:41
+msgid "Close"
+msgstr "Sluiten"
+
+#: src/SettingsWindow.vala:59
+msgid "Close & forget shortcut:"
+msgstr "Sluiten en sneltoets vergeten:"
+
+#: src/SettingsWindow.vala:66
+msgid "Automatically add bubbles:"
+msgstr "Automatisch ballonnen tonen:"
+
+#: src/SettingsWindow.vala:71
+msgid "Main window in a bubble (restart required):"
+msgstr "Hoofdvenster in een ballon (herstart vereist):"
+
+#: src/SettingsWindow.vala:76
+msgid "Close bubbles on quit"
+msgstr "Ballonnen sluiten na afsluiten"
+
+#: src/SettingsWindow.vala:99
+msgid "Press some keys!"
+msgstr "Druk op een toetscombinatie!"
+
+#: src/SignIn.vala:44 src/SignIn.vala:68 src/Welcome.vala:11
+msgid "Sign In"
+msgstr "Inloggen"
+
+#: src/SignIn.vala:48
+msgid "Enter your login and password"
+msgstr "Voer je inloggegevens in"
+
+#: src/SignIn.vala:57
+msgid "Email or phone number"
+msgstr "E-mailadres of telefoonnummer"
+
+#: src/SignIn.vala:75
+msgid "Back"
+msgstr "Terug"
+
+#: src/SignIn.vala:89
+msgid ""
+"Do you use 2-step authentication?\n"
+"You need an app password to log in\n"
+msgstr ""
+"Gebruik je authenticatie in twee stappen?\n"
+"Dan heb je een appwachtwoord nodig om in te loggen\n"
+
+#: src/SignIn.vala:91
+msgid "Generate password"
+msgstr "Wachtwoord genereren"
+
+#: src/SignUp.vala:19 src/Welcome.vala:12
+msgid "Sign Up"
+msgstr "Registreren"
+
+#: src/SingleThread.vala:82
+#, c-format
+msgid "New message from %s"
+msgstr "Nieuw bericht van %s"
+
+#: src/ThreadsScreen.vala:57
+msgid "Search for friends and groups..."
+msgstr "Zoeken naar vrienden en groepen..."
+
+#: src/Utils.vala:115
+msgid "now"
+msgstr "zojuist"
+
+#: src/Utils.vala:118
+#, c-format
+msgid "%s min"
+msgstr "%s min."
+
+#: src/Utils.vala:131
+#, c-format
+msgid "%s hrs"
+msgstr "%s uur"
+
+#: src/Welcome.vala:10
+msgid "Messenger"
+msgstr "Messenger"
+
+#: src/Welcome.vala:10
+msgid "Sign in with Facebook to get started."
+msgstr "Log in met je Facebook-account om aan de slag te gaan."
+
+#: src/Welcome.vala:11
+msgid "Login to existing account"
+msgstr "Inloggen met bestaand account"
+
+#: src/Welcome.vala:12
+msgid "Create a new account"
+msgstr "Nieuw account aanmaken"
+
+#: src/Welcome.vala:15
+msgid "Welcome"
+msgstr "Welkom"
