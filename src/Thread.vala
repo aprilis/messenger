@@ -41,7 +41,7 @@ namespace Fb {
 
         private Utils.DelayedOps when_ready;
 
-        public Thread () {
+        protected Thread () {
             when_ready = new Utils.DelayedOps ();
             if (photo != null) {
                 when_ready.release ();
