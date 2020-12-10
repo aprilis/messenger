@@ -14,29 +14,13 @@ namespace Ui {
             private const string CONVERSATION_URL = MESSENGER_URL + "/t";
             
             private const string STYLE_SHEET = """
-                div._1enh {
-                    max-width: 1px;
-                    min-width: 1px;
-                }
                 /* Left sidebar */
-                div._7q1s {
+                div[role="navigation"] {
                     display: none;
                 }
                 /* Cookie consent */
                 div._730v {
                     display: none;
-                }
-                div._1q5- {
-                    border-left: none;
-                }
-                a._30yy._2oc8 {
-                    display: none;
-                }
-                span._3oh-._58nk {
-                    /*white-space: pre;*/
-                }
-                div._1p1v {
-                    white-space: pre;
                 }
                 """;
 
@@ -44,8 +28,9 @@ namespace Ui {
                 try {
                     document.title = 'loading';
                     const id = '%lld';
-                    const selector = `[data-testid='row_header_id_user:${id}'] a, [data-testid='row_header_id_thread:${id}'] a, [data-href='https://www.messenger.com/t/${id}']`;
+                    const selector = `a[href='/t/${id}/']`;
                     const link = document.querySelector(selector);
+                    console.log(selector, link);
                     link.click();
                     document.title = '__success__';
                 } catch(err) {
@@ -154,9 +139,9 @@ namespace Ui {
                 
                 var uri = webview.get_uri ();
                 if (uri.has_prefix (CONVERSATION_URL)) {
-                    webview.run_javascript.begin (MONITOR_COMPOSER, null);   
+                    //webview.run_javascript.begin (MONITOR_COMPOSER, null);   
                     webview.run_javascript.begin (MUTE_CALL_SOUND, null);   
-                    webview.run_javascript.begin (SCROLL_CONVERSATIONS, null);   
+                    //webview.run_javascript.begin (SCROLL_CONVERSATIONS, null);   
                 }
                 loading_finished = true;
                 if (uri.has_prefix (LOGIN_URL)) {
