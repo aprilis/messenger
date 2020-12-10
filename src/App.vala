@@ -351,8 +351,7 @@ namespace Fb {
 
         private void api_error (void *ptr) {
             unowned Error e = (Error)ptr;
-            Quark[] network_quarks = { Fb.Mqtt.error_quark (),
-                                     ResolverError.quark (), Fb.http_error_quark () };
+            Quark[] network_quarks = { ResolverError.quark (), Fb.http_error_quark () };
             warning ("Api error: %s %d %s\n", e.domain.to_string (), e.code, e.message);
             if (e.matches (Fb.Api.error_quark (), ApiError.AUTH) ||
                 e.matches (Fb.Mqtt.error_quark (), MqttError.USERPASS)) {
