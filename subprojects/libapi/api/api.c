@@ -101,7 +101,7 @@ fb_api_sticker(FbApi *api, FbId sid, FbApiMessage *msg);
 static void
 fb_api_contacts_delta(FbApi *api, const gchar *delta_cursor);
 
-G_DEFINE_TYPE(FbApi, fb_api, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_CODE(FbApi, fb_api, G_TYPE_OBJECT, G_ADD_PRIVATE(FbApi));
 
 static void
 fb_api_set_property(GObject *obj, guint prop, const GValue *val,
@@ -391,7 +391,7 @@ fb_api_class_init(FbApiClass *klass)
                  G_SIGNAL_ACTION,
                  0,
                  NULL, NULL,
-                 fb_marshal_VOID__OBJECT,
+                 fb_marshal_VOID__POINTER,
                  G_TYPE_NONE,
                  1, G_TYPE_POINTER);
 
@@ -2517,7 +2517,7 @@ fb_api_cb_contacts(GObject *source, GAsyncResult *res,
 			priv->contacts_delta = g_strdup(is_delta ? cursor : delta_cursor);
 		}
 
-		if (users) {
+		if (users || (complete && !is_delta)) {
 			g_signal_emit_by_name(api, "contacts", users, complete);
 		}
 

@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "marshal.h"
 #include "mqtt.h"
@@ -58,8 +59,8 @@ struct _FbMqttMessagePrivate
 	gboolean local;
 };
 
-G_DEFINE_TYPE(FbMqtt, fb_mqtt, G_TYPE_OBJECT);
-G_DEFINE_TYPE(FbMqttMessage, fb_mqtt_message, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_CODE(FbMqtt, fb_mqtt, G_TYPE_OBJECT, G_ADD_PRIVATE(FbMqtt));
+G_DEFINE_TYPE_WITH_CODE(FbMqttMessage, fb_mqtt_message, G_TYPE_OBJECT, G_ADD_PRIVATE(FbMqttMessage));
 
 static void
 fb_mqtt_dispose(GObject *obj)
@@ -109,9 +110,9 @@ fb_mqtt_class_init(FbMqttClass *klass)
 	             G_SIGNAL_ACTION,
 	             0,
 	             NULL, NULL,
-	             fb_marshal_VOID__OBJECT,
+	             fb_marshal_VOID__POINTER,
 	             G_TYPE_NONE,
-	             1, G_TYPE_ERROR);
+	             1, G_TYPE_POINTER);
 
 	/**
 	 * FbMqtt::open:
@@ -365,25 +366,32 @@ fb_mqtt_cb_read(GIOChannel *channel, GIOCondition cond, gpointer data)
 
         GError *error = NULL;
         res = g_input_stream_read(stream, &byte, sizeof byte, NULL, &error);
-		g_byte_array_append(priv->rbuf, &byte, sizeof byte);
 
-		if (res != sizeof byte) {
+		if (res < 0 && errno == EAGAIN) {
+			return FALSE;
+		} else if (res != 1) {
 			fb_mqtt_error(mqtt, FB_MQTT_ERROR_GENERAL,
 			              _("Failed to read fixed header"));
             return FALSE;
 		}
 
+		g_byte_array_append(priv->rbuf, &byte, sizeof byte);
+
 		mult = 1;
 
 		do {
             res = g_input_stream_read(stream, &byte, sizeof byte, NULL, NULL);
-			g_byte_array_append(priv->rbuf, &byte, sizeof byte);
 
-			if (res != sizeof byte) {
+			/* TODO: this case isn't handled yet */
+			if (0 && res < 0 && errno == EAGAIN) {
+				return FALSE;
+			} else if (res != 1) {
 				fb_mqtt_error(mqtt, FB_MQTT_ERROR_GENERAL,
 				              _("Failed to read packet size"));
                 return FALSE;
 			}
+
+			g_byte_array_append(priv->rbuf, &byte, sizeof byte);
 
 			priv->remz += (byte & 127) * mult;
 			mult *= 128;
@@ -394,7 +402,9 @@ fb_mqtt_cb_read(GIOChannel *channel, GIOCondition cond, gpointer data)
 		size = MIN(priv->remz, sizeof buf);
         rize = g_input_stream_read(stream, buf, size, NULL, NULL);
 
-		if (rize < 1) {
+		if (rize < 0 && errno == EAGAIN) {
+			return;
+		} else if (rize < 1) {
 			fb_mqtt_error(mqtt, FB_MQTT_ERROR_GENERAL,
 			              _("Failed to read packet data"));
             return FALSE;
